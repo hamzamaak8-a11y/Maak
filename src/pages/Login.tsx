@@ -4,6 +4,7 @@ import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { Logo } from "../components/atoms";
 import "../styles/auth.css";
+import "../styles/final-auth.css";
 import { useLanguage } from "../i18n";
 import { consumeReturnTo } from "../lib/returnTo";
 
@@ -32,9 +33,9 @@ export default function Login() {
   return (
     <main className="auth-main">
       <div className="auth-card">
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+        <div className="auth-language">
           <button className="lang-toggle-btn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
-            <Globe size={13} />
+            <Globe size={14} />
             <span>{lang === "ar" ? "FR" : "عربي"}</span>
           </button>
         </div>
@@ -86,8 +87,8 @@ export default function Login() {
         </p>
 
         <p className="auth-link-row">
-          {t("auth.noAccount")}{" "}
-          <button className="auth-link" onClick={() => navigate("/register")}>
+          {t("auth.noAccount")} {" "}
+          <button className="auth-link" type="button" onClick={() => navigate("/register")}>
             {t("auth.createAccountBtn")}
           </button>
         </p>
