@@ -1,0 +1,192 @@
+/* Maak — final responsive/app-shell pass
+   Goal: customer remains a phone-like app on desktop; provider/admin remain
+   true responsive workspaces. No data or behavior changes. */
+
+*,*::before,*::after{box-sizing:border-box}
+html,body,#root{max-width:100%;overflow-x:hidden}
+button,a,input,select,textarea{max-width:100%}
+button svg,a svg{flex:0 0 auto;vertical-align:middle}
+button:disabled{cursor:not-allowed;opacity:.58;transform:none!important}
+
+/* -------------------------------------------------------------------------
+   CUSTOMER: desktop is intentionally a centered phone-like application.
+   This keeps the marketplace from turning into a stretched web dashboard.
+   ------------------------------------------------------------------------- */
+@media (min-width:900px){
+  .app:not(.provider-app){
+    width:min(500px,100vw);
+    min-height:100dvh;
+    margin-inline:auto;
+    background:var(--w-paper,#f3f3f1);
+    box-shadow:0 0 0 1px rgba(5,6,11,.06),0 28px 90px rgba(5,6,11,.16);
+    position:relative;
+    overflow-x:clip;
+  }
+  .app:not(.provider-app) .shell{width:100%;padding-inline:16px}
+  .app:not(.provider-app) .topbar{margin-inline:-16px;height:66px}
+  .app:not(.provider-app) .header-inner{width:100%;padding-inline:16px}
+  .app:not(.provider-app) .desktop-nav,
+  .app:not(.provider-app) .profile-line{display:none!important}
+  .app:not(.provider-app) .header-inner>.brand{width:44px;height:44px;flex:0 0 44px}
+  .app:not(.provider-app) .app-main{min-height:calc(100dvh - 66px);padding-bottom:0}
+  .app:not(.provider-app) .screen{padding:18px 0 30px}
+  .app:not(.provider-app) .home{padding:14px 0 20px}
+  .app:not(.provider-app) .mobile-nav{
+    position:fixed;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+    left:50%;right:auto;width:min(476px,calc(100vw - 24px));transform:translateX(-50%);
+    bottom:calc(10px + env(safe-area-inset-bottom));z-index:1000;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   CUSTOMER: one consistent compact control language at every width.
+   ------------------------------------------------------------------------- */
+.app:not(.provider-app) button,
+.app:not(.provider-app) .primary,
+.app:not(.provider-app) .secondary,
+.app:not(.provider-app) .ghost-button,
+.app:not(.provider-app) .auth-btn{min-height:44px}
+.app:not(.provider-app) .primary,.app:not(.provider-app) .secondary{padding-inline:16px}
+.app:not(.provider-app) .home-intro,.app:not(.provider-app) .acct-card,
+.app:not(.provider-app) .pdetail-identity,.app:not(.provider-app) .pdetail-section,
+.app:not(.provider-app) .booking-body,.app:not(.provider-app) .state-card{overflow:hidden}
+.app:not(.provider-app) .page-title{flex-wrap:wrap}
+.app:not(.provider-app) .page-title>*,.app:not(.provider-app) .section-heading>*{min-width:0}
+.app:not(.provider-app) .home-prompt{overflow-wrap:anywhere}
+.app:not(.provider-app) .provider-row{min-width:0}
+.app:not(.provider-app) .provider-row>*{min-width:0}
+.app:not(.provider-app) .provider-row h3,.app:not(.provider-app) .provider-row p{overflow-wrap:anywhere}
+
+/* -------------------------------------------------------------------------
+   PROVIDER: desktop sidebar, tablet two-column feel, phone horizontal nav.
+   ------------------------------------------------------------------------- */
+.provider-layout{width:100%;min-height:100dvh;display:grid;grid-template-columns:250px minmax(0,1fr)}
+.provider-side{min-width:0;display:flex;flex-direction:column;gap:7px;position:sticky;top:0;height:100dvh;overflow:auto}
+.provider-side button{width:100%;min-height:44px;flex:0 0 auto;display:flex;align-items:center;gap:8px;text-align:start}
+.provider-main{min-width:0;overflow:hidden}
+.provider-main>*{min-width:0}
+.provider-main .admin-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.provider-main .metric-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.provider-main .metric{min-width:0}
+.provider-main .request-row{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.provider-main .request-client{min-width:0;display:flex;align-items:center;gap:12px}
+.provider-main .request-client>div{min-width:0}
+.provider-main .request-client h3,.provider-main .request-detail p{overflow-wrap:anywhere}
+.provider-main .cta-row{display:flex;flex-wrap:wrap;gap:8px}
+.provider-main .cta-row button{min-height:44px}
+
+/* Provider chat gets the available viewport, not an oversized nested page. */
+.provider-main .chat-workspace{width:100%;min-height:calc(100dvh - 56px)}
+
+/* -------------------------------------------------------------------------
+   ADMIN: full workspace on desktop, compact command center on phone.
+   ------------------------------------------------------------------------- */
+.admin{width:100%;min-height:100dvh;display:grid;grid-template-columns:250px minmax(0,1fr)}
+.admin-side{min-width:0;display:flex;flex-direction:column;gap:7px;position:sticky;top:0;height:100dvh;overflow:auto}
+.admin-side button{width:100%;min-height:44px;display:flex;align-items:center;gap:8px;text-align:start;flex:0 0 auto}
+.admin-main{min-width:0;overflow:hidden;padding-bottom:32px}
+.admin-top{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-top h1,.admin-top p{overflow-wrap:anywhere}
+.admin-main .metric-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.admin-main .metric{min-width:0}
+.admin-main .vk-list{min-width:0}
+.admin-main .vk-card{min-width:0;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.admin-main .vk-card-main{min-width:0;display:flex;align-items:center;gap:12px}
+.admin-main .vk-card-info{min-width:0}
+.admin-main .vk-card-head{display:flex;align-items:center;flex-wrap:wrap;gap:7px;overflow-wrap:anywhere}
+.admin-main .vk-card-info p{overflow-wrap:anywhere}
+.admin-main .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin}
+.admin-main .filter-button{flex:0 0 auto;min-height:42px;white-space:nowrap}
+
+/* Review drawer: never exceed the phone viewport on narrow screens. */
+.vk-drawer-overlay{position:fixed!important;inset:0!important;z-index:2000;display:flex;justify-content:flex-end}
+.vk-drawer{width:min(560px,100vw);max-width:100%;height:100dvh;display:flex;flex-direction:column;min-width:0}
+.vk-drawer-body{min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+.vk-drawer-foot{flex:0 0 auto}
+.vk-drawer .cta-row{display:flex;flex-wrap:wrap;gap:8px}
+.vk-drawer .cta-row button{min-height:44px;flex:1 1 150px}
+
+/* -------------------------------------------------------------------------
+   TABLET / PHONE provider + admin navigation.
+   ------------------------------------------------------------------------- */
+@media (max-width:899px){
+  .provider-layout,.admin{display:block;min-height:100dvh}
+  .provider-side,.admin-side{
+    position:sticky;top:0;z-index:100;width:100%;height:auto;min-height:0;
+    flex-direction:row;align-items:center;gap:6px;padding:10px 12px!important;
+    overflow-x:auto;overflow-y:hidden;white-space:nowrap;
+    box-shadow:0 8px 28px rgba(5,6,11,.12);
+    scrollbar-width:none;
+  }
+  .provider-side::-webkit-scrollbar,.admin-side::-webkit-scrollbar{display:none}
+  .provider-side>.brand,.admin-side>.brand{width:40px;min-width:40px;height:40px;object-fit:contain;margin-inline-end:3px}
+  .provider-side .provider-side-title{display:none}
+  .provider-side button,.admin-side button{width:auto;min-width:max-content;min-height:42px;padding:8px 12px!important;justify-content:center;text-align:center}
+  .provider-side .switch-role,.admin-side .return-app{margin-top:0!important;margin-inline-start:4px!important}
+  .provider-main,.admin-main{padding:14px 14px 110px!important}
+  .provider-main .admin-top,.admin-main .admin-top{padding:18px!important;flex-wrap:wrap}
+  .provider-main .metric-row,.admin-main .metric-row{grid-template-columns:1fr 1fr;gap:10px}
+  .provider-main .metric:last-child,.admin-main .metric:last-child{grid-column:1/-1}
+  .provider-main .request-row{align-items:flex-start;flex-direction:column}
+  .provider-main .request-row .cta-row{width:100%}
+  .provider-main .request-row .cta-row button{flex:1 1 130px}
+  .provider-main .chat-workspace{min-height:calc(100dvh - 170px)}
+  .admin-main .vk-card{align-items:flex-start;flex-direction:column}
+  .admin-main .vk-card>button{width:100%}
+  .admin-main .vk-card .secondary{min-height:44px}
+  .vk-drawer{width:100%;border-radius:20px 20px 0 0!important;margin-top:auto;height:min(94dvh,900px)}
+  .vk-drawer-overlay{align-items:flex-end}
+  .vk-drawer-head{padding:16px!important}
+  .vk-drawer-body{padding:0 16px!important}
+  .vk-drawer-foot{padding:12px 16px!important}
+  .vk-drawer .cta-row button{flex-basis:100%}
+}
+
+@media (max-width:560px){
+  .provider-main,.admin-main{padding-inline:10px!important}
+  .provider-main .metric-row,.admin-main .metric-row{grid-template-columns:1fr}
+  .provider-main .metric:last-child,.admin-main .metric:last-child{grid-column:auto}
+  .provider-main .admin-top,.admin-main .admin-top{padding:14px!important;border-radius:16px!important}
+  .provider-main .admin-top h1,.admin-main .admin-top h1{font-size:20px;line-height:1.25}
+  .provider-main .request-row{padding:14px!important}
+  .provider-main .request-client{width:100%;align-items:flex-start}
+  .provider-main .request-client .avatar{width:38px;height:38px}
+  .provider-main .cta-row button{width:100%}
+  .admin-main .vk-card{padding:13px!important}
+  .admin-main .vk-card-main{width:100%;align-items:flex-start}
+  .admin-main .vk-avatar{width:38px;height:38px;flex:0 0 38px}
+  .chat-workspace{border-radius:16px!important}
+  .chat-list{max-height:205px}
+  .chat-list-item{grid-template-columns:38px minmax(0,1fr) auto}
+  .chat-avatar{width:38px;height:38px}
+  .chat-header{min-height:64px}
+  .chat-bubble{max-width:92%;padding:9px 11px}
+  .chat-composer{padding:9px}
+  .chat-composer .send-button{width:44px;min-width:44px}
+}
+
+/* -------------------------------------------------------------------------
+   AUTH: always looks intentional on both desktop and phone, including admin.
+   ------------------------------------------------------------------------- */
+.auth-main{width:100%;min-height:100dvh;padding:20px;display:grid;place-items:center}
+.auth-card{width:min(100%,520px);min-width:0}
+.auth-form{width:100%}
+.auth-field{min-width:0}
+.auth-input{width:100%;min-width:0}
+.auth-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+@media(max-width:560px){.auth-main{padding:12px}.auth-card{border-radius:22px!important;padding:22px!important}.auth-title{font-size:28px!important}.auth-subtitle{font-size:13px!important}}
+
+/* -------------------------------------------------------------------------
+   Icons + touch targets: consistent professional icon rhythm everywhere.
+   ------------------------------------------------------------------------- */
+.icon-btn,.menu-btn,.lang-toggle-btn,.search-submit,.mobile-nav button{display:inline-flex;align-items:center;justify-content:center}
+.icon-btn svg,.lang-toggle-btn svg,.search-submit svg,.mobile-nav svg{stroke-linecap:round;stroke-linejoin:round}
+.mobile-nav button{touch-action:manipulation}
+@media(max-width:420px){
+  .mobile-nav{left:7px!important;right:7px!important;inset-inline:7px!important}
+  .mobile-nav button{font-size:10px!important;min-height:54px!important;padding-inline:2px!important}
+  .mobile-nav button svg{width:19px;height:19px}
+}
+
+/* Reduced motion keeps the interface accessible. */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
