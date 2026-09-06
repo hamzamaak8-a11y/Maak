@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   base: "/maak/",
   server: {
+    allowedHosts: true,
     proxy: {
       "/api": {
         target: apiTarget,

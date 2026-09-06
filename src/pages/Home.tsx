@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
-import { CategoryChip, ProviderRow, ProviderSkeleton, SearchBox, ServiceChip, StateCard } from "../components/atoms";
+import { CategoryChip, ProviderRow, ProviderSkeleton, SearchBox, ServiceChip, StateCard, TrustStrip } from "../components/atoms";
 import { categoryCountLabel, countByCategory, getCategories } from "../services";
 import { useProviders } from "../hooks/useProviders";
 import { useAuth } from "../auth";
@@ -50,6 +50,8 @@ export default function Home() {
         <p className="home-sub">{t("home.sub")}</p>
         <SearchBox value={query} onChange={setQuery} onSubmit={() => goDiscover(query)} />
       </section>
+
+      <TrustStrip />
 
       <section className="home-section">
         <div className="home-section-head">
