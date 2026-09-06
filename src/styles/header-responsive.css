@@ -1,0 +1,20 @@
+/* Final header controls: keep essential actions reachable without turning the customer app into a web navbar. */
+@media (min-width:900px){
+  .app:not(.provider-app) .profile-line{display:flex!important;align-items:center;gap:6px;margin-inline-start:auto}
+  .app:not(.provider-app) .profile-line .desktop-only{display:none!important}
+  .app:not(.provider-app) .profile-line .icon-btn.notification{display:grid!important}
+}
+@media (max-width:899px){
+  .app:not(.provider-app) .profile-line{display:flex!important;align-items:center;gap:6px;margin-inline-start:auto;min-width:0}
+  .app:not(.provider-app) .profile-line .notification,
+  .app:not(.provider-app) .profile-line .desktop-only{display:none!important}
+  .app:not(.provider-app) .profile-line .icon-btn:not(.notification){width:40px;min-width:40px;height:40px;padding:0}
+  .app:not(.provider-app) .profile-line .lang-toggle-btn{min-width:40px;width:40px;padding:0}
+  .app:not(.provider-app) .profile-line .auth-login-btn{min-height:40px;padding-inline:12px;font-size:12px;white-space:nowrap}
+  .app:not(.provider-app) .header-inner{min-width:0}
+  .app:not(.provider-app) .header-inner>.brand{flex:0 0 42px;width:42px;height:42px}
+}
+@media (max-width:360px){
+  .app:not(.provider-app) .profile-line .auth-login-btn{font-size:11px;padding-inline:9px}
+  .app:not(.provider-app) .profile-line .lang-toggle-btn{font-size:10px}
+}
