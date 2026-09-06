@@ -14,7 +14,7 @@ button:disabled{cursor:not-allowed;opacity:.58;transform:none!important}
    ------------------------------------------------------------------------- */
 @media (min-width:900px){
   .app:not(.provider-app){
-    width:min(500px,100vw);
+    width:min(440px,100vw);
     min-height:100dvh;
     margin-inline:auto;
     background:var(--w-paper,#f3f3f1);
@@ -33,7 +33,7 @@ button:disabled{cursor:not-allowed;opacity:.58;transform:none!important}
   .app:not(.provider-app) .home{padding:14px 0 20px}
   .app:not(.provider-app) .mobile-nav{
     position:fixed;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-    left:50%;right:auto;width:min(476px,calc(100vw - 24px));transform:translateX(-50%);
+    left:50%;right:auto;width:min(416px,calc(100vw - 24px));transform:translateX(-50%);
     bottom:calc(10px + env(safe-area-inset-bottom));z-index:1000;
   }
 }
