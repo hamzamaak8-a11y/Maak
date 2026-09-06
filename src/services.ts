@@ -1,23 +1,32 @@
-import { categories } from "./data";
+import { categories, fallbackProviders } from "./data";
 import type { Category, Provider } from "./types";
 
 const API_BASE: string = (import.meta.env.VITE_API_URL as string | undefined) || "";
 
 export async function fetchProviders(): Promise<Provider[]> {
-  const res = await fetch(API_BASE + "/api/providers");
-  if (!res.ok) {
-    throw new Error("common.loadProvidersFail");
+  try {
+    const res = await fetch(API_BASE + "/api/providers");
+    if (!res.ok) {
+      return fallbackProviders;
+    }
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data : fallbackProviders;
+  } catch {
+    return fallbackProviders;
   }
-  return (await res.json()) as Provider[];
 }
 
 export async function fetchProvider(id: number): Promise<Provider | undefined> {
-  const res = await fetch(API_BASE + "/api/providers/" + id);
-  if (res.status === 404) return undefined;
-  if (!res.ok) {
-    throw new Error("svc.errProvider");
+  try {
+    const res = await fetch(API_BASE + "/api/providers/" + id);
+    if (res.status === 404) return undefined;
+    if (!res.ok) {
+      return fallbackProviders.find((p) => p.id === id);
+    }
+    return (await res.json()) as Provider;
+  } catch {
+    return fallbackProviders.find((p) => p.id === id);
   }
-  return (await res.json()) as Provider;
 }
 
 export function getCategories(): Category[] {
