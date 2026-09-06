@@ -29,10 +29,11 @@ const TABS: { key: TabKey; label: string }[] = [
 
 type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
 
-function fmtDate(iso: string | null, t: TranslateFunc): string {
+function fmtDate(iso: string | null, t: TranslateFunc, lang: string): string {
   if (!iso) return t("common.unspecified");
   try {
-    return new Intl.DateTimeFormat("ar-MA", {
+    const locale = lang === "fr" ? "fr-FR" : "ar-MA";
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(iso));
@@ -46,7 +47,7 @@ function pad2(n: number): string {
 }
 
 export default function ProviderMode({ switchRole }: { switchRole: () => void }) {
-  const { t } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
   const { showToast } = useToast();
   const { profile, user } = useAuth();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
@@ -150,7 +151,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
               setRejectId(null);
             }}
           >
-            {tabItem.label}
+            {t(tabItem.label)}
             {counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
           </button>
         ))}
@@ -228,7 +229,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
                   <span className="status">{t(BOOKING_STATUS_LABELS[b.status])}</span>
                   <h3>{t(b.service_category)}</h3>
                   <p>
-                    {b.customer_name ?? t("pm.customer")} · {fmtDate(b.service_date, t)} ·{" "}
+                    {b.customer_name ?? t("pm.customer")} · {fmtDate(b.service_date, t, lang)} ·{" "}
                     {b.location_text ?? t("common.unspecified")}
                   </p>
                 </div>
@@ -334,7 +335,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
                   ) : null}
                   <div className="detail-row">
                     <b>{t("pm.appointment")}</b>
-                    <span>{fmtDate(b.service_date, t)}</span>
+                    <span>{fmtDate(b.service_date, t, lang)}</span>
                   </div>
                   <div className="detail-row">
                     <b>{t("pdetail.location")}</b>

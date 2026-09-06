@@ -171,7 +171,7 @@ function explainActionError(raw: string, t: TranslateFunc): string {
 }
 
 export default function Admin({ switchRole }: { switchRole: () => void }) {
-  const { t } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
   const { profile } = useAuth();
   const { showToast } = useToast();
 
@@ -342,9 +342,14 @@ export default function Admin({ switchRole }: { switchRole: () => void }) {
         <div className="admin-top">
           <div>
             <span className="section-kicker">{t("adm.adminKicker")}</span>
-            <h1>{tab}</h1>
+            <h1>{t(tab)}</h1>
           </div>
-          <span className="avatar">{t("adm.avatarLetter")}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button className="lang-toggle-btn" onClick={toggleLang} aria-label={t("lang.label")}>
+              <span>{lang === "ar" ? "FR" : "عربي"}</span>
+            </button>
+            <span className="avatar">{t("adm.avatarLetter")}</span>
+          </div>
         </div>
 
         {loading ? (

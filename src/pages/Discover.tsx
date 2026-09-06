@@ -119,7 +119,7 @@ export default function Discover() {
 
       <section className="content-section providers-section">
         <div className="section-heading">
-          <h2>{filter ? t("discover.resultsFor", { q: filter }) : t("discover.allProviders")}</h2>
+          <h2>{filter ? t("discover.resultsFor", { query: filter }) : t("discover.allProviders")}</h2>
           <span className="results-count">{providerCountLabel(results.length, t)}</span>
         </div>
         <div className="discover-results">

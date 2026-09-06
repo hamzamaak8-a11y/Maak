@@ -15,10 +15,13 @@ export const seedProviders: Provider[] = [
     image:
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=240&q=85",
     available: true,
-    services: ["إصلاح التسربات", "تركيب الصنابر", "صيانة السخانات"],
+    services: ["إصلاح التسربات", "تركيب الصنابير", "صيانة السخانات"],
     experience: "8 سنوات",
     intro:
-      "كنعاون العائلات فطنجة نحلّو مشاكل الماء بسرعة وبخدمة نقية. كنشرح المشكل قبل أي تدخل.",
+      "أساعد العائلات في طنجة على حل مشاكل المياه والسباكة بسرعة وجودة متقنة، مع توضيح أسباب العطل والحلول المناسبة قبل أي تدخل.",
+    provider_profile_id: null,
+    listing_kind: "seed",
+    published_at: null,
   },
   {
     id: 2,
@@ -35,7 +38,10 @@ export const seedProviders: Provider[] = [
     services: ["تنظيف شامل", "تنظيف بعد الانتقال"],
     experience: "5 سنوات",
     intro:
-      "خدمة تنظيف منظمة وموثوقة، نهتم بالتفاصي الصغيرة ونخليو دارك مرتبة ومرتاحة.",
+      "خدمة تنظيف منظمة وموثوقة بعناية فائقة لكافة التفاصيل لضمان بيئة منزلية مريحة ونظيفة.",
+    provider_profile_id: null,
+    listing_kind: "seed",
+    published_at: null,
   },
   {
     id: 3,
@@ -52,7 +58,10 @@ export const seedProviders: Provider[] = [
     services: ["تركيب الإنارة", "إصلاح الأعطال", "لوحات الكهرباء"],
     experience: "11 سنة",
     intro:
-      "كنقدمو حلول كهربائية آمنة للمنازل والمحلات بطنجة، من التشخيص حتى الإصلاح.",
+      "نقدم حلولاً كهربائية آمنة ومعتمدة للمنازل والمحلات بطنجة، من التشخيص الدقيق وحتى الصيانة والإصلاح الكامل.",
+    provider_profile_id: null,
+    listing_kind: "seed",
+    published_at: null,
   },
   {
     id: 4,
@@ -68,6 +77,9 @@ export const seedProviders: Provider[] = [
     available: true,
     services: ["نقل الأثاث", "التركيب", "التغليف"],
     experience: "6 سنوات",
-    intro: "نقل الأثاث بلا صداع، من الباب للباب وبعناية.",
+    intro: "نقل احترافي للأثاث بكل عناية وأمان من الباب إلى الباب مع خدمات التغليف والتركيب الدقيق.",
+    provider_profile_id: null,
+    listing_kind: "seed",
+    published_at: null,
   },
 ];

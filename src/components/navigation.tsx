@@ -1,6 +1,7 @@
 import {
   Bell,
   ClipboardList,
+  Globe,
   Home,
   LogOut,
   MessageCircle,
@@ -17,7 +18,7 @@ export function Header({ path }: { path: string }) {
   const { navigate } = useRouter();
   const { showToast } = useToast();
   const { user, loading, signOut, profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
 
   async function handleSignOut() {
     await signOut();
@@ -37,6 +38,15 @@ export function Header({ path }: { path: string }) {
           <button className={path === "/bookings" ? "selected" : ""} onClick={() => navigate("/bookings")}>{t("nav.bookings")}</button>
         </nav>
         <div className="profile-line">
+          <button
+            className="lang-toggle-btn"
+            onClick={toggleLang}
+            aria-label={t("lang.label")}
+            title={lang === "ar" ? "Passer en Français" : "التحويل إلى العربية"}
+          >
+            <Globe size={14} />
+            <span>{lang === "ar" ? "FR" : "عربي"}</span>
+          </button>
           {loading ? (
             <span className="user-pill" aria-busy="true" />
           ) : user ? (

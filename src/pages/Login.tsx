@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Loader2 } from "lucide-react";
+import { Globe, Loader2 } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { Logo } from "../components/atoms";
@@ -7,7 +7,7 @@ import "../styles/auth.css";
 import { useLanguage } from "../i18n";
 
 export default function Login() {
-  const { t } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
   const { signIn } = useAuth();
   const { navigate } = useRouter();
   const [email, setEmail] = useState("");
@@ -31,6 +31,12 @@ export default function Login() {
   return (
     <main className="auth-main">
       <div className="auth-card">
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+          <button className="lang-toggle-btn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
+            <Globe size={13} />
+            <span>{lang === "ar" ? "FR" : "عربي"}</span>
+          </button>
+        </div>
         <div className="auth-brand">
           <Logo variant="lockup" />
         </div>

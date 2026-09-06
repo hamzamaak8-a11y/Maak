@@ -120,7 +120,7 @@ function AdminSurface() {
 function RoleShell() {
   const { path, navigate } = useRouter();
   const { role, signOut } = useAuth();
-  const exit = () => void signOut();
+  const exit = () => navigate("/account");
 
   // Admins always land on the dedicated admin panel.
   useEffect(() => {
@@ -130,7 +130,7 @@ function RoleShell() {
   if (path.startsWith("/admin")) {
     return <AdminSurface />;
   }
-  if (role === "provider") {
+  if (role === "provider" || path === "/provider-mode") {
     return (
       <ToastProvider>
         <div className="app provider-app">

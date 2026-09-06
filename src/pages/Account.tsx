@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Ban, Clock, Edit3, Loader2, LogOut, Rocket, ShieldCheck } from "lucide-react";
+import { Ban, Briefcase, Clock, Edit3, Globe, Loader2, LogOut, Rocket, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { useToast } from "../context";
@@ -15,7 +15,7 @@ function roleLabel(role: string, t: TranslateFunc): string {
 }
 
 export default function Account() {
-  const { t } = useLanguage();
+  const { t, lang, toggleLang } = useLanguage();
   const { user, profile, role, signOut, loading } = useAuth();
   const { navigate } = useRouter();
   const { showToast } = useToast();
@@ -69,7 +69,15 @@ export default function Account() {
         <button className="secondary" onClick={() => window.location.reload()}>{t("common.retry")}</button>
       </div>
     );
-  } else if (status === null) {
+  } else if (role === "admin") {
+    statusBlock = (
+      <div className="acct-status">
+        <h3 className="acct-status-title"><ShieldCheck size={16} /> {t("adm.dashboard")}</h3>
+        <p className="acct-status-body">{t("admLogin.gateBody")}</p>
+        <button className="primary" onClick={() => navigate("/admin")}><ShieldCheck size={16} /> {t("adm.dashboard")}</button>
+      </div>
+    );
+  } else if (status === null && role !== "provider") {
     statusBlock = (
       <div className="acct-status">
         <h3 className="acct-status-title">{t("account.applyTitle")}</h3>
@@ -101,11 +109,14 @@ export default function Account() {
         <button className="primary" onClick={() => navigate("/onboarding")}>{t("account.editCta")}</button>
       </div>
     );
-  } else if (status === "approved") {
+  } else if (status === "approved" || role === "provider") {
     statusBlock = (
       <div className="acct-status">
         <h3 className="acct-status-title"><ShieldCheck size={15} /> {t("acct.accredited")}</h3>
         <p className="acct-status-body">{t("acct.accreditedBody")}</p>
+        <button className="primary" onClick={() => navigate("/provider-mode")} style={{ marginTop: 10 }}>
+          <Briefcase size={16} /> {t("pm.workspace")}
+        </button>
       </div>
     );
   } else if (status === "suspended") {
@@ -133,6 +144,13 @@ export default function Account() {
         <div className="acct-row"><span>{t("common.role")}</span><span>{roleLabel(role, t)}</span></div>
         {profile?.city ? <div className="acct-row"><span>{t("common.city")}</span><span>{profile.city}</span></div> : null}
         {profile?.phone ? <div className="acct-row"><span>{t("common.phone")}</span><span>{profile.phone}</span></div> : null}
+        <div className="acct-row">
+          <span>{t("lang.label")}</span>
+          <button className="lang-toggle-btn" onClick={toggleLang}>
+            <Globe size={13} />
+            <span>{lang === "ar" ? "العربية (التبديل إلى Français)" : "Français (Passer en Arabe)"}</span>
+          </button>
+        </div>
         {statusBlock}
         <div className="onb-nav" style={{ marginTop: 18 }}>
           <button className="secondary" onClick={handleSignOut}><LogOut size={16} /> {t("acct.signOut")}</button>

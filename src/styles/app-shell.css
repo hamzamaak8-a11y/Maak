@@ -1,6 +1,5 @@
 /* =========================================================================
-   maak — App Shell Styles (Jahez / Mrsool Energetic Sunset Style)
-   Clean layouts, responsive containers, route fade transitions.
+   maak — App Shell Styles
    ========================================================================= */
 
 html {
@@ -27,15 +26,15 @@ body {
 }
 
 .shell {
-  width: min(1320px, 100%);
+  width: min(1280px, 100%);
   margin: auto;
-  padding: 0 24px calc(96px + env(safe-area-inset-bottom));
+  padding: 0 22px calc(92px + env(safe-area-inset-bottom));
 }
 
 @media (max-width: 700px) {
   .shell {
     padding-inline: 16px;
-    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
 
@@ -50,13 +49,13 @@ button, a, [role="button"] {
 }
 
 .app-main {
-  animation: maak-route-fade 0.22s ease-out;
+  animation: maak-route-fade 0.2s ease-out;
 }
 
 @keyframes maak-route-fade {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(3px);
   }
   to {
     opacity: 1;
@@ -71,9 +70,9 @@ button, a, [role="button"] {
 }
 
 .user-pill[aria-busy="true"] {
-  min-width: 110px;
-  height: 38px;
-  border-radius: 999px;
-  background: var(--surface-3);
+  min-width: 100px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--surface-2);
   animation: pulse 1.5s infinite;
 }
