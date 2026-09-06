@@ -10,6 +10,7 @@ import "./styles/mobile-shell-fix.css";
 import "./styles/final-responsive-polish.css";
 import "./styles/final-responsive.css";
 import "./styles/header-responsive.css";
+import "./styles/final-visual-polish.css";
 
 // Restore a deep-linked route saved by /Maak/404.html (GitHub Pages SPA fallback).
 (function () {
