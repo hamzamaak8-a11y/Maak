@@ -9,13 +9,17 @@ import {
 } from "react";
 import { ar, catLabels as catAr, svcLabels as svcAr, docLabels as docAr } from "./ar";
 import { fr, catLabels as catFr, svcLabels as svcFr, docLabels as docFr } from "./fr";
+import { chatAr, chatFr } from "./chat";
 
 export type Lang = "ar" | "fr";
 export type Dir = "rtl" | "ltr";
 
 const STORAGE_KEY = "maak:lang";
 
-const DICTS: Record<Lang, Record<string, string>> = { ar, fr };
+const DICTS: Record<Lang, Record<string, string>> = {
+  ar: { ...ar, ...chatAr },
+  fr: { ...fr, ...chatFr },
+};
 const CAT: Record<Lang, Record<string, string>> = { ar: catAr, fr: catFr };
 const SVC: Record<Lang, Record<string, string>> = { ar: svcAr, fr: svcFr };
 const DOC: Record<Lang, Record<string, string>> = { ar: docAr, fr: docFr };
@@ -39,13 +43,9 @@ interface LanguageContextValue {
   isRTL: boolean;
   setLang: (lang: Lang) => void;
   toggleLang: () => void;
-  /** Translate a flat dictionary key, with optional {var} interpolation. */
   t: (key: string, vars?: Record<string, string | number>) => string;
-  /** Canonical DB category value -> display label. */
   catLabel: (value: string) => string;
-  /** Canonical DB service value -> display label. */
   svcLabel: (value: string) => string;
-  /** Canonical DB document type value -> display label. */
   docLabel: (value: string) => string;
 }
 
@@ -56,7 +56,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const dir = dirOf(lang);
   const isRTL = dir === "rtl";
 
-  // Keep <html lang/dir> and the persisted preference in sync with the state.
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = dir;
@@ -67,13 +66,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, [lang, dir]);
 
-  const setLang = useCallback((next: Lang) => {
-    setLangState(next);
-  }, []);
-
-  const toggleLang = useCallback(() => {
-    setLangState((prev) => (prev === "ar" ? "fr" : "ar"));
-  }, []);
+  const setLang = useCallback((next: Lang) => setLangState(next), []);
+  const toggleLang = useCallback(() => setLangState((prev) => (prev === "ar" ? "fr" : "ar")), []);
 
   const t = useCallback(
     (key: string, vars?: Record<string, string | number>) => {
@@ -85,7 +79,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
       return text;
     },
-    [lang]
+    [lang],
   );
 
   const catLabel = useCallback((value: string) => CAT[lang][value] ?? CAT.ar[value] ?? value, [lang]);
@@ -94,7 +88,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<LanguageContextValue>(
     () => ({ lang, dir, isRTL, setLang, toggleLang, t, catLabel, svcLabel, docLabel }),
-    [lang, dir, isRTL, setLang, toggleLang, t, catLabel, svcLabel, docLabel]
+    [lang, dir, isRTL, setLang, toggleLang, t, catLabel, svcLabel, docLabel],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
