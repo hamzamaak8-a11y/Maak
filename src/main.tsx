@@ -7,6 +7,7 @@ import "./styles/design-system.css";
 import "./styles/wokka-inspired.css";
 import "./styles/wokka-refinements.css";
 import "./styles/mobile-shell-fix.css";
+import "./styles/final-responsive-polish.css";
 
 // Restore a deep-linked route saved by /Maak/404.html (GitHub Pages SPA fallback).
 (function () {
