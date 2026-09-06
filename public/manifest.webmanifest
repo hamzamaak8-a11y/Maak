@@ -1,23 +1,18 @@
 {
   "name": "maak — خدمات منزلية موثوقة",
   "short_name": "maak",
-  "description": "اكتشف واحجز مقدمي الخدمات المنزلية الموثوقتين في مدينتك.",
+  "description": "اكتشف واحجز مقدمي الخدمات المنزلية الموثوقين في مدينتك.",
   "lang": "ar",
   "dir": "rtl",
   "id": "/Maak/",
   "start_url": "/Maak/",
   "scope": "/Maak/",
   "display": "standalone",
-  "display_override": [
-    "standalone"
-  ],
-  "background_color": "#0b0c0e",
-  "theme_color": "#0b0c0e",
+  "display_override": ["standalone"],
+  "background_color": "#f7f3eb",
+  "theme_color": "#d6ac62",
   "orientation": "portrait-primary",
-  "categories": [
-    "lifestyle",
-    "productivity"
-  ],
+  "categories": ["lifestyle", "productivity"],
   "icons": [
     {
       "src": "./icon-192.png",
