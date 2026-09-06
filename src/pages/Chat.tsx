@@ -66,8 +66,11 @@ export default function Chat({ providerId }: { providerId?: string }) {
     setOpening(true);
     setError(null);
     void getOrCreateProviderConversation(providerId)
-      .then((id) => {
-        if (active) setSelectedId(id);
+      .then(async (id) => {
+        if (!active) return;
+        setSelectedId(id);
+        const rows = await listConversations();
+        if (active) setConversations(rows);
       })
       .catch((e) => active && setError(e instanceof Error ? e.message : "chat.openFail"))
       .finally(() => active && setOpening(false));
@@ -141,9 +144,7 @@ export default function Chat({ providerId }: { providerId?: string }) {
   }
 
   if (loading) {
-    return (
-      <main className="screen chat-screen"><div className="state-loading"><Loader2 className="spin" size={22} /><p>{t("common.loading")}</p></div></main>
-    );
+    return <main className="screen chat-screen"><div className="state-loading"><Loader2 className="spin" size={22} /><p>{t("common.loading")}</p></div></main>;
   }
 
   if (!user) {
@@ -172,34 +173,17 @@ export default function Chat({ providerId }: { providerId?: string }) {
     <main className="screen chat-screen">
       <div className="chat-workspace">
         <aside className="chat-list" aria-label={t("nav.messages")}>
-          <div className="chat-list-head">
-            <div>
-              <span className="section-kicker">{t("nav.messages")}</span>
-              <h1>{t("nav.messages")}</h1>
-            </div>
-            <MessageCircle size={21} />
-          </div>
+          <div className="chat-list-head"><div><span className="section-kicker">{t("nav.messages")}</span><h1>{t("nav.messages")}</h1></div><MessageCircle size={21} /></div>
           {loadingList || opening ? (
             <div className="state-loading compact"><Loader2 className="spin" size={18} /></div>
           ) : conversations.length === 0 ? (
             <div className="chat-list-empty"><MessageCircle size={24} /><b>{t("chat.noConversation")}</b><span>{t("chat.noMessagesBody")}</span></div>
           ) : (
             conversations.map((conversation) => (
-              <button
-                type="button"
-                className={`chat-list-item ${conversation.conversation_id === selectedId ? "active" : ""}`}
-                key={conversation.conversation_id}
-                onClick={() => setSelectedId(conversation.conversation_id)}
-              >
+              <button type="button" className={`chat-list-item ${conversation.conversation_id === selectedId ? "active" : ""}`} key={conversation.conversation_id} onClick={() => setSelectedId(conversation.conversation_id)}>
                 <span className="chat-avatar">{(conversation.other_user_name || "م").trim().slice(0, 1)}</span>
-                <span className="chat-list-copy">
-                  <strong>{conversation.other_user_name || t("chat.userFallback")}</strong>
-                  <small>{conversation.last_message || t("chat.noMessages")}</small>
-                </span>
-                <span className="chat-list-meta">
-                  <time>{formatTime(conversation.last_message_at, lang)}</time>
-                  {conversation.unread_count > 0 ? <em>{conversation.unread_count}</em> : null}
-                </span>
+                <span className="chat-list-copy"><strong>{conversation.other_user_name || t("chat.userFallback")}</strong><small>{conversation.last_message || t("chat.noMessages")}</small></span>
+                <span className="chat-list-meta"><time>{formatTime(conversation.last_message_at, lang)}</time>{conversation.unread_count > 0 ? <em>{conversation.unread_count}</em> : null}</span>
               </button>
             ))
           )}
@@ -208,48 +192,16 @@ export default function Chat({ providerId }: { providerId?: string }) {
         <section className="chat-conversation">
           {selected ? (
             <>
-              <header className="chat-header">
-                <div className="chat-header-person">
-                  <span className="chat-avatar">{(selected.other_user_name || "م").trim().slice(0, 1)}</span>
-                  <div><strong>{selected.other_user_name || t("chat.userFallback")}</strong><small>{t("chat.secureConversation")}</small></div>
-                </div>
-                <button className="ghost-button" type="button" onClick={() => setSelectedId(null)}>{t("common.close")}</button>
-              </header>
+              <header className="chat-header"><div className="chat-header-person"><span className="chat-avatar">{(selected.other_user_name || "م").trim().slice(0, 1)}</span><div><strong>{selected.other_user_name || t("chat.userFallback")}</strong><small>{t("chat.secureConversation")}</small></div></div><button className="ghost-button" type="button" onClick={() => setSelectedId(null)}>{t("common.close")}</button></header>
               <div className="messages" aria-live="polite">
-                {loadingMessages ? (
-                  <div className="state-loading"><Loader2 className="spin" size={22} /><p>{t("common.loading")}</p></div>
-                ) : messages.length === 0 ? (
-                  <div className="messages-empty"><span className="empty-msg"><MessageCircle size={26} /></span><h3>{t("chat.noMessages")}</h3><p>{t("chat.startConversation")}</p></div>
-                ) : (
-                  messages.map((message) => {
-                    const mine = message.sender_id === user.id;
-                    return (
-                      <div key={message.id} className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}>
-                        <div className={`chat-bubble ${mine ? "me" : "them"}`} dir={isRTL ? "rtl" : "ltr"}>
-                          <span>{message.body}</span>
-                          <small>{formatTime(message.created_at, lang)} {mine ? <CheckCheck size={12} /> : null}</small>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                {loadingMessages ? <div className="state-loading"><Loader2 className="spin" size={22} /><p>{t("common.loading")}</p></div> : messages.length === 0 ? <div className="messages-empty"><span className="empty-msg"><MessageCircle size={26} /></span><h3>{t("chat.noMessages")}</h3><p>{t("chat.startConversation")}</p></div> : messages.map((message) => {
+                  const mine = message.sender_id === user.id;
+                  return <div key={message.id} className={`chat-bubble-row ${mine ? "mine" : "theirs"}`}><div className={`chat-bubble ${mine ? "me" : "them"}`} dir={isRTL ? "rtl" : "ltr"}><span>{message.body}</span><small>{formatTime(message.created_at, lang)} {mine ? <CheckCheck size={12} /> : null}</small></div></div>;
+                })}
                 <div ref={endRef} />
               </div>
               {shownError ? <div className="chat-error" role="alert">{shownError}</div> : null}
-              <div className="chat-composer">
-                <input
-                  className="field"
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSend(); } }}
-                  maxLength={4000}
-                  aria-label={t("chat.messageLabel")}
-                  disabled={sending}
-                />
-                <button className="primary send-button" type="button" disabled={!draft.trim() || sending} onClick={() => void handleSend()} aria-label={t("common.send")}>
-                  {sending ? <Loader2 className="spin" size={16} /> : <Send size={16} />}
-                </button>
-              </div>
+              <div className="chat-composer"><input className="field" value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSend(); } }} maxLength={4000} aria-label={t("chat.messageLabel")} disabled={sending} /><button className="primary send-button" type="button" disabled={!draft.trim() || sending} onClick={() => void handleSend()} aria-label={t("common.send")}>{sending ? <Loader2 className="spin" size={16} /> : <Send size={16} />}</button></div>
             </>
           ) : (
             <div className="messages-empty chat-no-selection"><MessageCircle size={34} /><h3>{t("chat.selectConversation")}</h3><p>{t("chat.noMessagesBody")}</p></div>
