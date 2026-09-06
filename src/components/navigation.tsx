@@ -28,26 +28,28 @@ export function Header({ path }: { path: string }) {
 
   const initial = (profile?.full_name || user?.email || "?").charAt(0).toUpperCase();
   const isSelected = (route: string) => path === route;
+  const items = [
+    ["home", t("nav.home"), Home, "/"],
+    ["discover", t("nav.discover"), Search, "/discover"],
+    ["bookings", t("nav.bookings"), ClipboardList, "/bookings"],
+    ["chat", t("nav.messages"), MessageCircle, "/chat"],
+    ["account", t("nav.account"), UserRound, "/account"],
+  ] as const;
 
   return (
     <header className="topbar">
       <div className="header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label={t("nav.primary")}>
-          {[
-            ["home", t("nav.home"), "/"],
-            ["discover", t("nav.discover"), "/discover"],
-            ["bookings", t("nav.bookings"), "/bookings"],
-            ["chat", t("nav.messages"), "/chat"],
-            ["account", t("nav.account"), "/account"],
-          ].map(([id, label, to]) => (
+          {items.map(([id, label, Icon, to]) => (
             <button
               key={id}
               className={isSelected(to) ? "selected" : ""}
               onClick={() => navigate(to)}
               aria-current={isSelected(to) ? "page" : undefined}
             >
-              {label}
+              <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+              <span>{label}</span>
             </button>
           ))}
         </nav>
@@ -104,7 +106,7 @@ export function MobileNav({ path }: { path: string }) {
           onClick={() => navigate(to)}
           aria-current={path === to ? "page" : undefined}
         >
-          <Icon size={18} />
+          <Icon size={19} strokeWidth={2.2} />
           <span>{label}</span>
           {id === "bookings" && <i />}
         </button>
