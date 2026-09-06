@@ -11,12 +11,12 @@ import {
 
 /**
  * Minimal client-side router (history API).
- * Dynamically supports both root "/" and sub-path "/maak" (GitHub Pages).
+ * Dynamically supports both root "/" and sub-path "/Maak" (GitHub Pages).
  */
 
 function getBasename(): string {
-  if (typeof window !== "undefined" && window.location.pathname.startsWith("/maak")) {
-    return "/maak";
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/Maak")) {
+    return "/Maak";
   }
   return "";
 }
