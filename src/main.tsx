@@ -14,6 +14,7 @@ import "./styles/final-visual-polish.css";
 import "./styles/final-auth.css";
 import "./styles/admin-premium.css";
 import "./styles/maak-brand-system.css";
+import "./styles/maak-shell-polish.css";
 
 (function () {
   try {
