@@ -5,6 +5,7 @@ import { useRouter } from "../router";
 import { Logo } from "../components/atoms";
 import "../styles/auth.css";
 import { useLanguage } from "../i18n";
+import { consumeReturnTo } from "../lib/returnTo";
 
 export default function Login() {
   const { t, lang, toggleLang } = useLanguage();
@@ -25,7 +26,7 @@ export default function Login() {
       setError(signInError);
       return;
     }
-    navigate("/");
+    navigate(consumeReturnTo() ?? "/");
   }
 
   return (

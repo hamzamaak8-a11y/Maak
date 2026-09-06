@@ -6,6 +6,7 @@ import { Logo } from "../components/atoms";
 import { supabase } from "../lib/supabaseClient";
 import "../styles/auth.css";
 import { useLanguage } from "../i18n";
+import { consumeReturnTo } from "../lib/returnTo";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -58,7 +59,7 @@ export default function Register() {
       return;
     }
 
-    navigate("/");
+    navigate(consumeReturnTo() ?? "/");
   }
 
   async function handleResend() {

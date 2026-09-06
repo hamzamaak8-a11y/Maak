@@ -8,6 +8,7 @@ import { useRouter } from "../router";
 import { BOOKING_STATUS_LABELS, mapBookingError } from "../lib/bookings";
 import type { BookingRow } from "../types";
 import { useLanguage } from "../i18n";
+import { rememberReturnTo } from "../lib/returnTo";
 
 const STEPS = ["bflow.service", "bflow.details", "bflow.schedule", "bflow.review"];
 const DATES = ["bflow.today", "bflow.tomorrow", "bflow.thisWeek"];
@@ -43,7 +44,7 @@ export default function BookingFlow({ id }: { id: number }) {
     description: "",
     date: "bflow.today",
     time: "18:00",
-    location: "طنجة، النجمة",
+    location: "",
   });
   const [errors, setErrors] = useState<{ service?: string; location?: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -155,7 +156,11 @@ export default function BookingFlow({ id }: { id: number }) {
     );
   }
 
-if (!user) {
+  if (!user) {
+    const goAuth = (target: "/login" | "/register") => {
+      rememberReturnTo("/provider/" + provider.id + "/booking");
+      navigate(target);
+    };
     return (
       <main className="screen booking">
         <button className="booking-back" onClick={() => navigate("/provider/" + provider.id)}>
@@ -165,11 +170,11 @@ if (!user) {
           <h3>{t("bflow.loginRequired")}</h3>
           <p>{t("bflow.preserved")}</p>
           <div className="actions">
-            <button className="primary" onClick={() => navigate("/login")}>
+            <button className="primary" onClick={() => goAuth("/login")}>
               {t("adminLogin.signIn")} <ArrowLeft size={16} />
             </button>
-            <button className="ghost-button" onClick={() => navigate("/discover")}>
-              {t("pdetail.back")}
+            <button className="ghost-button" onClick={() => goAuth("/register")}>
+              {t("auth.createAccountBtn")}
             </button>
           </div>
         </div>

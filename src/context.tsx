@@ -14,6 +14,7 @@ import {
   type CreateBookingInput,
 } from "./lib/bookings";
 import type { BookingRow } from "./types";
+import { useAuth } from "./auth";
 
 /* ----------------------------- Toast ----------------------------- */
 
@@ -66,11 +67,21 @@ const BookingsContext = createContext<BookingsValue>({
 const LEGACY_KEY = "maak-bookings";
 
 export function BookingsProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id ?? null;
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Bookings are always scoped to the signed-in user by RLS. Without a session
+  // there is nothing to load, so we skip the request and expose an empty list.
   const refresh = useCallback(async () => {
+    if (!userId) {
+      setBookings([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -80,7 +91,7 @@ export function BookingsProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     try {
@@ -88,8 +99,14 @@ export function BookingsProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
+  }, []);
+
+  // Re-load whenever the authenticated user changes (sign-in, sign-out,
+  // account switch) so the list never shows another session's data.
+  useEffect(() => {
+    if (authLoading) return;
     void refresh();
-  }, [refresh]);
+  }, [authLoading, refresh]);
 
   const createBooking = useCallback(async (input: CreateBookingInput) => {
     const row = await createBookingRpc(input);

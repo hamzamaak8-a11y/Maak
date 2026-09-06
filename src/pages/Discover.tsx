@@ -8,12 +8,6 @@ import type { Category } from "../types";
 import { useRouter } from "../router";
 import { useLanguage } from "../i18n";
 
-const numDist = (d: string | null) => {
-  if (!d) return Infinity;
-  const m = d.match(/[\d.]+/);
-  return m ? parseFloat(m[0]) : Infinity;
-};
-
 type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
 
 const providerCountLabel = (n: number, t: TranslateFunc): string => {
@@ -32,8 +26,6 @@ export default function Discover() {
   );
   const [filter, setFilter] = useState(initialQuery);
   const [city, setCity] = useState("");
-  const [availableOnly, setAvailableOnly] = useState(false);
-  const [sort, setSort] = useState<"default" | "rating" | "distance">("default");
   const { providers, status, refetch } = useProviders();
 
   const categories = useMemo(
@@ -52,21 +44,17 @@ export default function Discover() {
     [providers],
   );
 
+  // Only real, data-backed filters: free-text/category match and city.
   const results = useMemo(() => {
     let list = filterProviders(providers, filter);
     if (city) list = list.filter((p) => p.city === city);
-    if (availableOnly) list = list.filter((p) => p.available);
-    if (sort === "rating") list = [...list].sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0));
-    else if (sort === "distance") list = [...list].sort((a, b) => numDist(a.distance) - numDist(b.distance));
     return list;
-  }, [providers, filter, city, availableOnly, sort]);
+  }, [providers, filter, city]);
 
-  const hasActiveFilters = Boolean(filter) || Boolean(city) || availableOnly || sort !== "default";
+  const hasActiveFilters = Boolean(filter) || Boolean(city);
   const clearAll = () => {
     setFilter("");
     setCity("");
-    setAvailableOnly(false);
-    setSort("default");
   };
 
   const marketplaceEmpty = providers.length === 0 && !hasActiveFilters;
@@ -109,17 +97,13 @@ export default function Discover() {
         cities={cities}
         city={city}
         onCity={setCity}
-        availableOnly={availableOnly}
-        onAvailable={setAvailableOnly}
-        sort={sort}
-        onSort={(v) => setSort(v as "default" | "rating" | "distance")}
         onClear={clearAll}
         hasActive={hasActiveFilters}
       />
 
       <section className="content-section providers-section">
         <div className="section-heading">
-          <h2>{filter ? t("discover.resultsFor", { query: filter }) : t("discover.allProviders")}</h2>
+          <h2>{filter ? t("discover.resultsFor", { query: t(filter) }) : t("discover.allProviders")}</h2>
           <span className="results-count">{providerCountLabel(results.length, t)}</span>
         </div>
         <div className="discover-results">

@@ -148,3 +148,77 @@ export async function rejectProvider(id: string, reason: string): Promise<void> 
   const { error } = await supabase.rpc("admin_reject_provider", { target: id, reason: trimmed });
   if (error) throw msg(error, "adm.errReject");
 }
+
+/* ---------------------------------------------------------------------------
+   Read-only admin views (customers + bookings). Data comes straight from the
+   RLS-protected tables through the admin SELECT policies
+   (profiles_select_admin / bookings_select_admin). No aggregates or growth
+   figures are computed client-side: only real rows and real counts are shown.
+   --------------------------------------------------------------------------- */
+
+export type AdminCustomer = {
+  id: string;
+  role: string;
+  full_name: string | null;
+  phone: string | null;
+  city: string | null;
+  created_at: string;
+};
+
+export type AdminBooking = {
+  id: string;
+  customer_id: string;
+  provider_id: string;
+  provider_listing_id: number | null;
+  service_category: string;
+  service_date: string | null;
+  location_text: string | null;
+  status: string;
+  rejection_reason: string | null;
+  created_at: string;
+  customer_name: string | null;
+  provider_name: string | null;
+};
+
+export const ADMIN_PAGE_SIZE = 50;
+
+export async function listCustomers(): Promise<{ rows: AdminCustomer[]; total: number }> {
+  const { data, error, count } = await supabase
+    .from("profiles")
+    .select("id,role,full_name,phone,city,created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .limit(ADMIN_PAGE_SIZE);
+  if (error) throw msg(error, "adm.loadCustomersFail");
+  return { rows: (data ?? []) as AdminCustomer[], total: count ?? 0 };
+}
+
+export async function listBookings(): Promise<{ rows: AdminBooking[]; total: number }> {
+  const { data, error, count } = await supabase
+    .from("bookings")
+    .select(
+      "id,customer_id,provider_id,provider_listing_id,service_category,service_date,location_text,status,rejection_reason,created_at,customer_name",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .limit(ADMIN_PAGE_SIZE);
+  if (error) throw msg(error, "adm.loadBookingsFail");
+  const rows = (data ?? []) as Array<Omit<AdminBooking, "provider_name">>;
+  if (rows.length === 0) return { rows: [], total: count ?? 0 };
+
+  // Resolve display names for both sides from profiles (admin-readable).
+  const ids = Array.from(new Set(rows.flatMap((r) => [r.customer_id, r.provider_id])));
+  const { data: profs, error: perr } = await supabase
+    .from("profiles")
+    .select("id,full_name")
+    .in("id", ids);
+  if (perr) throw msg(perr, "adm.loadBookingsFail");
+  const names = new Map<string, string | null>((profs ?? []).map((p) => [p.id as string, (p.full_name as string | null) ?? null]));
+  return {
+    rows: rows.map((r) => ({
+      ...r,
+      customer_name: r.customer_name || names.get(r.customer_id) || null,
+      provider_name: names.get(r.provider_id) ?? null,
+    })),
+    total: count ?? 0,
+  };
+}
