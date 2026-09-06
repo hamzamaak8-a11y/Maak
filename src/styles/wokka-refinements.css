@@ -1,0 +1,21 @@
+/* Second-pass visual polish: keep behavior intact while matching the selected Wokka visual language across every role. */
+@media (min-width: 900px){
+  .auth-main{display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,520px);gap:56px;align-items:center;padding:56px clamp(32px,6vw,100px);position:relative;overflow:hidden}
+  .auth-main:before{content:"";display:block;min-height:620px;border-radius:42px;background:linear-gradient(135deg,var(--w-ink) 0 54%,var(--w-red) 54% 76%,var(--w-yellow) 76%);box-shadow:0 30px 90px rgba(5,6,11,.16)}
+  .auth-card{width:100%!important;max-width:520px!important;padding:38px!important}
+}
+.auth-card .auth-brand img{max-height:44px;width:auto}.auth-card .lang-toggle-btn{padding:8px 11px;font-weight:800}.auth-card .auth-form{gap:14px}.auth-card .auth-link-row{margin-top:14px}
+
+/* Provider */
+.provider-layout{min-height:100dvh}.provider-side{padding:26px 18px!important}.provider-side>button{min-height:46px!important;padding-inline:14px!important;display:flex;align-items:center;justify-content:space-between;font-weight:800}.provider-side .switch-role{margin-top:auto!important;border:1px solid rgba(255,255,255,.12)!important}.provider-main{padding:28px!important}.provider-main .admin-top{padding:26px!important;background:#05060b!important;color:#fff!important;border:0!important}.provider-main .admin-top h1{color:#fff!important}.provider-main .section-kicker{color:var(--w-yellow)!important}.provider-main .metric-row{gap:14px}.provider-main .metric{padding:20px!important}.provider-main .metric strong{font-size:38px!important}.provider-main .request-row{padding:20px!important}.provider-main .status{display:inline-flex;padding:5px 9px;border-radius:999px;background:var(--w-yellow-soft);color:#8a6500;font-weight:850}.provider-main .cta-row button{border-radius:12px!important}.provider-main .request-detail{border-radius:14px!important;background:var(--w-paper)!important;border-color:var(--w-line)!important}
+
+/* Admin */
+.vk-drawer-overlay{background:rgba(5,6,11,.58)!important;backdrop-filter:blur(5px)}.vk-drawer{box-shadow:-24px 0 80px rgba(5,6,11,.22)!important}.vk-drawer-head{border-bottom-color:var(--w-line)!important}.vk-drawer-foot{border-top-color:var(--w-line)!important}.vk-section h3{font-weight:900;color:var(--w-ink)}.vk-doc{border-color:var(--w-line)!important;border-radius:14px!important;background:var(--w-paper)!important}.vk-doc-icon{background:var(--w-yellow)!important;color:var(--w-ink)!important}.mini-button{border-radius:10px!important}.vk-action-error{border-radius:12px!important}
+
+/* Onboarding */
+.onb-progress{background:#e7e7e2!important;border-radius:999px!important;overflow:hidden}.onb-progress .fill,.onb-progress .active{background:var(--w-red)!important}.onb-step{border-radius:14px!important}.onb-step.active{box-shadow:0 8px 20px rgba(236,16,1,.18)}.onb-loading{background:var(--w-paper)!important;color:var(--w-red)!important}.onb-panel,.onb-card{box-shadow:var(--w-shadow)!important}.onb-panel h1,.onb-card h1{font-weight:950;letter-spacing:-.03em}.onb-panel input,.onb-panel select,.onb-panel textarea{border-radius:13px!important;border-color:var(--w-line)!important;background:#fafaf7!important}.onb-panel input:focus,.onb-panel select:focus,.onb-panel textarea:focus{border-color:var(--w-red)!important;box-shadow:0 0 0 4px rgba(236,16,1,.08)!important}
+
+/* Booking / chat / account */
+.booking-header,.booking-summary,.booking-section,.chat-header,.chat-composer,.account-header{border-color:var(--w-line)!important}.booking-step.active,.booking-status.active{background:var(--w-red)!important;color:#fff!important}.chat-bubble.me{background:var(--w-red)!important;color:#fff!important}.chat-bubble.them{background:#fff!important;border:1px solid var(--w-line)!important}.chat-composer input{border-radius:999px!important;background:#fff!important;border:1px solid var(--w-line)!important}.account-role-badge,.role-badge{background:var(--w-yellow-soft)!important;color:#8a6500!important;border-radius:999px!important;font-weight:850}
+
+@media(max-width:899px){.auth-main{padding:20px 12px 34px}.auth-main:before{display:none}.auth-card{margin:auto}.provider-main{padding:18px!important}.provider-side{padding:18px!important}}
