@@ -27,10 +27,11 @@ function statusClass(status: BookingStatus): string {
 
 type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
 
-function fmtDate(iso: string | null, t: TranslateFunc): string {
+function fmtDate(iso: string | null, t: TranslateFunc, lang: string): string {
   if (!iso) return t("common.unspecified");
   try {
-    return new Intl.DateTimeFormat("ar-MA", {
+    const locale = lang === "fr" ? "fr-FR" : "ar-MA";
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(iso));
@@ -40,7 +41,7 @@ function fmtDate(iso: string | null, t: TranslateFunc): string {
 }
 
 export default function Bookings() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { bookings, loading, error, refresh, cancelBooking } = useBookings();
   const { providers } = useProviders();
   const { navigate } = useRouter();
@@ -157,7 +158,7 @@ export default function Bookings() {
                 <h3>{t(booking.service_category)}</h3>
                 <p>{provider ? provider.name : t("account.roleProvider")}</p>
                 <small className="booking-meta">
-                  <CalendarDays size={12} /> {fmtDate(booking.service_date, t)}
+                  <CalendarDays size={12} /> {fmtDate(booking.service_date, t, lang)}
                   {booking.location_text ? (
                     <>
                       <MapPin size={12} /> {booking.location_text}
@@ -168,10 +169,10 @@ export default function Bookings() {
                   <p className="booking-note">{booking.service_description}</p>
                 ) : null}
                 {booking.provider_note ? (
-                  <p className="booking-note">{t("bk.providerNote")}{booking.provider_note}</p>
+                  <p className="booking-note"><b>{t("bk.providerNote")}:</b> {booking.provider_note}</p>
                 ) : null}
                 {booking.status === "rejected" && booking.rejection_reason ? (
-                  <p className="booking-reason">{t("bk.rejectionReason")}{booking.rejection_reason}</p>
+                  <p className="booking-reason"><b>{t("bk.rejectionReason")}:</b> {booking.rejection_reason}</p>
                 ) : null}
                 {canCancel ? (
                   cancelId === booking.id ? (

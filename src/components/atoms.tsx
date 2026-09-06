@@ -222,7 +222,10 @@ export function ProviderRow({
       </div>
       <div className="provider-info">
         <div className="provider-title">
-          <h3>{provider.name}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h3>{provider.name}</h3>
+            <Rating value={provider.rating} reviews={provider.reviews} />
+          </div>
           <ChevronLeft size={16} className="provider-chevron" />
         </div>
         <p>{provider.job}</p>
