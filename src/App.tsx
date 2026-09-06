@@ -1,10 +1,11 @@
 import { useEffect, type ReactNode } from "react";
-import { LanguageProvider, useLanguage } from "./i18n";
 import { Loader2 } from "lucide-react";
+import { LanguageProvider, useLanguage } from "./i18n";
 import { AuthProvider, useAuth } from "./auth";
 import { BookingsProvider, ToastProvider, ToastViewport } from "./context";
 import { Router, matchPath, useRouter } from "./router";
 import { Header, MobileNav } from "./components/navigation";
+import { Logo } from "./components/atoms";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
@@ -23,7 +24,12 @@ import Discover from "./pages/Discover";
 
 function AppSplash() {
   const { t } = useLanguage();
-  return <div className="onb-loading" aria-label={t("common.loading")}><Loader2 className="spin" size={26} /></div>;
+  return (
+    <div className="maak-splash" aria-label={t("common.loading")}>
+      <Logo variant="lockup" />
+      <Loader2 className="spin" size={22} />
+    </div>
+  );
 }
 
 function CustomerShell() {
