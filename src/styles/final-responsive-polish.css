@@ -1,0 +1,297 @@
+/* Maak — final responsive/app-shell polish
+   Loaded last on purpose. It normalizes controls, keeps the customer surface
+   app-like on desktop, and gives Provider/Admin real responsive workspaces.
+*/
+
+:root {
+  --mk-control-h: 48px;
+  --mk-radius-control: 14px;
+  --mk-focus: 0 0 0 4px rgba(236, 16, 1, .12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .58; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  box-shadow: var(--mk-focus);
+}
+
+/* Every interactive control shares one visual grammar. */
+.primary, .secondary, .ghost-button, .text-button, .mini-button,
+.filter-button, .lang-toggle-btn, .icon-btn, .auth-login-btn,
+.provider-side button, .admin-side button, .mobile-nav button {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .18s ease, background-color .18s ease, border-color .18s ease,
+    color .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.primary, .secondary, .ghost-button {
+  min-height: var(--mk-control-h);
+  border-radius: var(--mk-radius-control);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  font-weight: 850;
+}
+.primary:hover:not(:disabled), .secondary:hover:not(:disabled), .ghost-button:hover:not(:disabled),
+.mini-button:hover:not(:disabled), .filter-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.icon-btn, .lang-toggle-btn {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 12px;
+}
+.icon-btn svg, .lang-toggle-btn svg, button > svg { flex: 0 0 auto; }
+
+/* CUSTOMER: on desktop this is intentionally a phone-sized app surface,
+   not a stretched web page. On real phones it becomes edge-to-edge. */
+.app:not(.provider-app) {
+  min-height: 100dvh;
+  background: var(--w-paper, #f3f3f1);
+  color: var(--w-ink, #05060b);
+}
+
+@media (min-width: 900px) {
+  .app:not(.provider-app) {
+    width: min(430px, calc(100vw - 48px));
+    min-height: 100dvh;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+    background: var(--w-paper, #f3f3f1);
+    box-shadow: 0 0 0 1px rgba(5,6,11,.08), 0 28px 90px rgba(5,6,11,.18);
+  }
+  .app:not(.provider-app) .shell { width: 100%; padding: 0 14px 104px; }
+  .app:not(.provider-app) .topbar {
+    margin-inline: -14px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 80;
+    border-bottom: 1px solid var(--w-line);
+    background: rgba(243,243,241,.97);
+    backdrop-filter: blur(16px);
+  }
+  .app:not(.provider-app) .header-inner {
+    width: 100%;
+    min-height: 64px;
+    padding-inline: 14px;
+    gap: 8px;
+  }
+  .app:not(.provider-app) .desktop-nav { display: none !important; }
+  .app:not(.provider-app) .header-inner > .brand { flex: 0 0 auto; }
+  .app:not(.provider-app) .profile-line { margin-inline-start: auto; gap: 5px; }
+  .app:not(.provider-app) .profile-line .desktop-only { display: none !important; }
+  .app:not(.provider-app) .lang-toggle-btn { min-width: 42px; min-height: 42px; padding: 0 9px; }
+  .app:not(.provider-app) .mobile-nav { display: flex !important; }
+  .app:not(.provider-app) .app-main { min-height: calc(100dvh - 64px); }
+  .app:not(.provider-app) .home, .app:not(.provider-app) .screen { padding-top: 18px; }
+  .app:not(.provider-app) .home-intro { min-height: 0; padding: 24px 20px; border-radius: 24px; }
+  .app:not(.provider-app) .home-prompt { font-size: 34px; line-height: 1.05; }
+  .app:not(.provider-app) .home-sub { font-size: 14px; }
+  .app:not(.provider-app) .category-rail, .app:not(.provider-app) .service-rail { overflow-x: auto; }
+  .app:not(.provider-app) .provider-row { min-width: 0; }
+  .app:not(.provider-app) .mobile-nav {
+    position: fixed;
+    left: 50%;
+    right: auto;
+    bottom: 12px;
+    width: min(406px, calc(100% - 20px));
+    transform: translateX(-50%);
+    z-index: 1000;
+  }
+  .app:not(.provider-app) .mobile-nav button { min-height: 56px; }
+}
+
+/* Customer mobile: predictable spacing and no hidden/overlapping content. */
+@media (max-width: 899px) {
+  .app:not(.provider-app) { width: 100%; }
+  .app:not(.provider-app) .shell { width: 100%; max-width: none; }
+  .app:not(.provider-app) .app-main { min-width: 0; }
+  .app:not(.provider-app) .home, .app:not(.provider-app) .screen { width: 100%; min-width: 0; }
+  .app:not(.provider-app) .home-intro { min-width: 0; }
+  .app:not(.provider-app) .home-prompt { max-width: 100%; }
+  .app:not(.provider-app) .home-sub { max-width: 100%; }
+  .app:not(.provider-app) .category-rail, .app:not(.provider-app) .service-rail {
+    max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain;
+  }
+  .app:not(.provider-app) .provider-row { min-width: 0; }
+  .app:not(.provider-app) .provider-row > * { min-width: 0; }
+  .app:not(.provider-app) .mobile-nav { isolation: isolate; }
+}
+
+/* Admin: full workspace on desktop, stacked navigation on phones. */
+.admin {
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  background: var(--w-paper, #f3f3f1);
+  color: var(--w-ink, #05060b);
+}
+.admin-side {
+  width: 248px;
+  min-height: 100dvh;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 22px 14px;
+  overflow-y: auto;
+  z-index: 40;
+}
+.admin-side > button { min-height: 46px; padding: 0 13px; text-align: start; }
+.admin-side .return-app { margin-top: auto; }
+.admin-main {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(18px, 3vw, 42px);
+}
+.admin-top {
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border-radius: 20px;
+}
+.admin-top h1 { margin: 4px 0 0; font-size: clamp(24px, 3vw, 36px); line-height: 1.1; }
+.metric-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.metric { min-width: 0; }
+.panel, .vk-list, .state-error, .state-loading { min-width: 0; }
+.vk-list { display: grid; gap: 12px; }
+.vk-card { min-width: 0; }
+.vk-card-main { min-width: 0; }
+.vk-card-info { min-width: 0; }
+.vk-card-head { min-width: 0; overflow-wrap: anywhere; }
+.vk-card-info p { overflow-wrap: anywhere; }
+.vk-drawer-overlay { padding: 18px; }
+.vk-drawer { width: min(620px, 100%); max-width: 100%; max-height: calc(100dvh - 36px); }
+.vk-drawer-body { min-height: 0; overflow: auto; }
+.vk-drawer-foot { flex-wrap: wrap; }
+
+@media (max-width: 899px) {
+  .admin { display: block; min-height: 100dvh; }
+  .admin-side {
+    width: 100%;
+    min-height: auto;
+    height: auto;
+    position: sticky;
+    top: 0;
+    padding: 12px;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 7px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--w-line);
+  }
+  .admin-side > .brand { flex: 0 0 auto; margin-inline-end: 4px; }
+  .admin-side .provider-side-title { display: none; }
+  .admin-side > button { flex: 0 0 auto; min-height: 42px; padding-inline: 13px; white-space: nowrap; }
+  .admin-side .return-app { margin-top: 0; }
+  .admin-main { padding: 14px; }
+  .admin-top { min-height: 70px; padding: 14px; margin-bottom: 14px; border-radius: 16px; }
+  .admin-top h1 { font-size: 23px; }
+  .metric-row { grid-template-columns: 1fr; gap: 10px; }
+  .metric { padding: 16px !important; }
+  .vk-card { padding: 13px !important; }
+  .vk-card-main { gap: 10px; }
+  .vk-card-info { min-width: 0; }
+  .vk-card > .secondary { width: 100%; margin-top: 12px; }
+  .vk-drawer-overlay { padding: 0; align-items: flex-end; }
+  .vk-drawer {
+    width: 100%;
+    max-height: min(92dvh, 760px);
+    border-radius: 22px 22px 0 0 !important;
+  }
+  .vk-drawer-head { padding: 16px; }
+  .vk-drawer-body { padding: 14px; }
+  .vk-drawer-foot { padding: 14px; }
+  .vk-drawer-foot .cta-row { width: 100%; display: grid; grid-template-columns: 1fr; }
+  .vk-drawer-foot .cta-row button { width: 100%; }
+}
+
+/* Provider workspace: keep the side rail on desktop and turn it into a
+   compact horizontal app menu on phones. */
+.provider-layout {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  overflow-x: hidden;
+}
+.provider-side {
+  width: 248px;
+  min-height: 100dvh;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  z-index: 40;
+}
+.provider-main { min-width: 0; width: 100%; overflow-x: hidden; }
+.provider-main > * { min-width: 0; }
+.provider-main .metric-row { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.request-row { min-width: 0; }
+.request-row > * { min-width: 0; }
+.request-detail { overflow-wrap: anywhere; }
+
+@media (max-width: 899px) {
+  .provider-layout { display: block; }
+  .provider-side {
+    width: 100%;
+    min-height: auto;
+    position: sticky;
+    top: 0;
+    padding: 10px !important;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    gap: 6px;
+    border-bottom: 1px solid var(--w-line);
+  }
+  .provider-side > .brand { flex: 0 0 auto; margin-inline-end: 4px; }
+  .provider-side-title { display: none; }
+  .provider-side > button { flex: 0 0 auto; min-height: 42px !important; white-space: nowrap; }
+  .provider-side .switch-role { margin-top: 0 !important; }
+  .provider-main { padding: 14px !important; }
+  .provider-main .metric-row { grid-template-columns: 1fr; }
+  .provider-main .admin-top { padding: 18px !important; }
+  .provider-main .request-row { padding: 14px !important; }
+  .provider-main .cta-row { display: grid; grid-template-columns: 1fr; }
+  .provider-main .cta-row button { width: 100%; }
+}
+
+/* Forms and text never escape their cards on narrow screens. */
+.auth-main, .auth-card, .auth-form, .booking-body, .booking-summary,
+.acct-card, .pdetail-identity, .pdetail-section, .onb-panel, .onb-card { min-width: 0; }
+.auth-card { width: min(100%, 520px); }
+.auth-form, .auth-field { min-width: 0; }
+.auth-input, .field, input, select, textarea { max-width: 100%; }
+img, svg { max-width: 100%; }
+
+/* Arabic/French direction must not change control alignment or create clipping. */
+html[dir="rtl"] button, html[dir="rtl"] input, html[dir="rtl"] select, html[dir="rtl"] textarea { text-align: inherit; }
+html[dir="ltr"] .admin-side > button, html[dir="ltr"] .provider-side > button { text-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
