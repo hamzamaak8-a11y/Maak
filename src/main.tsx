@@ -12,6 +12,7 @@ import "./styles/final-responsive.css";
 import "./styles/header-responsive.css";
 import "./styles/final-visual-polish.css";
 import "./styles/final-auth.css";
+import "./styles/admin-premium.css";
 
 (function () {
   try {
