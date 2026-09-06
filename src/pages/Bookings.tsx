@@ -7,6 +7,8 @@ import { Avatar } from "../components/atoms";
 import { BOOKING_STATUS_LABELS, mapBookingError } from "../lib/bookings";
 import type { BookingRow, BookingStatus, Provider } from "../types";
 import { useLanguage } from "../i18n";
+import { useAuth } from "../auth";
+import { rememberReturnTo } from "../lib/returnTo";
 
 function statusClass(status: BookingStatus): string {
   return (
@@ -42,6 +44,7 @@ function fmtDate(iso: string | null, t: TranslateFunc, lang: string): string {
 
 export default function Bookings() {
   const { t, lang } = useLanguage();
+  const { user, loading: authLoading } = useAuth();
   const { bookings, loading, error, refresh, cancelBooking } = useBookings();
   const { providers } = useProviders();
   const { navigate } = useRouter();
@@ -81,6 +84,46 @@ export default function Bookings() {
       setBusy(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <main className="screen bookings-screen">
+        <div className="empty-state">
+          <Loader2 className="spin" size={22} />
+          <p>{t("bookings.loading")}</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    const goAuth = (target: "/login" | "/register") => {
+      rememberReturnTo("/bookings");
+      navigate(target);
+    };
+    return (
+      <main className="screen bookings-screen">
+        <div className="page-title">
+          <div>
+            <span className="section-kicker">{t("bookings.sub")}</span>
+            <h1>{t("bookings.title")}</h1>
+          </div>
+        </div>
+        <div className="auth-gate">
+          <h3>{t("bookings.loginRequired")}</h3>
+          <p>{t("bookings.loginRequiredBody")}</p>
+          <div className="actions">
+            <button className="primary" onClick={() => goAuth("/login")}>
+              {t("adminLogin.signIn")}
+            </button>
+            <button className="ghost-button" onClick={() => goAuth("/register")}>
+              {t("auth.createAccountBtn")}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="screen bookings-screen">

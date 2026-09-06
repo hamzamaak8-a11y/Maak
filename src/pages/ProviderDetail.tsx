@@ -148,7 +148,7 @@ return (
             <div className="pdetail-services">
               {provider.services.length ? (
                 provider.services.map((service) => (
-                  <span className="chip" key={service}>{service}</span>
+                  <span className="chip" key={service}>{t(service)}</span>
                 ))
               ) : (
                 <span className="muted">{t("pdetail.notDefined")}</span>

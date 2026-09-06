@@ -119,18 +119,32 @@ function AdminSurface() {
 
 function RoleShell() {
   const { path, navigate } = useRouter();
-  const { role, signOut } = useAuth();
+  const { role, signOut, loading, profileLoading, user } = useAuth();
   const exit = () => navigate("/account");
+  const authReady = !loading && !profileLoading;
 
   // Admins always land on the dedicated admin panel.
   useEffect(() => {
     if (role === "admin" && !path.startsWith("/admin")) navigate("/admin");
   }, [role, path, navigate]);
 
+  // /provider-mode is only meaningful for accounts whose server-side role is
+  // "provider" (set by admin_approve_provider). Anyone else is sent to their
+  // account centre. RLS/RPCs remain the real protection; this only keeps the
+  // provider shell from rendering for the wrong audience.
+  const wantsProviderMode = path === "/provider-mode";
+  useEffect(() => {
+    if (!wantsProviderMode || !authReady) return;
+    if (role !== "provider") navigate(user ? "/account" : "/login");
+  }, [wantsProviderMode, authReady, role, user, navigate]);
+
   if (path.startsWith("/admin")) {
     return <AdminSurface />;
   }
-  if (role === "provider" || path === "/provider-mode") {
+  if (wantsProviderMode && (!authReady || role !== "provider")) {
+    return <AppSplash />;
+  }
+  if (role === "provider") {
     return (
       <ToastProvider>
         <div className="app provider-app">

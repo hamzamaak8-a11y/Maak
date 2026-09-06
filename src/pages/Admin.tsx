@@ -7,11 +7,13 @@ import { Logo } from "../components/atoms";
 import { useAuth } from "../auth";
 import { useToast } from "../context";
 import * as admin from "../lib/admin";
-import type { AdminApplication, AdminDocument } from "../lib/admin";
+import type { AdminApplication, AdminBooking, AdminCustomer, AdminDocument } from "../lib/admin";
+import { BOOKING_STATUS_LABELS } from "../lib/bookings";
+import type { BookingStatus } from "../types";
 import type { VerificationStatus } from "../types";
 import { useLanguage } from "../i18n";
 
-const TABS = ["adm.tabOverview", "adm.tabVerify"] as const;
+const TABS = ["adm.tabOverview", "adm.tabVerify", "adm.tabCustomers", "adm.tabBookings"] as const;
 type Tab = (typeof TABS)[number];
 
 type CountStatus = "pending" | "approved" | "rejected";
@@ -120,9 +122,6 @@ function ReviewDrawer(props: ReviewDrawerProps) {
           {actionError ? (
             <div className="vk-action-error" role="alert">
               <AlertCircle size={14} /> {actionError.message}
-              {actionError.tech ? (
-                <div className="vk-action-error-tech">{actionError.tech}</div>
-              ) : null}
             </div>
           ) : null}
           {rejecting ? (
@@ -190,6 +189,50 @@ export default function Admin({ switchRole }: { switchRole: () => void }) {
   const [actionError, setActionError] = useState<{ message: string; tech: string } | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+
+  // Read-only directories (customers / bookings). Loaded lazily per tab.
+  const [customers, setCustomers] = useState<{ rows: AdminCustomer[]; total: number } | null>(null);
+  const [bookingsData, setBookingsData] = useState<{ rows: AdminBooking[]; total: number } | null>(null);
+  const [dirLoading, setDirLoading] = useState(false);
+  const [dirErr, setDirErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (tab !== "adm.tabCustomers" && tab !== "adm.tabBookings") return;
+    let active = true;
+    (async () => {
+      setDirLoading(true);
+      setDirErr(null);
+      try {
+        if (tab === "adm.tabCustomers") {
+          const res = await admin.listCustomers();
+          if (active) setCustomers(res);
+        } else {
+          const res = await admin.listBookings();
+          if (active) setBookingsData(res);
+        }
+      } catch (e) {
+        if (active) setDirErr(e instanceof Error ? e.message : "adm.loadFail");
+      } finally {
+        if (active) setDirLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [tab]);
+
+  const fmtWhen = (iso: string | null) => {
+    if (!iso) return t("common.unspecified");
+    try {
+      return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-MA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
+    } catch {
+      return iso;
+    }
+  };
+  const roleLabel = (role: string) =>
+    role === "admin" ? t("account.roleAdmin") : role === "provider" ? t("account.roleProvider") : t("account.roleCustomer");
+  const bookingStatusLabel = (status: string) => {
+    const key = BOOKING_STATUS_LABELS[status as BookingStatus];
+    return key ? t(key) : status;
+  };
 
   async function reloadCounts() {
     try {
@@ -367,6 +410,77 @@ export default function Admin({ switchRole }: { switchRole: () => void }) {
               <button className="primary" onClick={() => setTab("adm.tabVerify")}>{t("adm.openVerifyList")} <ArrowLeft size={15} /></button>
             </div>
           </>
+        ) : tab === "adm.tabCustomers" || tab === "adm.tabBookings" ? (
+          dirLoading ? (
+            <div className="state-loading"><Loader2 className="spin" size={24} /><p>{t("common.loading")}</p></div>
+          ) : dirErr ? (
+            <div className="state-error">
+              <AlertCircle size={26} />
+              <h3>{t("adm.loadFail")}</h3>
+              <p>{t(dirErr)}</p>
+              <button className="secondary" onClick={() => setTab(tab === "adm.tabCustomers" ? "adm.tabBookings" : "adm.tabCustomers")}>{t("common.retryBtn")}</button>
+            </div>
+          ) : tab === "adm.tabCustomers" ? (
+            <>
+              <div className="metric-row">
+                <div className="metric"><small>{t("adm.tabCustomers")}</small><strong>{customers?.total ?? 0}</strong><span>{t("adm.readOnly")}</span></div>
+              </div>
+              {!customers || customers.rows.length === 0 ? (
+                <div className="panel"><p>{t("adm.noCustomers")}</p></div>
+              ) : (
+                <div className="vk-list">
+                  {customers.rows.map((c) => (
+                    <div className="vk-card" key={c.id}>
+                      <div className="vk-card-main">
+                        <div className="vk-avatar">{(c.full_name || "?").charAt(0)}</div>
+                        <div className="vk-card-info">
+                          <div className="vk-card-head">{c.full_name || t("adm.unnamedUser")} <span className="vk-badge">{roleLabel(c.role)}</span></div>
+                          <p>{c.city || "—"} · {c.phone || "—"} · {fmtWhen(c.created_at)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {customers.total > customers.rows.length ? (
+                    <p className="hint">{t("adm.showingFirst", { n: customers.rows.length, total: customers.total })}</p>
+                  ) : null}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="metric-row">
+                <div className="metric"><small>{t("adm.tabBookings")}</small><strong>{bookingsData?.total ?? 0}</strong><span>{t("adm.readOnly")}</span></div>
+              </div>
+              {!bookingsData || bookingsData.rows.length === 0 ? (
+                <div className="panel"><p>{t("adm.noBookings")}</p></div>
+              ) : (
+                <div className="vk-list">
+                  {bookingsData.rows.map((b) => (
+                    <div className="vk-card" key={b.id}>
+                      <div className="vk-card-main">
+                        <div className="vk-avatar">{(b.customer_name || "?").charAt(0)}</div>
+                        <div className="vk-card-info">
+                          <div className="vk-card-head">
+                            {t(b.service_category)} <span className="vk-badge">{bookingStatusLabel(b.status)}</span>
+                          </div>
+                          <p>
+                            {t("adm.bookingParties", { customer: b.customer_name || t("adm.unnamedUser"), provider: b.provider_name || t("adm.unnamedUser") })}
+                            {" · "}{fmtWhen(b.service_date)}{b.location_text ? " · " + b.location_text : ""}
+                          </p>
+                          {b.status === "rejected" && b.rejection_reason ? (
+                            <p>{t("bk.rejectionReason")}: {b.rejection_reason}</p>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {bookingsData.total > bookingsData.rows.length ? (
+                    <p className="hint">{t("adm.showingFirst", { n: bookingsData.rows.length, total: bookingsData.total })}</p>
+                  ) : null}
+                </div>
+              )}
+            </>
+          )
         ) : loadErr && apps.length === 0 && !listLoading ? (
           <div className="state-error">
             <AlertCircle size={26} />

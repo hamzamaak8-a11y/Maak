@@ -142,6 +142,9 @@ export function CategoryChip({
   onClick: () => void;
 }) {
   const Icon = category.icon;
+  // Category names are canonical Arabic keys (used for matching listings);
+  // display them through the dictionary so French mode shows French labels.
+  const { t } = useLanguage();
   return (
     <button
       className={"category-chip" + (active ? " active" : "")}
@@ -152,7 +155,7 @@ export function CategoryChip({
         <Icon size={18} />
       </span>
       <span className="chip-text">
-        <b>{category.name}</b>
+        <b>{t(category.name)}</b>
         {category.count ? <small>{category.count}</small> : null}
       </span>
     </button>
@@ -168,13 +171,16 @@ export function ServiceChip({
   active?: boolean;
   onClick: () => void;
 }) {
+  // Service labels are canonical Arabic strings from provider onboarding; the
+  // dictionary carries their French equivalents (falls back to the label).
+  const { t } = useLanguage();
   return (
     <button
       className={"service-chip" + (active ? " active" : "")}
       onClick={onClick}
       aria-pressed={active}
     >
-      {label}
+      {t(label)}
     </button>
   );
 }

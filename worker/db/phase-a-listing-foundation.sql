@@ -207,7 +207,7 @@ create or replace function public.update_provider_marketplace_profile(
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   v_role text;
   v_status text;
@@ -250,7 +250,7 @@ begin
         service_radius_km     = p_service_radius_km,
         profile_photo_public  = p_profile_photo_public
     where id = auth.uid();
-end $;
+end $$;
 
 grant execute on function public.update_provider_marketplace_profile(text[], numeric, integer, boolean)
   to authenticated;
