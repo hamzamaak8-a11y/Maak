@@ -1,0 +1,208 @@
+/* Maak Brand System — source of truth for the supplied identity artwork. */
+:root {
+  --maak-cream: #f7f3eb;
+  --maak-cream-2: #efe8db;
+  --maak-paper: #fffdf8;
+  --maak-ink: #151a1f;
+  --maak-ink-2: #242a30;
+  --maak-muted: #6d706d;
+  --maak-line: rgba(21, 26, 31, .10);
+  --maak-gold: #d6ac62;
+  --maak-gold-strong: #b98220;
+  --maak-gold-soft: rgba(214, 172, 98, .16);
+  --maak-shadow: 0 18px 55px rgba(21, 26, 31, .10);
+  --maak-shadow-soft: 0 8px 28px rgba(21, 26, 31, .08);
+  --bg: var(--maak-cream);
+  --bg-2: #f9f6ef;
+  --bg-subtle: var(--maak-cream-2);
+  --surface: var(--maak-paper);
+  --surface-2: #fbf8f2;
+  --surface-3: #f1eadf;
+  --surface-hover: #f4ede3;
+  --hair: var(--maak-line);
+  --hair-2: rgba(21, 26, 31, .16);
+  --border: var(--maak-line);
+  --border-focus: var(--maak-gold-strong);
+  --line: var(--maak-line);
+  --text: var(--maak-ink);
+  --text-soft: #53595b;
+  --text-mute: #858884;
+  --ink: var(--maak-ink);
+  --ink-soft: #53595b;
+  --muted: #858884;
+  --gold: var(--maak-gold);
+  --gold-bright: #e4c78f;
+  --gold-deep: var(--maak-gold-strong);
+  --gold-soft: var(--maak-gold-soft);
+  --gold-glow: rgba(214, 172, 98, .25);
+  --primary: var(--maak-gold-strong);
+  --primary-hover: #9f6e18;
+  --primary-active: #875d13;
+  --primary-light: var(--maak-gold-soft);
+  --orange: var(--maak-gold-strong);
+  --orange-soft: var(--maak-gold-soft);
+  --navy: var(--maak-ink);
+  --navy-light: #252c31;
+  --shadow-xs: 0 2px 7px rgba(21, 26, 31, .06);
+  --shadow-sm: var(--maak-shadow-soft);
+  --shadow: var(--maak-shadow);
+  --shadow-lg: 0 28px 80px rgba(21, 26, 31, .14);
+  --shadow-primary: 0 10px 28px rgba(185, 130, 32, .20);
+  --ring: 0 0 0 4px rgba(214, 172, 98, .18);
+}
+
+html, body { background: var(--maak-cream); color: var(--maak-ink); }
+body { background: radial-gradient(circle at 88% 0%, rgba(214,172,98,.14), transparent 28%), var(--maak-cream); }
+.app { background: var(--maak-cream); color: var(--maak-ink); }
+.app-main { background: transparent; }
+
+/* Brand artwork */
+.brand { transition: transform .28s cubic-bezier(.16,1,.3,1), filter .28s ease; }
+.brand:hover { transform: translateY(-1px) scale(1.015); }
+.brand-lg { height: 40px; }
+.brand-md { height: 32px; }
+.brand-sm { height: 26px; }
+.brand-lockup { height: 78px; max-width: 230px; }
+
+/* Customer header */
+.topbar {
+  height: 74px;
+  background: rgba(255,253,248,.88);
+  border-bottom: 1px solid var(--maak-line);
+  box-shadow: 0 5px 24px rgba(21,26,31,.04);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.header-inner { width: min(1180px, 100%); margin: 0 auto; padding-inline: 22px; }
+.desktop-nav button { color: #5f6464; }
+.desktop-nav button:hover { color: var(--maak-ink); background: rgba(214,172,98,.08); }
+.desktop-nav button.selected { color: var(--maak-ink); background: var(--maak-gold-soft); box-shadow: inset 0 -2px var(--maak-gold-strong); }
+.lang-toggle-btn { background: rgba(255,253,248,.82); border-color: var(--maak-line); color: var(--maak-ink); }
+.lang-toggle-btn:hover { border-color: rgba(185,130,32,.34); background: #fff; color: var(--maak-gold-strong); }
+.icon-btn { color: var(--maak-ink); }
+.auth-login-btn { background: var(--maak-ink); color: #fff; border: 1px solid var(--maak-ink); box-shadow: 0 8px 20px rgba(21,26,31,.12); }
+.auth-login-btn:hover { background: #2a3137; transform: translateY(-1px); }
+
+/* Shared controls */
+.primary { background: linear-gradient(135deg, #e0b86e, var(--maak-gold-strong)); color: #17130c; border-color: rgba(185,130,32,.25); box-shadow: var(--shadow-primary); }
+.primary:hover { background: linear-gradient(135deg, #e7c582, #c18d29); }
+.secondary, .ghost-button, .mini-button { background: rgba(255,253,248,.84); border-color: var(--maak-line); color: var(--maak-ink); box-shadow: 0 3px 14px rgba(21,26,31,.04); }
+.secondary:hover, .ghost-button:hover, .mini-button:hover { background: #fff; border-color: rgba(185,130,32,.28); color: var(--maak-ink); }
+.text-button { color: var(--maak-gold-strong); }
+.text-button:hover { background: var(--maak-gold-soft); }
+.field { background: rgba(255,253,248,.92); border-color: var(--maak-line); color: var(--maak-ink); }
+.field:focus { background: #fff; border-color: var(--maak-gold-strong); box-shadow: var(--ring); }
+.field::placeholder { color: #a0a19d; }
+
+/* Home — the supplied artwork's cream / ink / gold composition */
+.home { position: relative; width: min(1180px, 100%); margin: 0 auto; padding: 18px 22px 72px; overflow: hidden; }
+.home::before { content: ""; position: absolute; width: 420px; height: 420px; border-radius: 50%; top: -210px; inset-inline-end: -120px; background: radial-gradient(circle, rgba(214,172,98,.22), transparent 68%); pointer-events: none; }
+.home-bar { display: flex; justify-content: flex-end; position: relative; z-index: 1; }
+.home-loc { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border: 1px solid var(--maak-line); border-radius: 999px; background: rgba(255,253,248,.76); color: var(--maak-ink); box-shadow: var(--shadow-xs); }
+.home-loc svg { color: var(--maak-gold-strong); }
+.home-intro { position: relative; z-index: 1; margin-top: 16px; padding: clamp(26px,5vw,54px); border: 1px solid rgba(21,26,31,.07); border-radius: 30px; background: linear-gradient(135deg, rgba(255,253,248,.96), rgba(246,239,227,.92)); box-shadow: var(--maak-shadow); overflow: hidden; }
+.home-intro::after { content: ""; position: absolute; width: 210px; height: 210px; border: 1px solid rgba(185,130,32,.20); border-radius: 50%; inset-inline-start: -80px; bottom: -100px; }
+.home-greet { color: var(--maak-gold-strong); font-weight: 800; letter-spacing: .02em; }
+.home-prompt { color: var(--maak-ink); font-size: clamp(30px,5vw,52px); line-height: 1.12; letter-spacing: -.035em; max-width: 760px; }
+.home-sub { color: var(--maak-muted); max-width: 650px; }
+.home-intro .search-box { max-width: 760px; margin-top: 22px; background: #fff; border: 1px solid rgba(21,26,31,.11); box-shadow: 0 10px 30px rgba(21,26,31,.08); }
+.search-box:focus-within { border-color: rgba(185,130,32,.55); box-shadow: 0 0 0 4px rgba(214,172,98,.12), 0 12px 34px rgba(21,26,31,.08); }
+.search-box svg { color: var(--maak-gold-strong); }
+.search-submit { background: var(--maak-ink); color: #fff; border-radius: 11px; }
+.search-submit:hover { background: #2c3338; }
+
+.home-section { position: relative; z-index: 1; margin-top: 34px; }
+.home-section-head h2 { color: var(--maak-ink); }
+.category-rail, .service-rail { gap: 12px; }
+.category-chip { background: rgba(255,253,248,.90); border: 1px solid var(--maak-line); color: var(--maak-ink); box-shadow: 0 7px 22px rgba(21,26,31,.055); transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease; }
+.category-chip:hover, .category-chip.active { transform: translateY(-3px); border-color: rgba(185,130,32,.34); box-shadow: 0 13px 28px rgba(21,26,31,.09); }
+.category-chip .chip-icon, .category-card .category-icon { background: linear-gradient(145deg,#fffaf0,#ead8b7); color: var(--maak-gold-strong); border: 1px solid rgba(185,130,32,.16); }
+.service-chip { background: rgba(255,253,248,.78); color: #5c6261; border-color: var(--maak-line); }
+.service-chip:hover, .service-chip.active { color: var(--maak-ink); border-color: rgba(185,130,32,.34); background: var(--maak-gold-soft); }
+
+.provider-list { gap: 12px; }
+.provider-row { background: rgba(255,253,248,.92); border: 1px solid var(--maak-line); color: var(--maak-ink); box-shadow: 0 8px 24px rgba(21,26,31,.055); transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease; }
+.provider-row:hover { transform: translateY(-3px); border-color: rgba(185,130,32,.30); box-shadow: 0 18px 34px rgba(21,26,31,.10); }
+.provider-info h3, .provider-title h3 { color: var(--maak-ink); }
+.provider-info p, .provider-meta { color: var(--maak-muted); }
+.provider-meta svg, .provider-chevron { color: var(--maak-gold-strong); }
+.provider-action .provider-cta, .provider-price { color: var(--maak-gold-strong); }
+.avatar-init { background: linear-gradient(145deg,#f1d9a7,#b98220); color: #17130c; }
+.online { background: #43a86d; border-color: var(--maak-paper); }
+
+.trust-strip { background: linear-gradient(120deg,#12171b,#1b2024); border: 1px solid rgba(214,172,98,.16); box-shadow: 0 18px 38px rgba(21,26,31,.14); }
+.trust-strip b { color: #fff; }
+.trust-strip small { color: rgba(255,255,255,.62); }
+.trust-icon { background: rgba(214,172,98,.13) !important; color: var(--maak-gold) !important; }
+
+.state-card, .provider-skeleton { background: rgba(255,253,248,.84); border-color: var(--maak-line); color: var(--maak-ink); }
+.state-card p { color: var(--maak-muted); }
+
+/* Discover / provider / booking / account / chat surfaces */
+.screen { color: var(--maak-ink); }
+.page-title h1, .subheading { color: var(--maak-ink); }
+.body-copy { color: var(--maak-muted); }
+.count-badge { background: rgba(255,253,248,.88); border-color: var(--maak-line); color: var(--maak-gold-strong); }
+.panel, .card, .surface, .booking-card, .account-card, .chat-panel, .provider-card, .booking-summary, .detail-card { background: rgba(255,253,248,.94); border-color: var(--maak-line); box-shadow: var(--maak-shadow-soft); }
+.panel h2, .card h2, .card h3, .panel h3 { color: var(--maak-ink); }
+.muted, .meta, .secondary-text { color: var(--maak-muted); }
+.filter-button { background: rgba(255,253,248,.88); border-color: var(--maak-line); color: var(--maak-ink); }
+.filter-button.selected, .filter-button.active { background: var(--maak-gold-soft); color: var(--maak-gold-strong); border-color: rgba(185,130,32,.30); }
+
+/* Authentication: premium Maak entrance, using the supplied lockup and icon */
+.auth-main { position: relative; isolation: isolate; min-height: 100dvh; padding: 28px 18px calc(28px + env(safe-area-inset-bottom)); background: radial-gradient(circle at 14% 12%, rgba(214,172,98,.30), transparent 26%), radial-gradient(circle at 88% 30%, rgba(214,172,98,.13), transparent 25%), var(--maak-cream); }
+.auth-main::before { content: "PEOPLE\A SERVICES\A TRUST"; white-space: pre; position: absolute; inset-inline-start: 4%; top: 7%; color: rgba(21,26,31,.72); font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .42em; line-height: 2.1; z-index: -1; }
+.auth-main::after { content: "ANY SERVICE\A NEAR YOU"; white-space: pre; position: absolute; inset-inline-end: 4%; top: 8%; color: rgba(21,26,31,.72); font-family: "Plus Jakarta Sans", sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .36em; line-height: 2.1; text-align: end; z-index: -1; }
+.auth-card { position: relative; width: min(100%, 500px) !important; padding: 34px 36px 32px !important; background: rgba(255,253,248,.97) !important; border: 1px solid rgba(21,26,31,.10) !important; border-radius: 30px !important; box-shadow: 0 30px 80px rgba(21,26,31,.14) !important; overflow: hidden; }
+.auth-card::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, transparent, var(--maak-gold-strong), transparent); }
+.auth-card .auth-brand img { max-width: 240px !important; max-height: 86px !important; }
+.auth-brand { margin-bottom: 22px; }
+.auth-title { color: var(--maak-ink) !important; }
+.auth-subtitle { color: var(--maak-muted) !important; }
+.auth-field > span { color: var(--maak-ink) !important; }
+.auth-input { background: #fff !important; color: var(--maak-ink) !important; border-color: rgba(21,26,31,.12) !important; }
+.auth-input:focus { border-color: var(--maak-gold-strong) !important; box-shadow: 0 0 0 4px rgba(214,172,98,.14) !important; }
+.auth-btn { background: linear-gradient(135deg,#e0b86e,var(--maak-gold-strong)) !important; color: #17130c !important; box-shadow: 0 14px 30px rgba(185,130,32,.20) !important; }
+.auth-btn:hover:not(:disabled) { background: linear-gradient(135deg,#e7c582,#9f6e18) !important; }
+.auth-link { color: var(--maak-gold-strong) !important; }
+.auth-error { background: #fff0ef !important; color: #a83a31 !important; border-color: #f0c4bf !important; }
+.auth-success { background: #edf8f0 !important; color: #2d7650 !important; border-color: #c7e8d2 !important; }
+.auth-verify-icon { color: var(--maak-gold-strong) !important; background: var(--maak-gold-soft) !important; }
+
+/* Provider workspace / onboarding */
+.provider-app { background: var(--maak-cream); color: var(--maak-ink); }
+.provider-app .screen, .provider-app main { color: var(--maak-ink); }
+.provider-app .panel, .provider-app .card { background: var(--maak-paper); border-color: var(--maak-line); }
+.provider-app .primary { color: #17130c; }
+
+/* Mobile */
+.mobile-nav { background: rgba(255,253,248,.96); border-color: var(--maak-line); box-shadow: 0 -10px 30px rgba(21,26,31,.08); backdrop-filter: blur(18px); }
+.mobile-nav button { color: #777b79; }
+.mobile-nav button.active { color: var(--maak-gold-strong); }
+.mobile-nav button.active::before { background: var(--maak-gold-strong); }
+
+/* Motion: quiet, premium, not decorative noise */
+.home-intro, .home-section, .screen > *, .auth-card { animation: maak-rise .48s cubic-bezier(.16,1,.3,1) both; }
+.home-section:nth-of-type(2) { animation-delay: .05s; }
+.home-section:nth-of-type(3) { animation-delay: .09s; }
+@keyframes maak-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@media(max-width: 760px) {
+  .topbar { height: 64px; }
+  .header-inner { padding-inline: 14px; }
+  .brand-lg { height: 34px; }
+  .home { padding: 10px 12px 82px; }
+  .home-intro { padding: 26px 20px 24px; border-radius: 24px; }
+  .home-prompt { font-size: clamp(29px, 9vw, 40px); }
+  .auth-main::before, .auth-main::after { opacity: .55; font-size: 8px; letter-spacing: .28em; }
+  .auth-main::before { top: 2%; inset-inline-start: 4%; }
+  .auth-main::after { top: 3%; inset-inline-end: 4%; }
+  .auth-card { padding: 28px 20px 24px !important; border-radius: 24px !important; }
+  .auth-card .auth-brand img { max-width: 205px !important; max-height: 72px !important; }
+}
+@media(max-width: 390px) {
+  .auth-main::before, .auth-main::after { display: none; }
+  .auth-card .auth-brand img { max-width: 185px !important; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .home-intro, .home-section, .screen > *, .auth-card { animation: none; }
+}
