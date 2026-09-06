@@ -4,9 +4,9 @@
   "description": "اكتشف واحجز مقدمي الخدمات المنزلية الموثوقتين في مدينتك.",
   "lang": "ar",
   "dir": "rtl",
-  "id": "/maak/",
-  "start_url": "/maak/",
-  "scope": "/maak/",
+  "id": "/Maak/",
+  "start_url": "/Maak/",
+  "scope": "/Maak/",
   "display": "standalone",
   "display_override": [
     "standalone"
