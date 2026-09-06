@@ -69,7 +69,6 @@ create policy "messages_select_participant" on public.messages
     )
   );
 
--- All conversation/message mutations go through SECURITY DEFINER RPCs.
 revoke insert, update, delete on public.conversations from anon, authenticated;
 revoke insert, update, delete on public.conversation_participants from anon, authenticated;
 revoke insert, update, delete on public.messages from anon, authenticated;
@@ -80,11 +79,13 @@ returns uuid
 language plpgsql security definer set search_path = public as $$
 declare
   v_customer uuid := auth.uid();
+  v_role text;
   v_conversation uuid;
 begin
   if v_customer is null then raise exception 'not_authenticated'; end if;
-  if p_provider_profile_id is null then raise exception 'provider_not_found'; end if;
-  if v_customer = p_provider_profile_id then raise exception 'forbidden'; end if;
+  select role into v_role from public.profiles where id = v_customer;
+  if v_role is distinct from 'customer' then raise exception 'forbidden'; end if;
+  if p_provider_profile_id is null or v_customer = p_provider_profile_id then raise exception 'provider_not_found'; end if;
   if not exists (
     select 1 from public.provider_profiles pp
     where pp.id = p_provider_profile_id and pp.verification_status = 'approved'
@@ -104,6 +105,9 @@ begin
   values (v_conversation, v_customer), (v_conversation, p_provider_profile_id);
   return v_conversation;
 end $$;
+
+grant execute on function public.get_or_create_provider_conversation(uuid) to authenticated;
+revoke all on function public.get_or_create_provider_conversation(uuid) from anon, public;
 
 create or replace function public.get_or_create_booking_conversation(p_booking_id uuid)
 returns uuid
@@ -135,8 +139,9 @@ begin
   return v_conversation;
 end $$;
 
--- Every real booking gets a conversation immediately; this is what makes the
--- Chat entry point available without inventing a provider or a conversation.
+grant execute on function public.get_or_create_booking_conversation(uuid) to authenticated;
+revoke all on function public.get_or_create_booking_conversation(uuid) from anon, public;
+
 create or replace function public.create_booking_conversation_trigger()
 returns trigger
 language plpgsql security definer set search_path = public as $$
@@ -185,7 +190,7 @@ language sql stable security definer set search_path = public as $$
     c.id,
     c.booking_id,
     other_cp.user_id,
-    coalesce(p.full_name, 'مستخدم') as other_user_name,
+    p.full_name,
     lm.body,
     lm.created_at,
     coalesce(unread.cnt, 0)
@@ -220,7 +225,7 @@ $$;
 grant execute on function public.list_my_conversations() to authenticated;
 revoke all on function public.list_my_conversations() from anon, public;
 
-a create or replace function public.get_conversation_messages(p_conversation_id uuid)
+create or replace function public.get_conversation_messages(p_conversation_id uuid)
 returns table(id uuid, sender_id uuid, body text, created_at timestamptz, read_at timestamptz)
 language plpgsql stable security definer set search_path = public as $$
 begin
@@ -280,7 +285,6 @@ end $$;
 grant execute on function public.mark_chat_read(uuid) to authenticated;
 revoke all on function public.mark_chat_read(uuid) from anon, public;
 
--- Realtime: add messages only once if the publication does not already contain it.
 do $$
 begin
   if not exists (
