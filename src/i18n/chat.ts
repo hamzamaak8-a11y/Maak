@@ -4,6 +4,8 @@ export const chatAr: Record<string, string> = {
   "chat.startConversation": "اكتب رسالتك الأولى لبدء المحادثة.",
   "chat.selectConversation": "اختر محادثة للمتابعة",
   "chat.messageLabel": "اكتب رسالتك",
+  "chat.loginRequired": "سجّل الدخول لبدء المحادثة",
+  "chat.loginRequiredBody": "تحتاج إلى حساب للدخول إلى الرسائل والتواصل مع مقدّم الخدمة.",
   "chat.loadFail": "تعذّر تحميل المحادثات.",
   "chat.openFail": "تعذّر فتح المحادثة.",
   "chat.loadMessagesFail": "تعذّر تحميل الرسائل.",
@@ -13,7 +15,10 @@ export const chatAr: Record<string, string> = {
   "chat.providerUnavailable": "مقدّم الخدمة غير متاح للمراسلة حالياً.",
   "chat.emptyMessage": "اكتب رسالة قبل الإرسال.",
   "chat.messageTooLong": "الرسالة طويلة جداً.",
-  "chat.forbidden": "لا تملك صلاحية الوصول إلى هذه المحادثة."
+  "chat.forbidden": "لا تملك صلاحية الوصول إلى هذه المحادثة.",
+  "chat.noConversation": "لا توجد محادثات بعد",
+  "chat.noMessages": "لا توجد رسائل بعد",
+  "chat.noMessagesBody": "ستظهر هنا محادثاتك الحقيقية مع مقدّمي الخدمة."
 };
 
 export const chatFr: Record<string, string> = {
@@ -22,6 +27,8 @@ export const chatFr: Record<string, string> = {
   "chat.startConversation": "Écrivez votre premier message pour commencer la conversation.",
   "chat.selectConversation": "Sélectionnez une conversation",
   "chat.messageLabel": "Écrivez votre message",
+  "chat.loginRequired": "Connectez-vous pour commencer une conversation",
+  "chat.loginRequiredBody": "Un compte est nécessaire pour accéder à la messagerie et contacter un prestataire.",
   "chat.loadFail": "Impossible de charger les conversations.",
   "chat.openFail": "Impossible d'ouvrir la conversation.",
   "chat.loadMessagesFail": "Impossible de charger les messages.",
@@ -31,5 +38,8 @@ export const chatFr: Record<string, string> = {
   "chat.providerUnavailable": "Ce prestataire n'est pas disponible pour la messagerie.",
   "chat.emptyMessage": "Saisissez un message avant l'envoi.",
   "chat.messageTooLong": "Le message est trop long.",
-  "chat.forbidden": "Vous n'avez pas accès à cette conversation."
+  "chat.forbidden": "Vous n'avez pas accès à cette conversation.",
+  "chat.noConversation": "Aucune conversation",
+  "chat.noMessages": "Aucun message",
+  "chat.noMessagesBody": "Vos conversations réelles avec les prestataires apparaîtront ici."
 };
