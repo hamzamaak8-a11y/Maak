@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, MessageCircle, X } from "lucide-react";
 import { Logo } from "../components/atoms";
 import { useToast } from "../context";
 import { useAuth } from "../auth";
@@ -13,13 +13,15 @@ import {
   startBooking,
 } from "../lib/bookings";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
+import Chat from "./Chat";
 import type { BookingRow, BookingStatus } from "../types";
 import { useLanguage } from "../i18n";
 
-type TabKey = "profile" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
+type TabKey = "profile" | "messages" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "profile", label: "pm.tabProfile" },
+  { key: "messages", label: "nav.messages" },
   { key: "new", label: "pm.tabNew" },
   { key: "accepted", label: "pm.tabAccepted" },
   { key: "in_progress", label: "pm.tabInProgress" },
@@ -33,10 +35,7 @@ function fmtDate(iso: string | null, t: TranslateFunc, lang: string): string {
   if (!iso) return t("common.unspecified");
   try {
     const locale = lang === "fr" ? "fr-FR" : "ar-MA";
-    return new Intl.DateTimeFormat(locale, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso));
+    return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
   } catch {
     return iso;
   }
@@ -47,7 +46,7 @@ function pad2(n: number): string {
 }
 
 export default function ProviderMode({ switchRole }: { switchRole: () => void }) {
-  const { t, lang, toggleLang } = useLanguage();
+  const { t, lang } = useLanguage();
   const { showToast } = useToast();
   const { profile, user } = useAuth();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
@@ -69,37 +68,28 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
-
-  const counts = useMemo<Record<TabKey, number>>(
-    () => ({
-      profile: 0,
-      new: bookings.filter((b) => b.status === "pending").length,
-      accepted: bookings.filter((b) => b.status === "accepted").length,
-      in_progress: bookings.filter((b) => b.status === "in_progress").length,
-      completed: bookings.filter((b) => b.status === "completed").length,
-      rejected: bookings.filter((b) => b.status === "rejected").length,
-    }),
-    [bookings],
-  );
+  const counts = useMemo<Record<TabKey, number>>(() => ({
+    profile: 0,
+    messages: 0,
+    new: bookings.filter((b) => b.status === "pending").length,
+    accepted: bookings.filter((b) => b.status === "accepted").length,
+    in_progress: bookings.filter((b) => b.status === "in_progress").length,
+    completed: bookings.filter((b) => b.status === "completed").length,
+    rejected: bookings.filter((b) => b.status === "rejected").length,
+  }), [bookings]);
 
   const list = useMemo(() => {
-    if (tab === "profile") return [];
+    if (tab === "profile" || tab === "messages") return [];
     const target: BookingStatus = tab === "new" ? "pending" : tab;
     return bookings.filter((b) => b.status === target);
   }, [bookings, tab]);
 
-  const runAction = async (
-    id: string,
-    fn: () => Promise<BookingRow>,
-    okMsg: string,
-  ) => {
+  const runAction = async (id: string, fn: () => Promise<BookingRow>, okMsg: string) => {
     setBusy(id);
     try {
       const row = await fn();
@@ -137,227 +127,99 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
     <div className="provider-layout">
       <aside className="provider-side">
         <Logo inverse />
-        <div className="provider-side-title">
-          <span>{t("pm.workspace")}</span>
-          <b>{providerName}</b>
-        </div>
+        <div className="provider-side-title"><span>{t("pm.workspace")}</span><b>{providerName}</b></div>
         {TABS.map((tabItem) => (
           <button
             className={tab === tabItem.key ? "sel" : ""}
             key={tabItem.key}
-            onClick={() => {
-              setTab(tabItem.key);
-              setOpenId(null);
-              setRejectId(null);
-            }}
+            onClick={() => { setTab(tabItem.key); setOpenId(null); setRejectId(null); }}
           >
+            {tabItem.key === "messages" ? <MessageCircle size={15} /> : null}
             {t(tabItem.label)}
             {counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
           </button>
         ))}
-        <button className="switch-role" onClick={switchRole}>
-          {t("pm.backToCustomer")} <ArrowLeft size={14} />
-        </button>
+        <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} /></button>
       </aside>
 
       <main className="provider-main">
         {tab === "profile" ? (
           <ProviderProfileEditor />
+        ) : tab === "messages" ? (
+          <Chat />
         ) : (
           <>
-        <div className="admin-top">
-          <div>
-            <span className="section-kicker">{t("pm.serviceRequests")}</span>
-            <h1>{t("pm.greeting", { name: providerName })}</h1>
-          </div>
-        </div>
-
-        <div className="metric-row">
-          <div className="metric">
-            <small>{t("pm.tabNew")}</small>
-            <strong>{pad2(counts.new)}</strong>
-            <span>{t("pm.awaitingAcceptance")}</span>
-          </div>
-          <div className="metric">
-            <small>{t("pm.inExecution")}</small>
-            <strong>{pad2(counts.in_progress)}</strong>
-            <span>{t("pm.servicesOngoing")}</span>
-          </div>
-          <div className="metric">
-            <small>{t("pm.tabCompleted")}</small>
-            <strong>{pad2(counts.completed)}</strong>
-            <span>{t("pm.servicesDone")}</span>
-          </div>
-        </div>
-
-        <div className="section-heading dashboard-heading">
-          <div>
-            <span className="section-kicker">
-              {t(TABS.find((tabItem) => tabItem.key === tab)?.label ?? "")}
-            </span>
-            <h2>{t("pm.requestCount", { n: list.length })}</h2>
-          </div>
-          <button className="text-button" onClick={() => void load()}>
-            <ArrowLeft size={15} /> {t("pm.refresh")}
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="empty-state">
-            <p>{t("pm.loadingRequests")}</p>
-          </div>
-        ) : error ? (
-          <div className="empty-state">
-            <p>{t(error)}</p>
-            <button className="ghost-button" onClick={() => void load()}>
-              {t("common.retryBtn")}
-            </button>
-          </div>
-        ) : list.length === 0 ? (
-          <div className="empty-state">
-            <CalendarDays size={24} />
-            <h3>{t("pm.emptySection")}</h3>
-          </div>
-        ) : (
-          list.map((b) => (
-            <div className="request-row" key={b.id}>
-              <div className="request-client">
-                <span className="avatar">
-                  {(b.customer_name ?? t("pm.customerInitial")).slice(0, 1)}
-                </span>
-                <div>
-                  <span className="status">{t(BOOKING_STATUS_LABELS[b.status])}</span>
-                  <h3>{t(b.service_category)}</h3>
-                  <p>
-                    {b.customer_name ?? t("pm.customer")} · {fmtDate(b.service_date, t, lang)} ·{" "}
-                    {b.location_text ?? t("common.unspecified")}
-                  </p>
-                </div>
-              </div>
-
-              <div className="cta-row">
-                {b.status === "pending" ? (
-                  <>
-                    <button
-                      className="primary"
-                      disabled={busy === b.id}
-                      onClick={() =>
-                        void runAction(b.id, () => acceptBooking(b.id), t("pm.requestAccepted"))
-                      }
-                    >
-                      <Check size={15} /> {t("pm.acceptRequest")}
-                    </button>
-                    <button
-                      className="secondary"
-                      disabled={busy === b.id}
-                      onClick={() => {
-                        setRejectId(rejectId === b.id ? null : b.id);
-                        setRejectReason("");
-                      }}
-                    >
-                      <X size={15} /> {t("pm.rejectRequest")}
-                    </button>
-                  </>
-                ) : b.status === "accepted" ? (
-                  <button
-                    className="primary"
-                    disabled={busy === b.id}
-                    onClick={() =>
-                      void runAction(b.id, () => startBooking(b.id), t("pm.serviceStarted"))
-                    }
-                  >
-                    {t("pm.startService")}
-                  </button>
-                ) : b.status === "in_progress" ? (
-                  <button
-                    className="primary"
-                    disabled={busy === b.id}
-                    onClick={() =>
-                      void runAction(b.id, () => completeBooking(b.id), t("pm.serviceCompleted"))
-                    }
-                  >
-                    {t("pm.completeService")}
-                  </button>
-                ) : null}
-                <button
-                  className="ghost-button"
-                  onClick={() => setOpenId(openId === b.id ? null : b.id)}
-                >
-                  {openId === b.id ? t("common.hide") : t("common.details")}
-                </button>
-              </div>
-
-              {rejectId === b.id ? (
-                <div className="reject-form">
-                  <textarea
-                    className="booking-native"
-                    rows={3}
-                    placeholder={t("pm.rejectReasonPlaceholder")}
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                  />
-                  <div className="cta-row" style={{ marginTop: 10 }}>
-                    <button
-                      className="primary"
-                      disabled={busy === b.id}
-                      onClick={() => void confirmReject()}
-                    >
-                      {t("pm.confirmReject")}
-                    </button>
-                    <button
-                      className="ghost-button"
-                      onClick={() => {
-                        setRejectId(null);
-                        setRejectReason("");
-                      }}
-                    >
-                      {t("bk.backOut")}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {openId === b.id ? (
-                <div className="request-detail">
-                  <div className="detail-row">
-                    <b>{t("pm.customerFull")}</b>
-                    <span>{b.customer_name ?? "—"}</span>
-                  </div>
-                  <div className="detail-row">
-                    <b>{t("bflow.service")}</b>
-                    <span>{t(b.service_category)}</span>
-                  </div>
-                  {b.service_description ? (
-                    <div className="detail-row">
-                      <b>{t("pm.description")}</b>
-                      <span>{b.service_description}</span>
-                    </div>
-                  ) : null}
-                  <div className="detail-row">
-                    <b>{t("pm.appointment")}</b>
-                    <span>{fmtDate(b.service_date, t, lang)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <b>{t("pdetail.location")}</b>
-                    <span>{b.location_text ?? "—"}</span>
-                  </div>
-                  {b.customer_note ? (
-                    <div className="detail-row">
-                      <b>{t("pm.customerNote")}</b>
-                      <span>{b.customer_note}</span>
-                    </div>
-                  ) : null}
-                  {b.rejection_reason ? (
-                    <div className="detail-row">
-                      <b>{t("bk.rejectionReason")}</b>
-                      <span>{b.rejection_reason}</span>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
+            <div className="admin-top">
+              <div><span className="section-kicker">{t("pm.serviceRequests")}</span><h1>{t("pm.greeting", { name: providerName })}</h1></div>
             </div>
-          ))
-        )}
+
+            <div className="metric-row">
+              <div className="metric"><small>{t("pm.tabNew")}</small><strong>{pad2(counts.new)}</strong><span>{t("pm.awaitingAcceptance")}</span></div>
+              <div className="metric"><small>{t("pm.inExecution")}</small><strong>{pad2(counts.in_progress)}</strong><span>{t("pm.servicesOngoing")}</span></div>
+              <div className="metric"><small>{t("pm.tabCompleted")}</small><strong>{pad2(counts.completed)}</strong><span>{t("pm.servicesDone")}</span></div>
+            </div>
+
+            <div className="section-heading dashboard-heading">
+              <div><span className="section-kicker">{t(TABS.find((tabItem) => tabItem.key === tab)?.label ?? "")}</span><h2>{t("pm.requestCount", { n: list.length })}</h2></div>
+              <button className="text-button" onClick={() => void load()}><ArrowLeft size={15} /> {t("pm.refresh")}</button>
+            </div>
+
+            {loading ? (
+              <div className="empty-state"><p>{t("pm.loadingRequests")}</p></div>
+            ) : error ? (
+              <div className="empty-state"><p>{t(error)}</p><button className="ghost-button" onClick={() => void load()}>{t("common.retryBtn")}</button></div>
+            ) : list.length === 0 ? (
+              <div className="empty-state"><CalendarDays size={24} /><h3>{t("pm.emptySection")}</h3></div>
+            ) : (
+              list.map((b) => (
+                <div className="request-row" key={b.id}>
+                  <div className="request-client">
+                    <span className="avatar">{(b.customer_name ?? t("pm.customerInitial")).slice(0, 1)}</span>
+                    <div>
+                      <span className="status">{t(BOOKING_STATUS_LABELS[b.status])}</span>
+                      <h3>{t(b.service_category)}</h3>
+                      <p>{b.customer_name ?? t("pm.customer")} · {fmtDate(b.service_date, t, lang)} · {b.location_text ?? t("common.unspecified")}</p>
+                    </div>
+                  </div>
+
+                  <div className="cta-row">
+                    {b.status === "pending" ? (
+                      <>
+                        <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => acceptBooking(b.id), t("pm.requestAccepted"))}><Check size={15} /> {t("pm.acceptRequest")}</button>
+                        <button className="secondary" disabled={busy === b.id} onClick={() => { setRejectId(rejectId === b.id ? null : b.id); setRejectReason(""); }}><X size={15} /> {t("pm.rejectRequest")}</button>
+                      </>
+                    ) : b.status === "accepted" ? (
+                      <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => startBooking(b.id), t("pm.serviceStarted"))}>{t("pm.startService")}</button>
+                    ) : b.status === "in_progress" ? (
+                      <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => completeBooking(b.id), t("pm.serviceCompleted"))}>{t("pm.completeService")}</button>
+                    ) : null}
+                    <button className="ghost-button" onClick={() => setOpenId(openId === b.id ? null : b.id)}>{openId === b.id ? t("common.hide") : t("common.details")}</button>
+                  </div>
+
+                  {rejectId === b.id ? (
+                    <div className="reject-form">
+                      <textarea className="booking-native" rows={3} placeholder={t("pm.rejectReasonPlaceholder")} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
+                      <div className="cta-row" style={{ marginTop: 10 }}>
+                        <button className="primary" disabled={busy === b.id} onClick={() => void confirmReject()}>{t("pm.confirmReject")}</button>
+                        <button className="ghost-button" onClick={() => { setRejectId(null); setRejectReason(""); }}>{t("bk.backOut")}</button>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {openId === b.id ? (
+                    <div className="request-detail">
+                      <div className="detail-row"><b>{t("pm.customerFull")}</b><span>{b.customer_name ?? "—"}</span></div>
+                      <div className="detail-row"><b>{t("bflow.service")}</b><span>{t(b.service_category)}</span></div>
+                      {b.service_description ? <div className="detail-row"><b>{t("pm.description")}</b><span>{b.service_description}</span></div> : null}
+                      <div className="detail-row"><b>{t("pm.appointment")}</b><span>{fmtDate(b.service_date, t, lang)}</span></div>
+                      <div className="detail-row"><b>{t("pdetail.location")}</b><span>{b.location_text ?? "—"}</span></div>
+                      {b.customer_note ? <div className="detail-row"><b>{t("pm.customerNote")}</b><span>{b.customer_note}</span></div> : null}
+                      {b.rejection_reason ? <div className="detail-row"><b>{t("bk.rejectionReason")}</b><span>{b.rejection_reason}</span></div> : null}
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            )}
           </>
         )}
       </main>
