@@ -73,7 +73,7 @@ Vite auto-loads .env.production during build, so the GitHub Pages build picks up
 
 ## 6) End-to-end test
 
-Open https://i36508871-eng.github.io/maak/ — providers appear from the live API.
+Open https://hamzamaak8-a11y.github.io/Maak/ — providers appear from the live API.
 
 ## Secrets / variables
 
