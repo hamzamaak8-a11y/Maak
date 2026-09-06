@@ -1,0 +1,168 @@
+/* =========================================================================
+   Maak — Phase 1 design system
+
+   The visual language is intentionally built from the existing Maak mark:
+   dark architectural surfaces, warm gold actions, generous card hierarchy,
+   and compact mobile navigation inspired by modern home-service products.
+   Keep these tokens semantic so later screens inherit one language.
+   ========================================================================= */
+
+:root {
+  --maak-bg: #0b0c0f;
+  --maak-surface-1: #111318;
+  --maak-surface-2: #171a20;
+  --maak-surface-3: #20242c;
+  --maak-ink: #f7f4ed;
+  --maak-ink-soft: #b2b2ad;
+  --maak-ink-muted: #777b7b;
+  --maak-line: rgba(255, 255, 255, 0.1);
+  --maak-line-strong: rgba(255, 255, 255, 0.18);
+  --maak-accent: #d9b24c;
+  --maak-accent-bright: #f0d48a;
+  --maak-accent-soft: rgba(217, 178, 76, 0.14);
+  --maak-success: #66d39d;
+  --maak-danger: #ed7777;
+  --maak-radius-card: 18px;
+  --maak-radius-control: 12px;
+  --maak-shadow-card: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --maak-content-max: 1180px;
+}
+
+/* Customer shell surfaces */
+.app:not(.provider-app) {
+  background:
+    radial-gradient(circle at 50% -15%, rgba(217, 178, 76, 0.07), transparent 34rem),
+    var(--maak-bg);
+}
+
+.app:not(.provider-app) .shell {
+  width: min(var(--maak-content-max), 100%);
+  padding-inline: 20px;
+}
+
+.app:not(.provider-app) .topbar {
+  height: 72px;
+  margin-inline: -20px;
+  background: rgba(11, 12, 15, 0.88);
+  border-bottom-color: var(--maak-line);
+}
+
+.app:not(.provider-app) .header-inner {
+  width: min(var(--maak-content-max), 100%);
+  margin: 0 auto;
+  padding-inline: 20px;
+}
+
+.app:not(.provider-app) .desktop-nav {
+  gap: 2px;
+}
+
+.app:not(.provider-app) .desktop-nav button {
+  min-height: 44px;
+  padding-inline: 13px;
+  border: 1px solid transparent;
+}
+
+.app:not(.provider-app) .desktop-nav button.selected {
+  border-color: rgba(217, 178, 76, 0.24);
+}
+
+.app:not(.provider-app) .app-main {
+  min-height: calc(100dvh - 72px);
+}
+
+.app:not(.provider-app) .screen,
+.app:not(.provider-app) .home {
+  padding-top: 28px;
+}
+
+.app:not(.provider-app) .page-title {
+  align-items: flex-end;
+  margin-bottom: 26px;
+}
+
+.app:not(.provider-app) .page-title h1 {
+  letter-spacing: -0.02em;
+}
+
+/* Shared surface hierarchy: a quiet outer frame, a tactile inner card. */
+.app:not(.provider-app) .acct-card,
+.app:not(.provider-app) .home-intro,
+.app:not(.provider-app) .trust-strip,
+.app:not(.provider-app) .pdetail-identity,
+.app:not(.provider-app) .pdetail-section,
+.app:not(.provider-app) .booking-body {
+  border-color: var(--maak-line);
+  border-radius: var(--maak-radius-card);
+  box-shadow: var(--maak-shadow-card);
+}
+
+.app:not(.provider-app) .primary {
+  border-radius: var(--maak-radius-control);
+  min-height: 48px;
+}
+
+.app:not(.provider-app) .secondary,
+.app:not(.provider-app) .ghost-button,
+.app:not(.provider-app) .field {
+  border-radius: var(--maak-radius-control);
+}
+
+.app:not(.provider-app) .icon-btn,
+.app:not(.provider-app) .lang-toggle-btn {
+  min-width: 40px;
+  min-height: 40px;
+}
+
+/* The bottom navigation is a real app control, not a desktop footer. */
+.app:not(.provider-app) .mobile-nav {
+  background: rgba(17, 19, 24, 0.96);
+  border-color: var(--maak-line-strong);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+}
+
+.app:not(.provider-app) .mobile-nav button {
+  min-height: 52px;
+}
+
+.app:not(.provider-app) .mobile-nav button.active {
+  color: var(--maak-accent-bright);
+  background: var(--maak-accent-soft);
+}
+
+@media (min-width: 768px) {
+  .app:not(.provider-app) .shell {
+    padding-inline: 28px;
+  }
+
+  .app:not(.provider-app) .topbar {
+    margin-inline: -28px;
+  }
+
+  .app:not(.provider-app) .header-inner {
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .app:not(.provider-app) .shell {
+    padding-inline: 16px;
+  }
+
+  .app:not(.provider-app) .topbar {
+    margin-inline: -16px;
+  }
+
+  .app:not(.provider-app) .header-inner {
+    padding-inline: 16px;
+  }
+
+  .app:not(.provider-app) .app-main {
+    min-height: calc(100dvh - 72px);
+  }
+
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home {
+    padding-top: 20px;
+  }
+}

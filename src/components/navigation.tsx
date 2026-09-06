@@ -27,15 +27,29 @@ export function Header({ path }: { path: string }) {
   }
 
   const initial = (profile?.full_name || user?.email || "?").charAt(0).toUpperCase();
+  const isSelected = (route: string) => path === route;
 
   return (
     <header className="topbar">
       <div className="header-inner">
         <Logo />
         <nav className="desktop-nav" aria-label={t("nav.primary")}>
-          <button className={path === "/" ? "selected" : ""} onClick={() => navigate("/")}>{t("nav.home")}</button>
-          <button className={path === "/discover" ? "selected" : ""} onClick={() => navigate("/discover")}>{t("nav.discover")}</button>
-          <button className={path === "/bookings" ? "selected" : ""} onClick={() => navigate("/bookings")}>{t("nav.bookings")}</button>
+          {[
+            ["home", t("nav.home"), "/"],
+            ["discover", t("nav.discover"), "/discover"],
+            ["bookings", t("nav.bookings"), "/bookings"],
+            ["chat", t("nav.messages"), "/chat"],
+            ["account", t("nav.account"), "/account"],
+          ].map(([id, label, to]) => (
+            <button
+              key={id}
+              className={isSelected(to) ? "selected" : ""}
+              onClick={() => navigate(to)}
+              aria-current={isSelected(to) ? "page" : undefined}
+            >
+              {label}
+            </button>
+          ))}
         </nav>
         <div className="profile-line">
           <button
@@ -82,12 +96,13 @@ export function MobileNav({ path }: { path: string }) {
   ] as const;
 
   return (
-    <nav className="mobile-nav">
+    <nav className="mobile-nav" aria-label={t("nav.primary")}>
       {items.map(([id, label, Icon, to]) => (
         <button
           key={id}
           className={path === to ? "active" : ""}
           onClick={() => navigate(to)}
+          aria-current={path === to ? "page" : undefined}
         >
           <Icon size={18} />
           <span>{label}</span>

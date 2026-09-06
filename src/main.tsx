@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import "./styles/app-shell.css";
+import "./styles/design-system.css";
 
 // Restore a deep-linked route saved by /maak/404.html (GitHub Pages SPA fallback).
 (function () {
