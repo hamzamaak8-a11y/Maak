@@ -1,0 +1,141 @@
+/* Maak — final visual QA layer
+   Presentation-only: typography, controls, surfaces, spacing and responsive rhythm.
+   No data, routing, auth or business logic changes. */
+
+:root {
+  --maak-focus: rgba(212,175,55,.34);
+  --maak-ease: cubic-bezier(.16,1,.3,1);
+}
+
+/* Typography: Arabic gets a clean UI face; French/Latin gets a modern product face. */
+html[lang="ar"] body,
+body:lang(ar),
+[dir="rtl"] { font-family:"Tajawal","Cairo",system-ui,-apple-system,sans-serif; }
+html[lang="fr"] body,
+body:lang(fr),
+[dir="ltr"] { font-family:"Plus Jakarta Sans","Tajawal",system-ui,-apple-system,sans-serif; }
+
+h1,h2,h3,h4,p { text-wrap:pretty; }
+input,textarea,select,button { -webkit-tap-highlight-color:transparent; }
+
+/* Consistent control language. */
+.primary,.secondary,.ghost-button,.mini-button,.filter-button,.auth-btn,
+.icon-btn,.menu-btn,.lang-toggle-btn,.search-submit,.mobile-nav button,
+.ap-primary,.ap-btn,.ap-icon,.ap-filter,.admin-pro-nav button,.admin-pro-side-footer button {
+  transition:transform .18s var(--maak-ease),background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease;
+}
+
+.primary:focus-visible,.secondary:focus-visible,.ghost-button:focus-visible,
+.mini-button:focus-visible,.filter-button:focus-visible,.icon-btn:focus-visible,
+.menu-btn:focus-visible,.lang-toggle-btn:focus-visible,.search-submit:focus-visible,
+.ap-primary:focus-visible,.ap-btn:focus-visible,.ap-icon:focus-visible,.ap-filter:focus-visible,
+.admin-pro-nav button:focus-visible,.admin-pro-side-footer button:focus-visible {
+  outline:2px solid var(--gold,#d4af37);
+  outline-offset:2px;
+  box-shadow:0 0 0 4px var(--maak-focus);
+}
+
+.primary:disabled,.secondary:disabled,.ghost-button:disabled,.mini-button:disabled,
+.ap-primary:disabled,.ap-btn:disabled,.ap-icon:disabled,.ap-filter:disabled { transform:none; }
+
+/* Customer shell: stronger hierarchy without making it feel like a dashboard. */
+.app:not(.provider-app) .screen { max-width:100%; }
+.app:not(.provider-app) .section-heading,
+.app:not(.provider-app) .page-title { gap:12px; }
+.app:not(.provider-app) .section-heading h2,
+.app:not(.provider-app) .page-title h1 { line-height:1.25; }
+.app:not(.provider-app) .home-intro,
+.app:not(.provider-app) .provider-row,
+.app:not(.provider-app) .booking-card,
+.app:not(.provider-app) .chat-workspace,
+.app:not(.provider-app) .acct-card,
+.app:not(.provider-app) .pdetail-identity,
+.app:not(.provider-app) .pdetail-section,
+.app:not(.provider-app) .state-card,
+.app:not(.provider-app) .booking-body {
+  box-shadow:0 8px 30px rgba(5,6,11,.06);
+}
+
+.app:not(.provider-app) .provider-row,
+.app:not(.provider-app) .booking-card,
+.app:not(.provider-app) .acct-card { transition:transform .2s var(--maak-ease),border-color .2s ease,box-shadow .2s ease; }
+.app:not(.provider-app) .provider-row:hover,
+.app:not(.provider-app) .booking-card:hover,
+.app:not(.provider-app) .acct-card:hover { transform:translateY(-1px); }
+
+/* Search and forms should look deliberate, not browser-native. */
+.app:not(.provider-app) .field,
+.app:not(.provider-app) .auth-input,
+.app:not(.provider-app) input,
+.app:not(.provider-app) textarea,
+.app:not(.provider-app) select {
+  min-height:44px;
+  border-radius:12px;
+}
+.app:not(.provider-app) textarea { min-height:96px; }
+
+/* Mobile bottom navigation: visual separation + safe-area comfort. */
+.app:not(.provider-app) .mobile-nav {
+  box-shadow:0 10px 35px rgba(5,6,11,.18),0 0 0 1px rgba(255,255,255,.05);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.app:not(.provider-app) .mobile-nav button { position:relative; }
+.app:not(.provider-app) .mobile-nav button.selected::before,
+.app:not(.provider-app) .mobile-nav button.active::before {
+  content:"";
+  position:absolute;
+  top:6px;
+  width:22px;
+  height:3px;
+  border-radius:99px;
+  background:var(--gold,#d4af37);
+}
+
+/* Provider workspace: align spacing and interaction density with a real operations product. */
+.provider-app .provider-main { background:var(--bg,#0b0c0e); }
+.provider-app .provider-main .admin-top { box-shadow:0 10px 35px rgba(0,0,0,.16); }
+.provider-app .provider-side button:hover { transform:translateX(1px); }
+.provider-app .metric,
+.provider-app .request-row,
+.provider-app .chat-workspace { border-radius:16px; }
+.provider-app .cta-row button { min-height:44px; }
+
+/* Admin command center: tighter visual hierarchy and less decorative noise. */
+.admin-pro .admin-pro-title h1 { font-weight:800; }
+.admin-pro .admin-pro-title p { line-height:1.7; }
+.admin-pro .ap-kpi,
+.admin-pro .ap-panel { box-shadow:0 10px 32px rgba(0,0,0,.12); }
+.admin-pro .ap-kpi { transition:transform .18s var(--maak-ease),border-color .18s ease,box-shadow .18s ease; }
+.admin-pro .ap-kpi:hover { transform:translateY(-1px); border-color:rgba(255,255,255,.13); }
+.admin-pro .ap-row { transition:background-color .16s ease,border-color .16s ease; }
+.admin-pro .ap-search { display:flex; align-items:center; gap:8px; }
+.admin-pro .ap-search input { flex:1; min-width:0; border:0; outline:0; background:transparent; min-height:40px; }
+.admin-pro .ap-search:focus-within { border-color:rgba(232,255,79,.45); box-shadow:0 0 0 3px rgba(232,255,79,.07); }
+.admin-pro .ap-btn:hover:not(:disabled),
+.admin-pro .ap-icon:hover:not(:disabled),
+.admin-pro .ap-filter:hover:not(:disabled) { border-color:rgba(255,255,255,.16); background:#1b2029; }
+.admin-pro .ap-primary:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 8px 24px rgba(232,255,79,.16); }
+.admin-pro .ap-drawer { box-shadow:-24px 0 70px rgba(0,0,0,.32); }
+
+/* Never allow long labels to destroy the layout. */
+.admin-pro button,.provider-app button { overflow-wrap:anywhere; }
+.admin-pro .ap-row-main strong,.provider-app .request-client h3 { overflow-wrap:anywhere; }
+
+/* Very narrow phones: preserve breathing room instead of clipping. */
+@media (max-width:390px) {
+  .app:not(.provider-app) .screen { padding-inline:2px; }
+  .app:not(.provider-app) .page-title h1 { font-size:21px; }
+  .app:not(.provider-app) .primary,.app:not(.provider-app) .secondary { padding-inline:14px; }
+  .admin-pro .admin-pro-top { gap:10px; }
+  .admin-pro .admin-pro-actions { width:100%; }
+  .admin-pro .admin-pro-actions .ap-primary { flex:1; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .app:not(.provider-app) .provider-row:hover,
+  .app:not(.provider-app) .booking-card:hover,
+  .app:not(.provider-app) .acct-card:hover,
+  .admin-pro .ap-kpi:hover,
+  .admin-pro .ap-primary:hover:not(:disabled) { transform:none; }
+}
