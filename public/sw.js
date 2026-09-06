@@ -1,11 +1,11 @@
 const CACHE_NAME = "maak-shell-v9";
 const APP_SHELL = [
-  "/maak/",
-  "/maak/index.html",
-  "/maak/manifest.webmanifest",
-  "/maak/404.html",
-  "/maak/icon-192.png",
-  "/maak/icon-512.png",
+  "/Maak/",
+  "/Maak/index.html",
+  "/Maak/manifest.webmanifest",
+  "/Maak/404.html",
+  "/Maak/icon-192.png",
+  "/Maak/icon-512.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -46,9 +46,9 @@ self.addEventListener("fetch", (event) => {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
             return response;
           }
-          return caches.match("/maak/index.html").then((cached) => cached || response);
+          return caches.match("/Maak/index.html").then((cached) => cached || response);
         })
-        .catch(() => caches.match("/maak/index.html")),
+        .catch(() => caches.match("/Maak/index.html")),
     );
     return;
   }
@@ -56,9 +56,9 @@ self.addEventListener("fetch", (event) => {
   // The providers API is never cached — the app must hit the real backend.
   if (url.pathname.startsWith("/api/")) return;
 
-  // Hashed build assets (/maak/assets/index-XXXX.js|css, images) are immutable:
+  // Hashed build assets (/Maak/assets/index-XXXX.js|css, images) are immutable:
   // cache-first is safe because a new deploy always produces new file names.
-  if (url.pathname.startsWith("/maak/assets/")) {
+  if (url.pathname.startsWith("/Maak/assets/")) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
@@ -80,7 +80,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response.ok && url.pathname.startsWith("/maak/")) {
+        if (response.ok && url.pathname.startsWith("/Maak/")) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
