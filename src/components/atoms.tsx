@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, Briefcase, ChevronLeft, Clock3, Loader2, MapPin, Search, ShieldCheck, Star, ThumbsUp, X } from "lucide-react";
+import { AlertCircle, Briefcase, ChevronLeft, Clock3, Loader2, MapPin, Search, ShieldCheck, Star, ThumbsUp, X } from "lucide-react";
 import type { Category, Provider } from "../types";
 
 import maakLockup from "../assets/brand/maak-lockup.png";
@@ -21,16 +21,8 @@ export function Avatar({ name, src }: { name: string; src?: string | null }) {
 }
 
 export function Rating({ value, reviews }: { value: string | null; reviews?: number | null }) {
-  const { t } = useLanguage();
   const hasRating = value != null && value !== "" && Number(value) > 0;
-  if (!hasRating) {
-    return (
-      <span className="rating new-rating">
-        <Star size={13} fill="currentColor" />
-        {t("common.new")}
-      </span>
-    );
-  }
+  if (!hasRating) return null;
   return (
     <span className="rating">
       <Star size={13} fill="currentColor" />
@@ -70,7 +62,7 @@ export function SearchBox({
         </button>
       ) : null}
       <button className="search-submit" onClick={onSubmit} aria-label={t("discover.search")}>
-        <ArrowLeft size={17} />
+        <Search size={17} />
       </button>
     </div>
   );

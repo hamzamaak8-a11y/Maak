@@ -2,8 +2,8 @@
    Maak — Phase 1 design system
 
    The visual language is intentionally built from the existing Maak mark:
-   dark architectural surfaces, warm gold actions, generous card hierarchy,
-   and compact mobile navigation inspired by modern home-service products.
+   warm, quiet surfaces; deep teal actions; generous card hierarchy; and
+   compact mobile navigation inspired by modern home-service products.
    Keep these tokens semantic so later screens inherit one language.
    ========================================================================= */
 
@@ -30,9 +30,56 @@
 
 /* Customer shell surfaces */
 .app:not(.provider-app) {
-  background:
-    radial-gradient(circle at 50% -15%, rgba(217, 178, 76, 0.07), transparent 34rem),
-    var(--maak-bg);
+  /* Phase 2 customer surfaces: light, local, and easy to scan. Provider and
+     admin surfaces keep their existing dark workspace treatment. */
+  --bg: #f4f7f6;
+  --bg-2: #edf2f0;
+  --bg-subtle: #e8efed;
+  --surface: #ffffff;
+  --surface-2: #f3f7f6;
+  --surface-3: #e8f0ee;
+  --surface-hover: #eef5f3;
+  --hair: rgba(18, 57, 61, 0.11);
+  --hair-2: rgba(18, 57, 61, 0.2);
+  --border: rgba(18, 57, 61, 0.12);
+  --border-focus: #0f6967;
+  --line: var(--hair);
+  --text: #17383d;
+  --text-soft: #607679;
+  --text-mute: #8b9b9c;
+  --ink: #17383d;
+  --ink-soft: #607679;
+  --muted: #8b9b9c;
+  --gold: #0f6967;
+  --gold-bright: #1d827d;
+  --gold-deep: #0b5554;
+  --gold-soft: rgba(15, 105, 103, 0.11);
+  --gold-glow: rgba(15, 105, 103, 0.2);
+  --primary: var(--gold);
+  --primary-hover: var(--gold-bright);
+  --primary-active: var(--gold-deep);
+  --primary-light: var(--gold-soft);
+  --orange: #c28d43;
+  --orange-soft: rgba(194, 141, 67, 0.12);
+  --green: #21855e;
+  --green-soft: rgba(33, 133, 94, 0.12);
+  --teal: #287f91;
+  --teal-soft: rgba(40, 127, 145, 0.12);
+  --red: #b94c52;
+  --red-soft: rgba(185, 76, 82, 0.1);
+  --navy: #123f43;
+  --navy-light: #e7f0ee;
+  --shadow-xs: 0 2px 6px rgba(21, 52, 57, 0.08);
+  --shadow-sm: 0 8px 20px -9px rgba(21, 52, 57, 0.2);
+  --shadow: 0 18px 42px -16px rgba(21, 52, 57, 0.2);
+  --shadow-lg: 0 24px 60px -20px rgba(21, 52, 57, 0.22);
+  --shadow-primary: 0 10px 24px -8px rgba(15, 105, 103, 0.28);
+  --maak-line: rgba(18, 57, 61, 0.11);
+  --maak-line-strong: rgba(18, 57, 61, 0.2);
+  --maak-shadow-card: 0 16px 38px rgba(21, 52, 57, 0.08);
+  background: var(--bg);
+  color: var(--text);
+  color-scheme: light;
 }
 
 .app:not(.provider-app) .shell {
@@ -43,7 +90,7 @@
 .app:not(.provider-app) .topbar {
   height: 72px;
   margin-inline: -20px;
-  background: rgba(11, 12, 15, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   border-bottom-color: var(--maak-line);
 }
 
@@ -64,7 +111,7 @@
 }
 
 .app:not(.provider-app) .desktop-nav button.selected {
-  border-color: rgba(217, 178, 76, 0.24);
+  border-color: rgba(15, 105, 103, 0.22);
 }
 
 .app:not(.provider-app) .app-main {
@@ -85,6 +132,234 @@
   letter-spacing: -0.02em;
 }
 
+.app:not(.provider-app) .home {
+  padding-bottom: 56px;
+}
+
+.app:not(.provider-app) .home-bar {
+  margin-bottom: 16px;
+}
+
+.app:not(.provider-app) .home-loc {
+  background: var(--surface);
+  border-color: var(--maak-line);
+  color: var(--text);
+  box-shadow: var(--shadow-xs);
+}
+
+.app:not(.provider-app) .home-loc svg,
+.app:not(.provider-app) .home-greet {
+  color: var(--gold);
+}
+
+.app:not(.provider-app) .home-intro {
+  overflow: hidden;
+  padding: 28px;
+  background: var(--surface);
+  position: relative;
+}
+
+.app:not(.provider-app) .home-intro::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 5px;
+  background: var(--gold);
+}
+
+.app:not(.provider-app) .home-prompt {
+  max-width: 680px;
+  color: var(--text);
+}
+
+.app:not(.provider-app) .home-sub {
+  color: var(--text-soft);
+}
+
+.app:not(.provider-app) .search-box {
+  max-width: none;
+  min-height: 58px;
+  padding: 7px 8px;
+  padding-inline-start: 17px;
+  background: var(--surface-2);
+  border-color: var(--maak-line-strong);
+  border-radius: 14px;
+  box-shadow: var(--shadow-xs);
+}
+
+.app:not(.provider-app) .search-box:focus-within {
+  background: var(--surface);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-soft);
+}
+
+.app:not(.provider-app) .search-box input {
+  color: var(--text);
+  min-width: 0;
+}
+
+.app:not(.provider-app) .search-submit {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: var(--gold);
+  color: #ffffff;
+  flex: 0 0 auto;
+}
+
+.app:not(.provider-app) .search-submit:hover {
+  background: var(--gold-bright);
+}
+
+.app:not(.provider-app) .category-chip {
+  min-height: 74px;
+  background: var(--surface);
+  border-color: var(--maak-line);
+  border-radius: 15px;
+  box-shadow: var(--shadow-xs);
+  text-align: start;
+}
+
+.app:not(.provider-app) .category-chip:hover {
+  background: var(--surface-hover);
+  border-color: var(--maak-line-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.app:not(.provider-app) .category-chip.active {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  box-shadow: none;
+}
+
+.app:not(.provider-app) .category-chip .chip-icon {
+  background: var(--navy-light);
+  border-color: transparent;
+  color: var(--gold);
+}
+
+.app:not(.provider-app) .category-chip:hover .chip-icon,
+.app:not(.provider-app) .category-chip.active .chip-icon {
+  background: var(--gold);
+  color: #ffffff;
+}
+
+.app:not(.provider-app) .category-chip .chip-text b,
+.app:not(.provider-app) .home-section-head h2,
+.app:not(.provider-app) .section-heading h2 {
+  color: var(--text);
+}
+
+.app:not(.provider-app) .service-chip,
+.app:not(.provider-app) .service-mini {
+  background: var(--surface-2);
+  border-color: var(--maak-line);
+  color: var(--text-soft);
+}
+
+.app:not(.provider-app) .service-chip.active,
+.app:not(.provider-app) .service-mini.more {
+  color: var(--gold-deep);
+  background: var(--gold-soft);
+  border-color: rgba(15, 105, 103, 0.24);
+}
+
+.app:not(.provider-app) .provider-row,
+.app:not(.provider-app) .skeleton-row {
+  background: var(--surface);
+  border-color: var(--maak-line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-xs);
+}
+
+.app:not(.provider-app) .provider-row:hover {
+  background: var(--surface);
+  border-color: var(--maak-line-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.app:not(.provider-app) .provider-row {
+  text-align: start;
+}
+
+.app:not(.provider-app) .provider-chevron {
+  transition: transform 0.2s, color 0.2s;
+}
+
+.app:not(.provider-app) .provider-row:hover .provider-chevron {
+  transform: translateX(-3px);
+}
+
+.app:not(.provider-app) .provider-row:hover .provider-cta {
+  transform: none;
+}
+
+.app:not(.provider-app) .provider-cta {
+  color: var(--gold-deep);
+  background: var(--gold-soft);
+  border-color: rgba(15, 105, 103, 0.18);
+}
+
+.app:not(.provider-app) .provider-row:hover .provider-cta {
+  background: var(--gold);
+  color: #ffffff;
+  border-color: var(--gold);
+}
+
+.app:not(.provider-app) .provider-price {
+  color: var(--gold-deep);
+}
+
+.app:not(.provider-app) .trust-strip {
+  background: #eff7f5;
+}
+
+.app:not(.provider-app) .discover .search-box {
+  margin-bottom: 22px;
+}
+
+.app:not(.provider-app) .discover-filterbar {
+  background: var(--surface);
+  border-color: var(--maak-line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-xs);
+}
+
+.app:not(.provider-app) .filter-field {
+  background: var(--surface-2);
+  border-color: var(--maak-line);
+  color: var(--text-soft);
+}
+
+.app:not(.provider-app) .filter-select,
+.app:not(.provider-app) .filter-select option {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.app:not(.provider-app) .filter-clear {
+  color: var(--gold-deep);
+}
+
+.app:not(.provider-app) .state-card {
+  background: var(--surface);
+  border-color: var(--maak-line-strong);
+  border-radius: var(--maak-radius-card);
+  box-shadow: var(--maak-shadow-card);
+}
+
+.app:not(.provider-app) .state-ico {
+  background: var(--navy-light);
+  border-color: transparent;
+  color: var(--gold);
+}
+
+.app:not(.provider-app) .sk-avatar,
+.app:not(.provider-app) .sk-line {
+  background: var(--surface-3);
+}
+
 /* Shared surface hierarchy: a quiet outer frame, a tactile inner card. */
 .app:not(.provider-app) .acct-card,
 .app:not(.provider-app) .home-intro,
@@ -100,6 +375,8 @@
 .app:not(.provider-app) .primary {
   border-radius: var(--maak-radius-control);
   min-height: 48px;
+  background: var(--gold);
+  color: #ffffff;
 }
 
 .app:not(.provider-app) .secondary,
@@ -116,9 +393,9 @@
 
 /* The bottom navigation is a real app control, not a desktop footer. */
 .app:not(.provider-app) .mobile-nav {
-  background: rgba(17, 19, 24, 0.96);
+  background: rgba(255, 255, 255, 0.97);
   border-color: var(--maak-line-strong);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+  box-shadow: 0 18px 44px rgba(21, 52, 57, 0.16);
 }
 
 .app:not(.provider-app) .mobile-nav button {
@@ -126,8 +403,16 @@
 }
 
 .app:not(.provider-app) .mobile-nav button.active {
-  color: var(--maak-accent-bright);
-  background: var(--maak-accent-soft);
+  color: var(--gold-deep);
+  background: var(--gold-soft);
+}
+
+html[dir="ltr"] .app:not(.provider-app) .provider-chevron {
+  transform: rotate(180deg);
+}
+
+html[dir="ltr"] .app:not(.provider-app) .provider-row:hover .provider-chevron {
+  transform: rotate(180deg) translateX(-3px);
 }
 
 @media (min-width: 768px) {

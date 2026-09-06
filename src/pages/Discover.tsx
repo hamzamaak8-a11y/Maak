@@ -70,7 +70,7 @@ export default function Discover() {
 
       <SearchBox value={filter} onChange={setFilter} onSubmit={() => undefined} />
 
-      <section className="content-section discover-categories">
+      <section id="discover-categories" className="content-section discover-categories">
         <div className="section-heading">
           <h2>{t("home.categoriesRail")}</h2>
         </div>
@@ -116,8 +116,14 @@ export default function Discover() {
               variant="empty"
               emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : t("discover.noResults")}
               emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("discover.noResultsBody")}
-              actionLabel={hasActiveFilters ? t("discover.clearFilters") : undefined}
-              onAction={hasActiveFilters ? clearAll : undefined}
+              actionLabel={marketplaceEmpty ? t("home.explore") : hasActiveFilters ? t("discover.clearFilters") : undefined}
+              onAction={
+                marketplaceEmpty
+                  ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  : hasActiveFilters
+                    ? clearAll
+                    : undefined
+              }
             />
           ) : (
             results.map((provider) => (

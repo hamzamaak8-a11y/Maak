@@ -18,7 +18,7 @@ export default function Home() {
 
   const categories = useMemo(
     () => getCategories().map((c) => ({ ...c, count: t(categoryCountLabel(providers, c.name), { n: countByCategory(providers, c.name) }) })),
-    [providers],
+    [providers, t],
   );
   const availableServices = useMemo(() => {
     const freq: Record<string, number> = {};
@@ -44,10 +44,12 @@ export default function Home() {
         </button>
       </div>
 
-      <section className="home-intro">
-        <p className="home-greet">{name ? t("home.greetName", { name }) : t("home.greet")}</p>
-        <h1 className="home-prompt">{t("home.prompt")}</h1>
-        <p className="home-sub">{t("home.sub")}</p>
+      <section className="home-intro" aria-labelledby="home-prompt">
+        <div className="home-intro-copy">
+          <p className="home-greet">{name ? t("home.greetName", { name }) : t("home.greet")}</p>
+          <h1 id="home-prompt" className="home-prompt">{t("home.prompt")}</h1>
+          <p className="home-sub">{t("home.sub")}</p>
+        </div>
         <SearchBox value={query} onChange={setQuery} onSubmit={() => goDiscover(query)} />
       </section>
 
