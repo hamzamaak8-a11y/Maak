@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  AlertCircle, ArrowLeft, Ban, Check, Clock, ExternalLink, FileText, Loader2,
-  ShieldCheck, X,
+  Activity, Ban, BookOpen, Check, CalendarDays, ExternalLink, FileText, LayoutDashboard,
+  Loader2, LogOut, RefreshCw, Search, Settings, ShieldCheck, UserRoundCheck, UserRoundX, Users, X,
 } from "lucide-react";
 import { Logo } from "../components/atoms";
 import { useAuth } from "../auth";
@@ -9,541 +9,74 @@ import { useToast } from "../context";
 import * as admin from "../lib/admin";
 import type { AdminApplication, AdminBooking, AdminCustomer, AdminDocument } from "../lib/admin";
 import { BOOKING_STATUS_LABELS } from "../lib/bookings";
-import type { BookingStatus } from "../types";
-import type { VerificationStatus } from "../types";
+import type { BookingStatus, VerificationStatus } from "../types";
 import { useLanguage } from "../i18n";
+import "../styles/admin-command-center.css";
 
-const TABS = ["adm.tabOverview", "adm.tabVerify", "adm.tabCustomers", "adm.tabBookings"] as const;
-type Tab = (typeof TABS)[number];
+type Section = "overview" | "providers" | "customers" | "bookings" | "system";
 
-type CountStatus = "pending" | "approved" | "rejected";
+type Copy = Record<string, string>;
+const AR: Copy = { dashboard:"لوحة التحكم",providers:"مقدمو الخدمات",customers:"العملاء",bookings:"الحجوزات",system:"النظام",control:"مركز التحكم",subtitle:"إدارة منصة Maak ومراقبة العمليات من مكان واحد",refresh:"تحديث",verification:"طلبات التحقق",pending:"بانتظار المراجعة",approved:"معتمدون",rejected:"مرفوضون",totalUsers:"الحسابات",totalBookings:"الحجوزات",recent:"آخر العمليات",noData:"لا توجد بيانات فعلية لعرضها",search:"بحث...",review:"مراجعة",suspend:"تعليق الحساب",reactivate:"إعادة التفعيل",cancel:"إلغاء الحجز",close:"إغلاق",details:"التفاصيل",active:"نشط",suspended:"معلّق",role:"الدور",city:"المدينة",phone:"الهاتف",created:"تاريخ الإنشاء",service:"الخدمة",status:"الحالة",date:"التاريخ",customer:"العميل",provider:"مقدم الخدمة",account:"الحساب",systemTitle:"حالة المنصة",secure:"صلاحيات الإدارة محمية على مستوى قاعدة البيانات",realOnly:"البيانات المعروضة مصدرها البيانات الفعلية فقط",mobileReady:"واجهة متجاوبة للهاتف والحاسوب",documents:"الوثائق",accept:"اعتماد",reject:"رفض",rejectReason:"سبب الرفض",confirm:"تأكيد",back:"العودة إلى التطبيق",admin:"المسؤول",signout:"تسجيل الخروج" };
+const FR: Copy = { dashboard:"Tableau de bord",providers:"Prestataires",customers:"Clients",bookings:"Réservations",system:"Système",control:"Centre de contrôle",subtitle:"Pilotez Maak et surveillez les opérations depuis un seul espace",refresh:"Actualiser",verification:"Vérifications",pending:"En attente",approved:"Approuvés",rejected:"Refusés",totalUsers:"Comptes",totalBookings:"Réservations",recent:"Activité récente",noData:"Aucune donnée réelle à afficher",search:"Rechercher...",review:"Examiner",suspend:"Suspendre",reactivate:"Réactiver",cancel:"Annuler la réservation",close:"Fermer",details:"Détails",active:"Actif",suspended:"Suspendu",role:"Rôle",city:"Ville",phone:"Téléphone",created:"Créé le",service:"Service",status:"Statut",date:"Date",customer:"Client",provider:"Prestataire",account:"Compte",systemTitle:"État de la plateforme",secure:"Les permissions d’administration sont protégées au niveau de la base",realOnly:"Les données affichées proviennent uniquement des données réelles",mobileReady:"Interface responsive mobile et desktop",documents:"Documents",accept:"Approuver",reject:"Refuser",rejectReason:"Motif du refus",confirm:"Confirmer",back:"Retour à l’application",admin:"Administrateur",signout:"Déconnexion" };
 
-const STATUS_FILTERS: { key: CountStatus; label: string }[] = [
-  { key: "pending", label: "adm.pendingReview" },
-  { key: "approved", label: "adm.approved" },
-  { key: "rejected", label: "adm.rejectedBadge" },
-];
-
-type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
-
-function statusBadge(status: VerificationStatus, t: TranslateFunc) {
-  if (status === "approved") return <span className="vk-badge ok"><Check size={11} /> {t("adm.approved")}</span>;
-  if (status === "rejected") return <span className="vk-badge no"><X size={11} /> {t("adm.rejectedBadge")}</span>;
-  if (status === "pending") return <span className="vk-badge wait"><Clock size={11} /> {t("adm.pendingReview")}</span>;
-  if (status === "suspended") return <span className="vk-badge no"><Ban size={11} /> {t("adm.suspended")}</span>;
-  return <span className="vk-badge">{status}</span>;
-}
-
-type ReviewDrawerProps = {
-  app: AdminApplication;
-  docs: AdminDocument[];
-  docsLoading: boolean;
-  docUrls: Record<string, string>;
-  onOpenDoc: (d: AdminDocument) => void;
-  onClose: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  actionLoading: boolean;
-  actionError: { message: string; tech: string } | null;
-  rejecting: boolean;
-  rejectReason: string;
-  setRejectReason: (v: string) => void;
-  confirmReject: () => void;
-  cancelReject: () => void;
-};
-
-function ReviewDrawer(props: ReviewDrawerProps) {
-  const { t } = useLanguage();
-  const {
-    app, docs, docsLoading, docUrls, onOpenDoc, onClose, onApprove, onReject,
-    actionLoading, actionError, rejecting, rejectReason, setRejectReason, confirmReject, cancelReject,
-  } = props;
-  return (
-    <div className="vk-drawer-overlay" onClick={onClose}>
-      <div className="vk-drawer" onClick={(e) => e.stopPropagation()}>
-        <div className="vk-drawer-head">
-          <div>
-            <span className="section-kicker">{t("adm.reviewApplication")}</span>
-            <h2>{app.full_name || t("adm.applicant")}</h2>
-          </div>
-          <button className="ghost-button" onClick={onClose}><X size={16} /> {t("adm.close")}</button>
-        </div>
-        <div className="vk-drawer-body">
-          <section className="vk-section">
-            <h3>{t("adm.personalInfo")}</h3>
-            {app.avatar_url ? (
-              <div className="profile-image-wrap" style={{ marginBottom: 14 }}>
-                <img src={app.avatar_url} alt={app.full_name || ""} />
-              </div>
-            ) : null}
-            <div className="vk-rows">
-              <div className="vk-row"><span>{t("adm.fullName")}</span><b>{app.full_name || "—"}</b></div>
-              <div className="vk-row"><span>{t("adm.phone")}</span><b dir="ltr">{app.phone || "—"}</b></div>
-              <div className="vk-row"><span>{t("adm.city")}</span><b>{app.city || "—"}</b></div>
-            </div>
-          </section>
-          <section className="vk-section">
-            <h3>{t("adm.professionalInfo")}</h3>
-            <div className="vk-rows">
-              <div className="vk-row"><span>{t("adm.profession")}</span><b>{app.profession || "—"}</b></div>
-              <div className="vk-row"><span>{t("adm.serviceCategory")}</span><b>{app.service_category || "—"}</b></div>
-              <div className="vk-row"><span>{t("adm.experienceYears")}</span><b>{app.experience_years ?? "—"}</b></div>
-              <div className="vk-row vk-row-stack"><span>{t("adm.bio")}</span><b>{app.bio || "—"}</b></div>
-            </div>
-          </section>
-          <section className="vk-section">
-            <h3>{t("adm.uploadedDocs")}</h3>
-            {docsLoading ? (
-              <div className="state-loading"><Loader2 className="spin" size={18} /><p>{t("adm.loadingDocs")}</p></div>
-            ) : docs.length === 0 ? (
-              <p className="vk-empty">{t("adm.noDocs")}</p>
-            ) : (
-              <div className="vk-docs">
-                {docs.map((d) => (
-                  <div className="vk-doc" key={d.id}>
-                    <span className="vk-doc-icon"><FileText size={15} /></span>
-                    <div className="vk-doc-info">
-                      <b>{t(admin.DOC_LABELS[d.document_type] || d.document_type)}</b>
-                      <span>{t("adm.statusLabel")}: {d.status}</span>
-                    </div>
-                    <button className="mini-button" type="button" onClick={() => onOpenDoc(d)}>
-                      <ExternalLink size={13} /> {t("adm.view")}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-          {app.verification_status === "rejected" && app.rejection_reason ? (
-            <div className="vk-reason"><b>{t("bk.rejectionReason")}::</b> <span>{app.rejection_reason}</span></div>
-          ) : null}
-        </div>
-        <div className="vk-drawer-foot">
-          {actionError ? (
-            <div className="vk-action-error" role="alert">
-              <AlertCircle size={14} /> {actionError.message}
-            </div>
-          ) : null}
-          {rejecting ? (
-            <>
-              <textarea
-                className="vk-textarea"
-                rows={3}
-                placeholder={t("adm.rejectPlaceholder")}
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-              />
-              <div className="cta-row" style={{ margin: 0 }}>
-                <button className="primary" type="button" onClick={confirmReject} disabled={actionLoading}>
-                  {actionLoading ? <Loader2 className="spin" size={15} /> : null} {t("pm.confirmReject")}
-                </button>
-                <button className="secondary" type="button" onClick={cancelReject} disabled={actionLoading}>{t("adm.cancel")}</button>
-              </div>
-            </>
-          ) : (
-            <div className="cta-row" style={{ margin: 0 }}>
-              <button className="primary" type="button" onClick={onApprove} disabled={actionLoading}>
-                {actionLoading ? <Loader2 className="spin" size={15} /> : <ShieldCheck size={15} />} {t("adm.acceptProvider")}
-              </button>
-              <button className="secondary" type="button" onClick={onReject} disabled={actionLoading}>
-                <Ban size={15} /> {t("pm.rejectRequest")}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* Map raw RPC/network errors to actionable Arabic messages; the raw error
-   is also captured in the console for development diagnostics. */
-function explainActionError(raw: string, t: TranslateFunc): string {
-  const s = raw.toLowerCase();
-  if (s.includes("jwt") || s.includes("token") || s.includes("session") || s.includes("expired")) {
-    return t("adm.errSession");
-  }
-  if (s.includes("forbidden")) return t("adm.errForbidden");
-  if (s.includes("could not find the function")) return t("adm.errInvalidId");
-  if (s.includes("not allowed")) return t("adm.errDbConstraint");
-  return t("adm.errApproveFail");
-}
+function StatusBadge({ status }: { status: string }) { const s=status.toLowerCase(); const ok=["approved","active","completed","accepted"].includes(s); const no=["rejected","suspended","cancelled"].includes(s); return <span className={`ap-badge ${ok?"ok":no?"no":"warn"}`}>{status}</span>; }
+function initials(name: string | null) { return (name||"M").trim().split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase(); }
 
 export default function Admin({ switchRole }: { switchRole: () => void }) {
-  const { t, lang, toggleLang } = useLanguage();
+  const { lang, toggleLang } = useLanguage();
   const { profile } = useAuth();
   const { showToast } = useToast();
+  const t = lang === "fr" ? FR : AR;
+  const [section,setSection]=useState<Section>("overview");
+  const [counts,setCounts]=useState({pending:0,approved:0,rejected:0});
+  const [customers,setCustomers]=useState<{rows:AdminCustomer[];total:number}>({rows:[],total:0});
+  const [bookings,setBookings]=useState<{rows:AdminBooking[];total:number}>({rows:[],total:0});
+  const [providerStatus,setProviderStatus]=useState<VerificationStatus>("pending");
+  const [providers,setProviders]=useState<AdminApplication[]>([]);
+  const [search,setSearch]=useState("");
+  const [loading,setLoading]=useState(true);
+  const [refreshing,setRefreshing]=useState(false);
+  const [selectedProvider,setSelectedProvider]=useState<AdminApplication|null>(null);
+  const [selectedCustomer,setSelectedCustomer]=useState<AdminCustomer|null>(null);
+  const [documents,setDocuments]=useState<AdminDocument[]>([]);
+  const [docsLoading,setDocsLoading]=useState(false);
+  const [rejecting,setRejecting]=useState(false);
+  const [rejectReason,setRejectReason]=useState("");
+  const [busyId,setBusyId]=useState<string|null>(null);
+  const [bookingConfirm,setBookingConfirm]=useState<AdminBooking|null>(null);
 
-  const [tab, setTab] = useState<Tab>("adm.tabVerify");
-  const [loading, setLoading] = useState(true);
-  const [loadErr, setLoadErr] = useState<string | null>(null);
-  const [counts, setCounts] = useState<Record<CountStatus, number>>({ pending: 0, approved: 0, rejected: 0 });
-  const [filter, setFilter] = useState<VerificationStatus>("pending");
-  const [apps, setApps] = useState<AdminApplication[]>([]);
-  const [listLoading, setListLoading] = useState(false);
-  const [selected, setSelected] = useState<AdminApplication | null>(null);
-  const [docs, setDocs] = useState<AdminDocument[]>([]);
-  const [docsLoading, setDocsLoading] = useState(false);
-  const [docUrls, setDocUrls] = useState<Record<string, string>>({});
-  const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState<{ message: string; tech: string } | null>(null);
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const loadCore=async()=>{setRefreshing(true);try{const [pending,approved,rejected,users,bks,apps]=await Promise.all([admin.countByStatus("pending"),admin.countByStatus("approved"),admin.countByStatus("rejected"),admin.listCustomers(),admin.listBookings(),admin.listApplications(providerStatus)]);setCounts({pending,approved,rejected});setCustomers(users);setBookings(bks);setProviders(apps);}catch(e){showToast(e instanceof Error?e.message:"Unable to load admin data");}finally{setRefreshing(false);setLoading(false);}};
+  useEffect(()=>{void loadCore();},[providerStatus]);
+  const filteredUsers=useMemo(()=>{const q=search.trim().toLowerCase();return q?customers.rows.filter(u=>[u.full_name,u.phone,u.city,u.role].some(v=>String(v??"").toLowerCase().includes(q))):customers.rows;},[customers.rows,search]);
+  const filteredProviders=useMemo(()=>{const q=search.trim().toLowerCase();return q?providers.filter(p=>[p.full_name,p.phone,p.city,p.profession,p.service_category].some(v=>String(v??"").toLowerCase().includes(q))):providers;},[providers,search]);
+  const filteredBookings=useMemo(()=>{const q=search.trim().toLowerCase();return q?bookings.rows.filter(b=>[b.customer_name,b.provider_name,b.service_category,b.status,b.location_text].some(v=>String(v??"").toLowerCase().includes(q))):bookings.rows;},[bookings.rows,search]);
+  const fmt=(iso:string|null)=>iso?new Intl.DateTimeFormat(lang==="fr"?"fr-FR":"ar-MA",{dateStyle:"medium",timeStyle:"short"}).format(new Date(iso)):"—";
+  const roleLabel=(r:string)=>r==="admin"?t.admin:r==="provider"?t.providers:t.customers;
+  const bookingLabel=(s:string)=>{const k=BOOKING_STATUS_LABELS[s as BookingStatus];return k?t[k]:s;};
 
-  // Read-only directories (customers / bookings). Loaded lazily per tab.
-  const [customers, setCustomers] = useState<{ rows: AdminCustomer[]; total: number } | null>(null);
-  const [bookingsData, setBookingsData] = useState<{ rows: AdminBooking[]; total: number } | null>(null);
-  const [dirLoading, setDirLoading] = useState(false);
-  const [dirErr, setDirErr] = useState<string | null>(null);
+  async function openProvider(p:AdminApplication){setSelectedProvider(p);setRejecting(false);setRejectReason("");setDocuments([]);setDocsLoading(true);try{setDocuments(await admin.listApplicationDocuments(p.id));}catch(e){showToast(e instanceof Error?e.message:t.documents);}finally{setDocsLoading(false);}}
+  async function providerAction(a:"approve"|"reject"){if(!selectedProvider)return;setBusyId(selectedProvider.id);try{if(a==="approve")await admin.approveProvider(selectedProvider.id);else await admin.rejectProvider(selectedProvider.id,rejectReason);showToast(a==="approve"?t.accept:t.reject);setSelectedProvider(null);await loadCore();}catch(e){showToast(e instanceof Error?e.message:t.systemTitle);}finally{setBusyId(null);}}
+  async function accountAction(u:AdminCustomer|AdminApplication){if(u.id===profile?.id)return;const next=u.account_status==="suspended"?"active":"suspended";setBusyId(u.id);try{await admin.setAccountStatus(u.id,next);showToast(next==="active"?t.reactivate:t.suspend);await loadCore();}catch(e){showToast(e instanceof Error?e.message:t.systemTitle);}finally{setBusyId(null);}}
+  async function cancelBooking(){if(!bookingConfirm)return;setBusyId(bookingConfirm.id);try{await admin.cancelBooking(bookingConfirm.id,"Administrative cancellation");showToast(t.cancel);setBookingConfirm(null);await loadCore();}catch(e){showToast(e instanceof Error?e.message:t.cancel);}finally{setBusyId(null);}}
 
-  useEffect(() => {
-    if (tab !== "adm.tabCustomers" && tab !== "adm.tabBookings") return;
-    let active = true;
-    (async () => {
-      setDirLoading(true);
-      setDirErr(null);
-      try {
-        if (tab === "adm.tabCustomers") {
-          const res = await admin.listCustomers();
-          if (active) setCustomers(res);
-        } else {
-          const res = await admin.listBookings();
-          if (active) setBookingsData(res);
-        }
-      } catch (e) {
-        if (active) setDirErr(e instanceof Error ? e.message : "adm.loadFail");
-      } finally {
-        if (active) setDirLoading(false);
-      }
-    })();
-    return () => { active = false; };
-  }, [tab]);
+  function navButton(key:Section,icon:ReactNode,label:string,count?:number){return <button className={section===key?"active":""} onClick={()=>{setSection(key);setSearch("");}}>{icon}<span>{label}</span>{count?<b className="nav-count">{count}</b>:null}</button>;}
+  if(loading)return <div className="admin-pro"><div className="admin-pro-main" style={{display:"grid",placeItems:"center"}}><Loader2 className="spin" size={28}/></div></div>;
 
-  const fmtWhen = (iso: string | null) => {
-    if (!iso) return t("common.unspecified");
-    try {
-      return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-MA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
-    } catch {
-      return iso;
-    }
-  };
-  const roleLabel = (role: string) =>
-    role === "admin" ? t("account.roleAdmin") : role === "provider" ? t("account.roleProvider") : t("account.roleCustomer");
-  const bookingStatusLabel = (status: string) => {
-    const key = BOOKING_STATUS_LABELS[status as BookingStatus];
-    return key ? t(key) : status;
-  };
+  return <div className="admin-pro" dir={lang==="fr"?"ltr":"rtl"}>
+    <aside className="admin-pro-side"><div className="admin-pro-brand"><Logo/><div><strong>Maak</strong><small>{t.admin} · {t.control}</small></div></div><nav className="admin-pro-nav">{navButton("overview",<LayoutDashboard size={18}/>,t.dashboard)}{navButton("providers",<UserRoundCheck size={18}/>,t.providers,counts.pending)}{navButton("customers",<Users size={18}/>,t.customers,customers.total)}{navButton("bookings",<BookOpen size={18}/>,t.bookings,bookings.total)}{navButton("system",<Settings size={18}/>,t.system)}</nav><div className="admin-pro-side-footer"><button onClick={toggleLang}><Activity size={16}/><span>{lang==="fr"?"العربية":"Français"}</span></button><button onClick={switchRole}><LogOut size={16}/><span>{t.signout}</span></button></div></aside>
+    <main className="admin-pro-main"><header className="admin-pro-top"><div className="admin-pro-title"><h1>{section==="overview"?t.dashboard:section==="providers"?t.providers:section==="customers"?t.customers:section==="bookings"?t.bookings:t.systemTitle}</h1><p>{t.subtitle}</p></div><div className="admin-pro-actions"><button className="ap-icon" onClick={()=>void loadCore()} disabled={refreshing} title={t.refresh}><RefreshCw size={17} className={refreshing?"spin":""}/></button><button className="ap-primary" onClick={()=>setSection("providers")}><ShieldCheck size={16}/>{t.verification}</button></div></header>
+      <section className="admin-pro-kpis"><div className="ap-kpi accent"><div className="ap-kpi-top"><span>{t.pending}</span><ClockIcon/></div><strong>{counts.pending}</strong><small>{t.verification}</small></div><div className="ap-kpi"><div className="ap-kpi-top"><span>{t.approved}</span><Check size={16}/></div><strong>{counts.approved}</strong><small>{t.providers}</small></div><div className="ap-kpi"><div className="ap-kpi-top"><span>{t.totalUsers}</span><Users size={16}/></div><strong>{customers.total}</strong><small>{t.account}</small></div><div className="ap-kpi"><div className="ap-kpi-top"><span>{t.totalBookings}</span><CalendarDays size={16}/></div><strong>{bookings.total}</strong><small>{t.bookings}</small></div></section>
+      {section==="overview"&&<div className="admin-pro-grid"><section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.verification}</h2><p>{t.pending}: {counts.pending}</p></div><button className="ap-btn" onClick={()=>setSection("providers")}>{t.details}</button></div><div className="ap-panel-body"><div className="ap-list">{providers.slice(0,6).map(p=><div className="ap-row" key={p.id}><div className="ap-avatar">{p.avatar_url?<img src={p.avatar_url} alt="" className="ap-avatar"/>:<span className="ap-avatar-fallback">{initials(p.full_name)}</span>}</div><div className="ap-row-main"><strong>{p.full_name||"—"}<StatusBadge status={p.verification_status}/></strong><span>{p.profession||p.service_category||"—"} · {p.city||"—"}</span></div><div className="ap-actions"><button className="ap-btn" onClick={()=>void openProvider(p)}>{t.review}</button></div></div>)}{!providers.length&&<div className="ap-empty">{t.noData}</div>}</div></div></section><section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.recent}</h2><p>{t.totalBookings}: {bookings.total}</p></div><button className="ap-btn" onClick={()=>setSection("bookings")}>{t.details}</button></div><div className="ap-panel-body"><div className="ap-activity">{bookings.rows.slice(0,6).map(b=><div className="ap-activity-item" key={b.id}><div className="ap-activity-icon"><BookOpen size={14}/></div><div><strong>{b.service_category}</strong><span>{b.customer_name||"—"} · <StatusBadge status={bookingLabel(b.status)}/></span></div></div>)}{!bookings.rows.length&&<div className="ap-empty">{t.noData}</div>}</div></div></section></div>}
+      {section==="providers"&&<section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.providers}</h2><p>{t.verification}</p></div></div><div className="ap-panel-body"><div className="ap-toolbar"><div className="ap-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}/></div><div className="ap-filters">{(["pending","approved","rejected"] as VerificationStatus[]).map(s=><button key={s} className={`ap-filter ${providerStatus===s?"active":""}`} onClick={()=>setProviderStatus(s)}>{s==="pending"?t.pending:s==="approved"?t.approved:t.rejected}</button>)}</div></div><div className="ap-list">{filteredProviders.map(p=><div className="ap-row" key={p.id}><div className="ap-avatar">{p.avatar_url?<img src={p.avatar_url} alt="" className="ap-avatar"/>:<span className="ap-avatar-fallback">{initials(p.full_name)}</span>}</div><div className="ap-row-main"><strong>{p.full_name||"—"}<StatusBadge status={p.verification_status}/>{p.account_status==="suspended"&&<StatusBadge status={t.suspended}/>}</strong><span>{p.profession||"—"} · {p.city||"—"} · {p.phone||"—"}</span></div><div className="ap-actions"><button className="ap-btn" onClick={()=>void openProvider(p)}>{t.review}</button><button className={`ap-btn ${p.account_status==="suspended"?"success":"danger"}`} disabled={busyId===p.id} onClick={()=>void accountAction(p)}>{p.account_status==="suspended"?<UserRoundCheck size={14}/>:<UserRoundX size={14}/>} {p.account_status==="suspended"?t.reactivate:t.suspend}</button></div></div>)}{!filteredProviders.length&&<div className="ap-empty">{t.noData}</div>}</div></div></section>}
+      {section==="customers"&&<section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.customers}</h2><p>{customers.total} {t.account}</p></div></div><div className="ap-panel-body"><div className="ap-toolbar"><div className="ap-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}/></div></div><div className="ap-list">{filteredUsers.map(u=><div className="ap-row" key={u.id}><div className="ap-avatar"><span className="ap-avatar-fallback">{initials(u.full_name)}</span></div><div className="ap-row-main"><strong>{u.full_name||"—"}<StatusBadge status={u.account_status=== "suspended"?t.suspended:t.active}/></strong><span>{roleLabel(u.role)} · {u.city||"—"} · {u.phone||"—"}</span></div><div className="ap-actions"><button className="ap-btn" onClick={()=>setSelectedCustomer(u)}>{t.details}</button>{u.role!=="admin"&&<button className={`ap-btn ${u.account_status==="suspended"?"success":"danger"}`} disabled={busyId===u.id} onClick={()=>void accountAction(u)}>{u.account_status==="suspended"?t.reactivate:t.suspend}</button>}</div></div>)}{!filteredUsers.length&&<div className="ap-empty">{t.noData}</div>}</div></div></section>}
+      {section==="bookings"&&<section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.bookings}</h2><p>{bookings.total} {t.totalBookings}</p></div></div><div className="ap-panel-body"><div className="ap-toolbar"><div className="ap-search"><Search size={15}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.search}/></div></div><div className="ap-table-wrap"><table className="ap-table"><thead><tr><th>{t.service}</th><th>{t.customer}</th><th>{t.provider}</th><th>{t.status}</th><th>{t.date}</th><th/></tr></thead><tbody>{filteredBookings.map(b=><tr key={b.id}><td>{b.service_category}</td><td>{b.customer_name||"—"}</td><td>{b.provider_name||"—"}</td><td><StatusBadge status={bookingLabel(b.status)}/></td><td>{fmt(b.service_date)}</td><td>{!["completed","cancelled","rejected"].includes(b.status)&&<button className="ap-btn danger" disabled={busyId===b.id} onClick={()=>setBookingConfirm(b)}>{t.cancel}</button>}</td></tr>)}</tbody></table>{!filteredBookings.length&&<div className="ap-empty">{t.noData}</div>}</div></div></section>}
+      {section==="system"&&<div className="admin-pro-grid"><section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.systemTitle}</h2><p>Maak</p></div></div><div className="ap-panel-body"><div className="ap-list"><div className="ap-row"><div className="ap-activity-icon"><ShieldCheck size={16}/></div><div className="ap-row-main"><strong>{t.secure}</strong><span>{t.realOnly}</span></div><StatusBadge status={t.active}/></div><div className="ap-row"><div className="ap-activity-icon"><Activity size={16}/></div><div className="ap-row-main"><strong>{t.mobileReady}</strong><span>Responsive command center</span></div><StatusBadge status={t.active}/></div></div></div></section><section className="ap-panel"><div className="ap-panel-head"><div><h2>{t.admin}</h2><p>{profile?.full_name||"—"}</p></div></div><div className="ap-panel-body"><div className="ap-info-grid"><div><span>{t.role}</span><strong>{t.admin}</strong></div><div><span>{t.account}</span><strong>{profile?.account_status||t.active}</strong></div><div><span>{t.city}</span><strong>{profile?.city||"—"}</strong></div><div><span>{t.phone}</span><strong>{profile?.phone||"—"}</strong></div></div></div></section></div>}
+    </main>
+    <nav className="ap-mobile-nav">{navButton("overview",<LayoutDashboard/>,t.dashboard)}{navButton("providers",<UserRoundCheck/>,t.providers)}{navButton("customers",<Users/>,t.customers)}{navButton("bookings",<BookOpen/>,t.bookings)}{navButton("system",<Settings/>,t.system)}</nav>
 
-  async function reloadCounts() {
-    try {
-      const [p, a, r] = await Promise.all([
-        admin.countByStatus("pending"),
-        admin.countByStatus("approved"),
-        admin.countByStatus("rejected"),
-      ]);
-      setCounts({ pending: p, approved: a, rejected: r });
-    } catch (e) {
-      setLoadErr(e instanceof Error ? e.message : t("adm.loadStatsFail"));
-    }
-  }
-
-  async function reloadList(status: VerificationStatus) {
-    setListLoading(true);
-    try {
-      setApps(await admin.listApplications(status));
-      setLoadErr(null);
-    } catch (e) {
-      setLoadErr(e instanceof Error ? e.message : t("adm.loadAppsFail"));
-      setApps([]);
-    } finally {
-      setListLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      setLoading(true);
-      await reloadCounts();
-      if (active) setLoading(false);
-    })();
-    return () => { active = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      setListLoading(true);
-      try {
-        const list = await admin.listApplications(filter);
-        if (active) { setApps(list); setLoadErr(null); }
-      } catch (e) {
-        if (active) { setLoadErr(e instanceof Error ? e.message : t("adm.loadAppsFail")); setApps([]); }
-      } finally {
-        if (active) setListLoading(false);
-      }
-    })();
-    return () => { active = false; };
-  }, [filter]);
-
-  async function openReview(app: AdminApplication) {
-    setSelected(app);
-    setDocs([]);
-    setDocUrls({});
-    setActionError(null);
-    setDocsLoading(true);
-    try {
-      setDocs(await admin.listApplicationDocuments(app.id));
-    } catch (e) {
-      showToast(t(e instanceof Error ? e.message : "adm.loadDocsFail"));
-    } finally {
-      setDocsLoading(false);
-    }
-  }
-
-  async function openDoc(doc: AdminDocument) {
-    const cached = docUrls[doc.id];
-    if (cached) { window.open(cached, "_blank", "noopener"); return; }
-    try {
-      const url = await admin.signedDocumentUrl(doc.storage_path);
-      setDocUrls((m) => ({ ...m, [doc.id]: url }));
-      window.open(url, "_blank", "noopener");
-    } catch (e) {
-      showToast(t(e instanceof Error ? e.message : "adm.openDocFail"));
-    }
-  }
-
-  async function handleApprove() {
-    if (!selected?.id) {
-      setActionError({ message: t("adm.errInvalidIdRetry"), tech: "" });
-      return;
-    }
-    setActionError(null);
-    setActionLoading(true);
-    try {
-      await admin.approveProvider(selected.id);
-      showToast(t("adm.providerAccepted"));
-      setSelected(null);
-      await Promise.all([reloadCounts(), reloadList(filter)]);
-    } catch (e) {
-      const err = e as { message?: string; code?: string; details?: string | null; hint?: string | null };
-      const raw = typeof err?.message === "string" && err.message ? err.message : String(e);
-      const tech = [err?.code, raw, err?.details, err?.hint].filter((v) => v != null && v !== "").join(" · ");
-      console.error("[admin] approve failed — provider_profile_id:", selected.id, "| full error object:", e);
-      const message = explainActionError(raw, t);
-      setActionError({ message, tech });
-      showToast(message);
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function handleReject() {
-    if (!selected?.id) {
-      setActionError({ message: t("adm.errInvalidIdRetry"), tech: "" });
-      return;
-    }
-    setActionError(null);
-    setActionLoading(true);
-    try {
-      await admin.rejectProvider(selected.id, rejectReason);
-      showToast(t("status.rejected"));
-      setRejectOpen(false);
-      setRejectReason("");
-      setSelected(null);
-      await Promise.all([reloadCounts(), reloadList(filter)]);
-    } catch (e) {
-      const err = e as { message?: string; code?: string; details?: string | null; hint?: string | null };
-      const raw = typeof err?.message === "string" && err.message ? err.message : String(e);
-      const tech = [err?.code, raw, err?.details, err?.hint].filter((v) => v != null && v !== "").join(" · ");
-      console.error("[admin] reject failed — provider_profile_id:", selected.id, "| full error object:", e);
-      const message = explainActionError(raw, t);
-      setActionError({ message, tech });
-      showToast(message);
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  const adminName = profile?.full_name || t("adm.adminFallback");
-
-  return (
-    <div className="admin">
-      <aside className="admin-side">
-        <Logo inverse />
-        <div className="provider-side-title">
-          <span>{t("adm.dashboard")}</span>
-          <b>{adminName}</b>
-        </div>
-        {TABS.map((item) => (
-          <button key={item} className={tab === item ? "active" : ""} onClick={() => setTab(item)}>{t(item)}</button>
-        ))}
-        <button className="return-app" onClick={switchRole}>{t("acct.signOut")}</button>
-      </aside>
-      <main className="admin-main">
-        <div className="admin-top">
-          <div>
-            <span className="section-kicker">{t("adm.adminKicker")}</span>
-            <h1>{t(tab)}</h1>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button className="lang-toggle-btn" onClick={toggleLang} aria-label={t("lang.label")}>
-              <span>{lang === "ar" ? "FR" : "عربي"}</span>
-            </button>
-            <span className="avatar">{t("adm.avatarLetter")}</span>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="state-loading"><Loader2 className="spin" size={26} /><p>{t("adm.loadingVerification")}</p></div>
-        ) : tab === "adm.tabOverview" ? (
-          <>
-            <div className="metric-row">
-              <div className="metric"><small>{t("adm.metricPending")}</small><strong>{counts.pending}</strong><span>{t("adm.awaitingDecision")}</span></div>
-              <div className="metric"><small>{t("adm.metricApproved")}</small><strong>{counts.approved}</strong><span>{t("adm.verified")}</span></div>
-              <div className="metric"><small>{t("adm.metricRejected")}</small><strong>{counts.rejected}</strong><span>{t("adm.needsFollowUp")}</span></div>
-            </div>
-            <div className="panel">
-              <h2>{t("adm.verifyProviders")}</h2>
-              <p>{t("adm.verifyDesc")}</p>
-              <button className="primary" onClick={() => setTab("adm.tabVerify")}>{t("adm.openVerifyList")} <ArrowLeft size={15} /></button>
-            </div>
-          </>
-        ) : tab === "adm.tabCustomers" || tab === "adm.tabBookings" ? (
-          dirLoading ? (
-            <div className="state-loading"><Loader2 className="spin" size={24} /><p>{t("common.loading")}</p></div>
-          ) : dirErr ? (
-            <div className="state-error">
-              <AlertCircle size={26} />
-              <h3>{t("adm.loadFail")}</h3>
-              <p>{t(dirErr)}</p>
-              <button className="secondary" onClick={() => setTab(tab === "adm.tabCustomers" ? "adm.tabBookings" : "adm.tabCustomers")}>{t("common.retryBtn")}</button>
-            </div>
-          ) : tab === "adm.tabCustomers" ? (
-            <>
-              <div className="metric-row">
-                <div className="metric"><small>{t("adm.tabCustomers")}</small><strong>{customers?.total ?? 0}</strong><span>{t("adm.readOnly")}</span></div>
-              </div>
-              {!customers || customers.rows.length === 0 ? (
-                <div className="panel"><p>{t("adm.noCustomers")}</p></div>
-              ) : (
-                <div className="vk-list">
-                  {customers.rows.map((c) => (
-                    <div className="vk-card" key={c.id}>
-                      <div className="vk-card-main">
-                        <div className="vk-avatar">{(c.full_name || "?").charAt(0)}</div>
-                        <div className="vk-card-info">
-                          <div className="vk-card-head">{c.full_name || t("adm.unnamedUser")} <span className="vk-badge">{roleLabel(c.role)}</span></div>
-                          <p>{c.city || "—"} · {c.phone || "—"} · {fmtWhen(c.created_at)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {customers.total > customers.rows.length ? (
-                    <p className="hint">{t("adm.showingFirst", { n: customers.rows.length, total: customers.total })}</p>
-                  ) : null}
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="metric-row">
-                <div className="metric"><small>{t("adm.tabBookings")}</small><strong>{bookingsData?.total ?? 0}</strong><span>{t("adm.readOnly")}</span></div>
-              </div>
-              {!bookingsData || bookingsData.rows.length === 0 ? (
-                <div className="panel"><p>{t("adm.noBookings")}</p></div>
-              ) : (
-                <div className="vk-list">
-                  {bookingsData.rows.map((b) => (
-                    <div className="vk-card" key={b.id}>
-                      <div className="vk-card-main">
-                        <div className="vk-avatar">{(b.customer_name || "?").charAt(0)}</div>
-                        <div className="vk-card-info">
-                          <div className="vk-card-head">
-                            {t(b.service_category)} <span className="vk-badge">{bookingStatusLabel(b.status)}</span>
-                          </div>
-                          <p>
-                            {t("adm.bookingParties", { customer: b.customer_name || t("adm.unnamedUser"), provider: b.provider_name || t("adm.unnamedUser") })}
-                            {" · "}{fmtWhen(b.service_date)}{b.location_text ? " · " + b.location_text : ""}
-                          </p>
-                          {b.status === "rejected" && b.rejection_reason ? (
-                            <p>{t("bk.rejectionReason")}: {b.rejection_reason}</p>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                  {bookingsData.total > bookingsData.rows.length ? (
-                    <p className="hint">{t("adm.showingFirst", { n: bookingsData.rows.length, total: bookingsData.total })}</p>
-                  ) : null}
-                </div>
-              )}
-            </>
-          )
-        ) : loadErr && apps.length === 0 && !listLoading ? (
-          <div className="state-error">
-            <AlertCircle size={26} />
-            <h3>{t("adm.loadFail")}</h3>
-            <p>{t(loadErr)}</p>
-            <button className="secondary" onClick={() => window.location.reload()}>{t("common.retryBtn")}</button>
-          </div>
-        ) : (
-          <>
-            <div className="chips" style={{ marginBottom: 18 }}>
-              {STATUS_FILTERS.map((s) => (
-                <button
-                  key={s.key}
-                  className={"filter-button" + (filter === s.key ? " active" : "")}
-                  onClick={() => setFilter(s.key)}
-                >
-                  {t(s.label)} · {counts[s.key]}
-                </button>
-              ))}
-            </div>
-            {listLoading ? (
-              <div className="state-loading"><Loader2 className="spin" size={24} /><p>{t("adm.loadingApps")}</p></div>
-            ) : apps.length === 0 ? (
-              <div className="panel"><p>{t("bookings.emptyFiltered")}</p></div>
-            ) : (
-              <div className="vk-list">
-                {apps.map((app) => (
-                  <div className="vk-card" key={app.id}>
-                    <div className="vk-card-main">
-                      <div className="vk-avatar">{(app.full_name || app.id).charAt(0)}</div>
-                      <div className="vk-card-info">
-                        <div className="vk-card-head">{app.full_name || t("adm.applicant")} {statusBadge(app.verification_status, t)}</div>
-                        <p>{app.profession || "—"} · {app.city || "—"}</p>
-                      </div>
-                    </div>
-                    <button className="secondary" onClick={() => openReview(app)}>{t("adm.review")} <ArrowLeft size={14} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {selected ? (
-          <ReviewDrawer
-            app={selected}
-            docs={docs}
-            docsLoading={docsLoading}
-            docUrls={docUrls}
-            onOpenDoc={openDoc}
-            onClose={() => setSelected(null)}
-            onApprove={handleApprove}
-            onReject={() => { setRejectOpen(true); setRejectReason(""); setActionError(null); }}
-            actionLoading={actionLoading}
-            actionError={actionError}
-            rejecting={rejectOpen}
-            rejectReason={rejectReason}
-            setRejectReason={setRejectReason}
-            confirmReject={handleReject}
-            cancelReject={() => { setRejectOpen(false); setRejectReason(""); }}
-          />
-        ) : null}
-      </main>
-    </div>
-  );
+    {selectedProvider&&<div className="ap-drawer-overlay" onClick={()=>setSelectedProvider(null)}><aside className="ap-drawer" onClick={e=>e.stopPropagation()}><header className="ap-drawer-head"><div><span className="ap-badge warn">{t.verification}</span><h2>{selectedProvider.full_name||"—"}</h2></div><button className="ap-icon" onClick={()=>setSelectedProvider(null)}><X size={17}/></button></header><div className="ap-drawer-body"><section className="ap-info"><h3>{t.account}</h3><div className="ap-info-grid"><div><span>{t.role}</span><strong>{t.providers}</strong></div><div><span>{t.status}</span><strong>{selectedProvider.account_status==="suspended"?t.suspended:selectedProvider.verification_status}</strong></div><div><span>{t.phone}</span><strong dir="ltr">{selectedProvider.phone||"—"}</strong></div><div><span>{t.city}</span><strong>{selectedProvider.city||"—"}</strong></div><div><span>{t.service}</span><strong>{selectedProvider.profession||selectedProvider.service_category||"—"}</strong></div><div><span>{t.created}</span><strong>{fmt(selectedProvider.created_at)}</strong></div></div></section><section className="ap-info"><h3>{t.documents}</h3>{docsLoading?<Loader2 className="spin" size={18}/>:documents.length?<div className="ap-list">{documents.map(d=><div className="ap-row" key={d.id}><div className="ap-avatar"><FileText size={17}/></div><div className="ap-row-main"><strong>{d.document_type}</strong><span>{d.status}</span></div><button className="ap-btn" onClick={async()=>{try{const url=await admin.signedDocumentUrl(d.storage_path);window.open(url,"_blank","noopener");}catch(e){showToast(e instanceof Error?e.message:t.documents);}}}><ExternalLink size={14}/>{t.details}</button></div>)}</div>:<div className="ap-empty">{t.noData}</div>}</section>{selectedProvider.bio&&<section className="ap-info"><h3>{t.details}</h3><p style={{margin:0,lineHeight:1.7,color:"#c9ced8",fontSize:13}}>{selectedProvider.bio}</p></section>}{rejecting&&<section className="ap-confirm"><p>{t.rejectReason}</p><textarea value={rejectReason} onChange={e=>setRejectReason(e.target.value)} placeholder={t.rejectReason}/></section>}</div><footer className="ap-drawer-foot">{selectedProvider.verification_status==="pending"&&!rejecting&&<><button className="ap-primary" disabled={busyId===selectedProvider.id} onClick={()=>void providerAction("approve")}><Check size={15}/>{t.accept}</button><button className="ap-btn danger" disabled={busyId===selectedProvider.id} onClick={()=>setRejecting(true)}><Ban size={15}/>{t.reject}</button></>}{rejecting&&<><button className="ap-primary" disabled={busyId===selectedProvider.id||!rejectReason.trim()} onClick={()=>void providerAction("reject")}>{t.confirm}</button><button className="ap-btn" onClick={()=>setRejecting(false)}>{t.close}</button></>}{selectedProvider.verification_status!=="pending"&&<button className={`ap-btn ${selectedProvider.account_status==="suspended"?"success":"danger"}`} onClick={()=>void accountAction(selectedProvider)} disabled={busyId===selectedProvider.id}>{selectedProvider.account_status==="suspended"?t.reactivate:t.suspend}</button>}</footer></aside></div>}
+    {selectedCustomer&&<div className="ap-drawer-overlay" onClick={()=>setSelectedCustomer(null)}><aside className="ap-drawer" onClick={e=>e.stopPropagation()}><header className="ap-drawer-head"><div><span className="ap-badge">{roleLabel(selectedCustomer.role)}</span><h2>{selectedCustomer.full_name||"—"}</h2></div><button className="ap-icon" onClick={()=>setSelectedCustomer(null)}><X size={17}/></button></header><div className="ap-drawer-body"><section className="ap-info"><h3>{t.account}</h3><div className="ap-info-grid"><div><span>{t.role}</span><strong>{roleLabel(selectedCustomer.role)}</strong></div><div><span>{t.status}</span><strong>{selectedCustomer.account_status=== "suspended"?t.suspended:t.active}</strong></div><div><span>{t.phone}</span><strong dir="ltr">{selectedCustomer.phone||"—"}</strong></div><div><span>{t.city}</span><strong>{selectedCustomer.city||"—"}</strong></div><div><span>{t.created}</span><strong>{fmt(selectedCustomer.created_at)}</strong></div></div></section></div><footer className="ap-drawer-foot">{selectedCustomer.role!=="admin"&&<button className={`ap-btn ${selectedCustomer.account_status==="suspended"?"success":"danger"}`} onClick={()=>void accountAction(selectedCustomer)}>{selectedCustomer.account_status==="suspended"?t.reactivate:t.suspend}</button>}<button className="ap-btn" onClick={()=>setSelectedCustomer(null)}>{t.close}</button></footer></aside></div>}
+    {bookingConfirm&&<div className="ap-drawer-overlay" onClick={()=>setBookingConfirm(null)}><aside className="ap-drawer" style={{height:"auto",maxHeight:"min(70dvh,560px)",marginTop:"auto",borderRadius:"20px 20px 0 0"}} onClick={e=>e.stopPropagation()}><header className="ap-drawer-head"><div><span className="ap-badge no">{t.cancel}</span><h2>{bookingConfirm.service_category}</h2></div><button className="ap-icon" onClick={()=>setBookingConfirm(null)}><X size={17}/></button></header><div className="ap-drawer-body"><section className="ap-confirm"><p>{t.cancel} — {bookingConfirm.customer_name||"—"} · {bookingConfirm.provider_name||"—"}</p><p style={{color:"#9299a8"}}>{fmt(bookingConfirm.service_date)} · {bookingConfirm.location_text||"—"}</p></section></div><footer className="ap-drawer-foot"><button className="ap-btn danger" disabled={busyId===bookingConfirm.id} onClick={()=>void cancelBooking()}>{t.confirm}</button><button className="ap-btn" onClick={()=>setBookingConfirm(null)}>{t.close}</button></footer></aside></div>}
+  </div>;
 }
+function ClockIcon(){return <span style={{fontSize:16,lineHeight:1}}>◷</span>}
