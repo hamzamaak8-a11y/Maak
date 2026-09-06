@@ -5,7 +5,7 @@ import "./index.css";
 import "./styles/app-shell.css";
 import "./styles/design-system.css";
 
-// Restore a deep-linked route saved by /maak/404.html (GitHub Pages SPA fallback).
+// Restore a deep-linked route saved by /Maak/404.html (GitHub Pages SPA fallback).
 (function () {
   try {
     var stored = sessionStorage.getItem("maak:deep-link");
