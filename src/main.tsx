@@ -13,6 +13,7 @@ import "./styles/header-responsive.css";
 import "./styles/final-visual-polish.css";
 import "./styles/final-auth.css";
 import "./styles/admin-premium.css";
+import "./styles/maak-brand-system.css";
 
 (function () {
   try {
