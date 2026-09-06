@@ -5,7 +5,7 @@ const apiTarget = process.env.MAAK_API_TARGET || "http://localhost:8787";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/maak/",
+  base: process.env.VITE_BASE || "/",
   server: {
     allowedHosts: true,
     proxy: {

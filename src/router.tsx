@@ -10,22 +10,27 @@ import {
 } from "react";
 
 /**
- * Minimal client-side router (history API). No external dependency so the
- * existing `npm ci` lockfile stays intact. URLs update, back/forward work, and
- * routes are deep-linkable.
+ * Minimal client-side router (history API).
+ * Dynamically supports both root "/" and sub-path "/maak" (GitHub Pages).
  */
 
-const BASENAME = "/maak";
+function getBasename(): string {
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/maak")) {
+    return "/maak";
+  }
+  return "";
+}
 
 function toRelative(pathname: string): string {
-  let path = pathname.startsWith(BASENAME) ? pathname.slice(BASENAME.length) : pathname;
+  const base = getBasename();
+  let path = base && pathname.startsWith(base) ? pathname.slice(base.length) : pathname;
   if (!path.startsWith("/")) path = "/" + path;
   if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
   return path;
 }
 
 function currentPath(): string {
-  return toRelative(window.location.pathname);
+  return typeof window !== "undefined" ? toRelative(window.location.pathname) : "/";
 }
 
 type RouterContextValue = { path: string; navigate: (to: string) => void };
@@ -45,8 +50,9 @@ export function Router({ children }: { children: ReactNode }) {
   }, []);
 
   const navigate = useCallback((to: string) => {
+    const base = getBasename();
     const target = to.startsWith("/") ? to : "/" + to;
-    const url = BASENAME + (target === "/" ? "/" : target);
+    const url = base ? base + (target === "/" ? "/" : target) : target;
     if (window.location.pathname !== url) {
       window.history.pushState({}, "", url);
       setPath(toRelative(url));
@@ -77,7 +83,8 @@ export function Link({
   ariaLabel?: string;
 }) {
   const { navigate } = useRouter();
-  const href = BASENAME + (to === "/" ? "/" : to);
+  const base = getBasename();
+  const href = base ? base + (to === "/" ? "/" : to) : to;
   return (
     <a
       href={href}
