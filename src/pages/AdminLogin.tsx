@@ -4,6 +4,7 @@ import { useAuth } from "../auth";
 import { Logo } from "../components/atoms";
 import "../styles/auth.css";
 import "../styles/admin-auth.css";
+import "../styles/admin-quality-fixes.css";
 import { useLanguage } from "../i18n";
 
 /**
@@ -20,10 +21,14 @@ export default function AdminLogin() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const passwordVisibilityLabel = showPassword
+    ? lang === "fr" ? "Masquer le mot de passe" : "إخفاء كلمة المرور"
+    : lang === "fr" ? "Afficher le mot de passe" : "إظهار كلمة المرور";
+
   if (user && !profileLoading && (profile?.role ?? "customer") !== "admin") {
     return (
-      <main className="auth-main">
-        <div className="auth-card">
+      <main className="auth-main admin-auth-screen">
+        <div className="auth-card admin-auth-card">
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
             <button className="lang-toggle-btn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
               <Globe size={13} />
@@ -46,8 +51,8 @@ export default function AdminLogin() {
 
   if (user) {
     return (
-      <main className="auth-main">
-        <div className="auth-card">
+      <main className="auth-main admin-auth-screen">
+        <div className="auth-card admin-auth-card">
           <div className="auth-brand">
             <Logo variant="lockup" />
           </div>
@@ -68,13 +73,11 @@ export default function AdminLogin() {
     if (signInError) {
       setError(signInError);
     }
-    // On success the auth context resolves the profile; the parent gate then
-    // redirects admins to /admin and this screen shows its checking state.
   }
 
   return (
-    <main className="auth-main">
-      <div className="auth-card">
+    <main className="auth-main admin-auth-screen">
+      <div className="auth-card admin-auth-card">
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
           <button className="lang-toggle-btn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
             <Globe size={13} />
@@ -121,8 +124,8 @@ export default function AdminLogin() {
                 className="auth-password-toggle"
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-                title={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                aria-label={passwordVisibilityLabel}
+                title={passwordVisibilityLabel}
               >
                 {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
               </button>
