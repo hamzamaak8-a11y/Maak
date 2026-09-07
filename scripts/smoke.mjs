@@ -30,7 +30,10 @@ const checks = [
   ["manifest uses /Maak/ start URL", manifest.includes('"start_url": "/Maak/"')],
   ["manifest uses /Maak/ scope", manifest.includes('"scope": "/Maak/"')],
   ["service worker has /Maak/ fallback", worker.includes("/Maak/index.html")],
-  ["service worker excludes /api/", worker.includes("/api/")],
+  [
+    "service worker bypasses /api/ requests",
+    worker.includes('if(url.pathname.startsWith("/api/"))return;'),
+  ],
 ];
 
 const failed = checks.filter(([, passed]) => !passed);
