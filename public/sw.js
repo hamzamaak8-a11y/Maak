@@ -1,4 +1,4 @@
-const CACHE_NAME = "maak-shell-v9";
+const CACHE_NAME = "maak-shell-v10";
 const APP_SHELL = [
   "/Maak/",
   "/Maak/index.html",
