@@ -67,7 +67,7 @@ function AdminGate() {
   if (loading) return <AppSplash/>;
   if (isLoginPage) return ready && isAdmin ? <AppSplash/> : <AdminLogin/>;
   if (!isAdmin) return <AppSplash/>;
-  return <Admin switchRole={() => void signOut()}/>;
+  return <Admin switchRole={() => void signOut}/>;
 }
 
 function AdminSurface() {
@@ -77,7 +77,6 @@ function AdminSurface() {
 function RoleShell() {
   const { path, navigate } = useRouter();
   const { role, loading, profileLoading, user } = useAuth();
-  const exit = () => navigate("/account");
   const authReady = !loading && !profileLoading;
   const wantsProviderMode = path === "/provider-mode";
   useEffect(() => {
