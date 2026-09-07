@@ -40,7 +40,7 @@ function msg(e: unknown, fallback: string): Error {
   if (source.code !== undefined) enriched.code = source.code;
   if (source.details !== undefined) enriched.details = source.details;
   if (source.hint !== undefined) enriched.hint = source.hint;
-  return enriched;
+  return err;
 }
 
 export async function countByStatus(status: VerificationStatus): Promise<number> {
@@ -133,6 +133,7 @@ export const ADMIN_PAGE_SIZE = 50;
 export async function listCustomers(): Promise<{ rows: AdminCustomer[]; total: number }> {
   const { data, error, count } = await supabase.from("profiles")
     .select("id,role,full_name,phone,city,created_at,account_status", { count: "exact" })
+    .eq("role", "customer")
     .order("created_at", { ascending: false }).limit(ADMIN_PAGE_SIZE);
   if (error) throw msg(error, "adm.loadCustomersFail");
   return { rows: (data ?? []) as AdminCustomer[], total: count ?? 0 };
