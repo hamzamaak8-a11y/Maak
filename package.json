@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5000",
-    "build": "tsc && vite build && sed -i 's|var BASE = \"/maak/\";|var BASE = \"/Maak/\";|' dist/404.html",
+    "build": "tsc && vite build && sed -i 's|var BASE = \"/maak/\";|var BASE = \"/Maak/\";|' dist/404.html && mkdir -p dist/admin dist/admin/login && cp dist/index.html dist/admin/index.html && cp dist/index.html dist/admin/login/index.html",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
