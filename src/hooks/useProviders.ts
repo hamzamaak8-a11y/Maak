@@ -10,18 +10,19 @@ type Status = "loading" | "success" | "error";
 // presented as real marketplace providers. Do not rely on an implicit default.
 const INCLUDE_SEED: boolean = (import.meta.env.VITE_INCLUDE_SEED as string | undefined) === "true";
 
-// A provider is visible in the marketplace when:
-//  • real: published (published_at set) — unpublished real listings are hidden.
-//  • seed: only when seed display is explicitly enabled (never in production).
+// Client visibility mirrors the database/Worker production contract:
+// only published real listings linked to a provider profile are marketable.
+// The database remains the final authorization boundary.
 function isListed(p: Provider): boolean {
-  if (p.listing_kind === "real") return p.published_at != null;
+  if (p.listing_kind === "real") {
+    return p.provider_profile_id != null && p.published_at != null;
+  }
   if (p.listing_kind === "seed") return INCLUDE_SEED;
-  return INCLUDE_SEED;
+  return false;
 }
 
 // A listing is bookable only when it is a published real provider linked to a
-// real provider profile. Seed/unlinked/unpublished listings must never accept
-// bookings. The database RPC remains the final protection.
+// real provider profile. The database RPC remains the final protection.
 export function isBookable(p: Provider | undefined): p is Provider {
   return !!p && p.listing_kind === "real" && p.provider_profile_id != null && p.published_at != null;
 }
@@ -49,7 +50,6 @@ export function useProviders() {
     };
   }, [reload]);
 
-  // Retry entry point for error states (frontend only; no backend change).
   const refetch = () => setReload((n) => n + 1);
   return { providers, status, refetch };
 }
