@@ -5,6 +5,7 @@ import { useRouter } from "../router";
 import { useToast } from "../context";
 import * as onb from "../lib/onboarding";
 import type { DocType, OnboardingPersonal, OnboardingProfessional, ProviderDocumentRow, ProviderProfileRow } from "../lib/onboarding";
+import { submitProviderOnboarding } from "../lib/onboarding-submit";
 import Progress from "../components/onboarding/Progress";
 import PersonalStep from "../components/onboarding/PersonalStep";
 import ProfessionalStep from "../components/onboarding/ProfessionalStep";
@@ -164,8 +165,7 @@ export default function Onboarding() {
     if (!user) return;
     setSubmitting(true);
     try {
-      const required = (Object.keys(onb.DOC_TYPES) as DocType[]).filter((t) => onb.DOC_TYPES[t].required);
-      await onb.submitOnboarding(user.id, personal, professional, required);
+      await submitProviderOnboarding(personal, professional);
       setDone(true);
       showToast(t("onboarding.submitted"));
     } catch (e) {
