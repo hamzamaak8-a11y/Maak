@@ -17,11 +17,8 @@ export type Provider = {
   published_at: string | null;
 };
 
-// Bound resources on the Worker. Secrets are set with #wrangler secret put#;
-// MAAK_ALLOW_ORIGIN is a var in wrangler.jsonc.
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   MAAK_ALLOW_ORIGIN: string;
-  ADMIN_TOKEN: string;
 }
