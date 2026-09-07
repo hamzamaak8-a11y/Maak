@@ -1,0 +1,180 @@
+/* Maak — targeted admin quality/error fixes. No layout redesign. */
+
+html:has(.admin-pro),
+body:has(.admin-pro),
+body:has(.admin-pro) #root {
+  background: #0a0a0b !important;
+  color: #f5f0e6 !important;
+}
+
+.admin-pro,
+.admin-pro button,
+.admin-pro input,
+.admin-pro textarea,
+.admin-pro select {
+  font-family: "Tajawal", "Cairo", "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-synthesis: none;
+}
+
+.admin-pro[dir="rtl"] {
+  letter-spacing: 0 !important;
+}
+
+.admin-pro[dir="rtl"] h1,
+.admin-pro[dir="rtl"] h2,
+.admin-pro[dir="rtl"] h3,
+.admin-pro[dir="rtl"] p,
+.admin-pro[dir="rtl"] span,
+.admin-pro[dir="rtl"] button,
+.admin-pro[dir="rtl"] input,
+.admin-pro[dir="rtl"] textarea {
+  text-rendering: optimizeLegibility;
+}
+
+/* Prevent the identity calibration layer from leaking the light page into Admin. */
+.admin-pro-main,
+.admin-pro-side,
+.admin-pro-top,
+.ap-panel,
+.ap-kpi,
+.ap-table-wrap,
+.ap-empty {
+  background-color: #0a0a0b !important;
+}
+
+.admin-pro-side,
+.admin-pro-top,
+.ap-panel,
+.ap-kpi,
+.ap-table-wrap {
+  color: #f5f0e6 !important;
+}
+
+.admin-pro-title h1,
+.ap-panel-head h2,
+.ap-kpi strong,
+.ap-row-main strong,
+.ap-table td strong,
+.ap-info-grid strong {
+  color: #f5f0e6 !important;
+}
+
+.admin-pro-title p,
+.ap-eyebrow,
+.ap-panel-head p,
+.ap-kpi-top,
+.ap-kpi small,
+.ap-row-main > span,
+.ap-table th,
+.ap-table td,
+.ap-info-grid span,
+.ap-empty {
+  color: #9b9ca4 !important;
+}
+
+/* Mobile header: keep Arabic labels on one line and within the viewport. */
+@media (max-width: 760px) {
+  .admin-pro-main {
+    background: #0a0a0b !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-pro-top {
+    width: auto !important;
+    overflow: visible !important;
+  }
+
+  .admin-pro-title {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  .admin-pro-title h1,
+  .admin-pro-title p,
+  .ap-eyebrow {
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-pro-actions {
+    flex: 0 0 auto !important;
+  }
+
+  .ap-primary {
+    min-width: 118px !important;
+    white-space: nowrap !important;
+    flex: 0 0 auto !important;
+  }
+
+  .ap-mobile-nav {
+    display: grid !important;
+    visibility: visible !important;
+  }
+}
+
+/* Dedicated Admin login polish: same visual language as Control Center, same structure. */
+.admin-auth-screen {
+  background: #0a0a0b !important;
+  color: #f5f0e6 !important;
+}
+
+.admin-auth-card {
+  background: #0f1012 !important;
+  border-color: #27282d !important;
+  color: #f5f0e6 !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .42) !important;
+}
+
+.admin-auth-card .auth-title {
+  color: #f5f0e6 !important;
+}
+
+.admin-auth-card .auth-subtitle,
+.admin-auth-card .auth-field > span {
+  color: #9b9ca4 !important;
+}
+
+.admin-auth-card .auth-input {
+  background: #151619 !important;
+  border-color: #27282d !important;
+  color: #f5f0e6 !important;
+}
+
+.admin-auth-card .auth-input::placeholder {
+  color: #62636a !important;
+}
+
+.admin-auth-card .auth-input:focus {
+  border-color: rgba(200, 164, 93, .65) !important;
+  background: #1b1c20 !important;
+  box-shadow: 0 0 0 3px rgba(200, 164, 93, .10) !important;
+}
+
+.admin-auth-card .auth-password-toggle,
+.admin-auth-card .lang-toggle-btn {
+  color: #9b9ca4 !important;
+}
+
+.admin-auth-card .auth-password-toggle:hover,
+.admin-auth-card .lang-toggle-btn:hover {
+  color: #d5b86f !important;
+  background: rgba(200, 164, 93, .10) !important;
+}
+
+.admin-auth-card .auth-admin-chip {
+  background: #151619 !important;
+  border-color: #303137 !important;
+  color: #d5b86f !important;
+}
+
+@media (max-width: 480px) {
+  .admin-auth-screen {
+    padding-inline: 12px !important;
+  }
+
+  .admin-auth-card {
+    border-radius: 18px !important;
+  }
+}
