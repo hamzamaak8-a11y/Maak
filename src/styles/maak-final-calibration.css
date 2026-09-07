@@ -1,0 +1,134 @@
+/* Final Maak identity calibration — last CSS layer. */
+:root {
+  --maak-cream: #f7f3eb;
+  --maak-paper: #fffdf8;
+  --maak-ink: #151a1f;
+  --maak-gold: #d6ac62;
+  --maak-gold-deep: #b98220;
+  --maak-line: rgba(21, 26, 31, .10);
+}
+
+html, body, #root { min-height: 100%; }
+html { background: var(--maak-cream); }
+body { margin: 0; overflow-x: hidden; background: var(--maak-cream); }
+button, input, textarea, select { font: inherit; }
+
+/* The identity is intentionally upright, balanced and centered. */
+.auth-main {
+  width: 100%;
+  min-height: 100dvh !important;
+  min-height: 100vh !important;
+  box-sizing: border-box;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  justify-content: center !important;
+  padding: 32px 20px calc(32px + env(safe-area-inset-bottom)) !important;
+  margin: 0 !important;
+  text-align: center;
+  direction: rtl;
+}
+.auth-card {
+  position: relative !important;
+  width: min(100%, 500px) !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  justify-self: center !important;
+  align-self: center !important;
+  transform: none !important;
+  rotate: none !important;
+  translate: none !important;
+  box-sizing: border-box;
+}
+.auth-brand,
+.auth-card .auth-brand,
+.auth-card .auth-brand img {
+  margin-inline: auto !important;
+}
+.auth-card .auth-brand img {
+  display: block !important;
+  object-fit: contain;
+}
+.auth-form,
+.auth-field { width: 100%; box-sizing: border-box; }
+.auth-input, .auth-btn { box-sizing: border-box; }
+
+/* Keep the supplied lockup visually dominant without stretching it. */
+.brand-lockup {
+  display: block;
+  width: auto !important;
+  height: 78px !important;
+  max-width: min(240px, 72vw) !important;
+  object-fit: contain;
+  margin-inline: auto !important;
+}
+
+/* Shared Maak proportions across the product. */
+.app-main { min-width: 0; }
+.screen, .home { width: min(1180px, calc(100% - 44px)); margin-inline: auto; box-sizing: border-box; }
+.primary, .auth-btn, .ap-primary { min-height: 48px; }
+.card, .panel, .surface, .booking-card, .account-card, .chat-panel, .provider-card, .booking-summary, .detail-card { border-radius: 20px; }
+
+/* Customer shell: quiet ivory header, strong Maak mark, restrained gold. */
+.topbar { position: sticky; top: 0; z-index: 80; }
+.header-inner { min-width: 0; }
+.brand { flex: 0 0 auto; }
+.desktop-nav { min-width: 0; }
+.desktop-nav button { white-space: nowrap; }
+
+/* Home: scale the hero like the supplied artwork rather than a generic SaaS dashboard. */
+.home-intro { min-height: 330px; display: flex; flex-direction: column; justify-content: center; }
+.home-prompt { max-width: 760px; }
+.home-intro .search-box { width: min(100%, 760px); }
+.category-rail, .service-rail { overflow-x: auto; scrollbar-width: none; }
+.category-rail::-webkit-scrollbar, .service-rail::-webkit-scrollbar { display: none; }
+
+/* Admin keeps the same Maak DNA while remaining operationally dense. */
+.admin-pro { background: var(--maak-cream) !important; color: var(--maak-ink) !important; }
+.admin-pro-side { background: rgba(255,253,248,.96) !important; border-color: var(--maak-line) !important; }
+.admin-pro-main { background: transparent !important; }
+.admin-pro-title h1, .ap-panel h2 { color: var(--maak-ink); }
+
+/* Remove unfinished mobile-menu affordance: mobile navigation is already explicit. */
+.ap-mobile-menu { display: none !important; }
+.admin-mobile-overlay { display: none !important; }
+
+/* Motion: premium, short and purposeful — never excessive. */
+.auth-card { animation: maak-auth-in .48s cubic-bezier(.16,1,.3,1) both; }
+.brand { transition: transform .24s cubic-bezier(.16,1,.3,1); }
+@keyframes maak-auth-in {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 899px) {
+  .screen, .home { width: min(100%, calc(100% - 24px)); }
+  .auth-main {
+    padding: 20px 12px calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  .auth-card {
+    width: min(100%, 560px) !important;
+    max-width: 560px !important;
+    padding-inline: 22px !important;
+  }
+  .brand-lockup { height: 64px !important; max-width: 205px !important; }
+  .home-intro { min-height: 0; }
+}
+
+@media (max-width: 560px) {
+  .screen, .home { width: calc(100% - 18px); }
+  .auth-main { padding-inline: 9px !important; }
+  .auth-card {
+    width: 100% !important;
+    max-width: 500px !important;
+    border-radius: 22px !important;
+    padding: 24px 17px 22px !important;
+  }
+  .brand-lockup { height: 58px !important; max-width: 185px !important; }
+  .auth-main::before, .auth-main::after { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation: none !important; }
+  * { scroll-behavior: auto !important; }
+}
