@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Globe, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Globe, Loader2 } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { Logo } from "../components/atoms";
@@ -14,6 +14,7 @@ export default function Login() {
   const { navigate } = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -62,15 +63,26 @@ export default function Login() {
 
           <label className="auth-field">
             <span>{t("common.password")}</span>
-            <input
-              className="auth-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-              dir="ltr"
-            />
+            <div className="auth-password-wrap">
+              <input
+                className="auth-input"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                dir="ltr"
+              />
+              <button
+                className="auth-password-toggle"
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                title={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              >
+                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </div>
           </label>
 
           {error ? <div className="auth-error">{t(error)}</div> : null}
