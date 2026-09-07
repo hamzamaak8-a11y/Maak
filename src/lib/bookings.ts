@@ -11,6 +11,12 @@ export type CreateBookingInput = {
 };
 
 export async function createBooking(input: CreateBookingInput): Promise<BookingRow> {
+  if (input.serviceDate !== null) {
+    const when = new Date(input.serviceDate).getTime();
+    if (!Number.isFinite(when) || when <= Date.now()) {
+      throw new Error("invalid_service_date");
+    }
+  }
   const { data, error } = await supabase.rpc("create_booking", {
     p_provider_listing_id: input.providerListingId,
     p_service_category: input.serviceCategory,
@@ -101,6 +107,7 @@ export function mapBookingError(error: unknown): string {
   if (/not_authenticated/i.test(raw)) return "berr.notAuthenticated";
   if (/provider_not_bookable|provider_not_linked/i.test(raw))
     return "berr.notBookable";
+  if (/invalid_service_date/i.test(raw)) return "berr.invalidServiceDate";
   if (/invalid_transition/i.test(raw))
     return "berr.invalidTransition";
   if (/reason_required/i.test(raw)) return "berr.reasonRequired";
