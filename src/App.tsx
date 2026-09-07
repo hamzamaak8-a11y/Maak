@@ -6,7 +6,7 @@ import { BookingsProvider, ToastProvider, ToastViewport } from "./context";
 import { Router, matchPath, useRouter } from "./router";
 import { Header, MobileNav } from "./components/navigation";
 import { Logo } from "./components/atoms";
-import Admin from "./pages/AdminControlCenter";
+import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
 import Home from "./pages/Home";
