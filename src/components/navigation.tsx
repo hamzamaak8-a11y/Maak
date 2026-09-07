@@ -60,7 +60,7 @@ export function Header({ path }: { path: string }) {
             aria-label={t("lang.label")}
             title={lang === "ar" ? "Passer en Français" : "التحويل إلى العربية"}
           >
-            <Globe size={14} />
+            <Globe size={14} aria-hidden="true" />
             <span>{lang === "ar" ? "FR" : "عربي"}</span>
           </button>
           {loading ? (
@@ -68,10 +68,10 @@ export function Header({ path }: { path: string }) {
           ) : user ? (
             <>
               <button className="icon-btn notification" aria-label={t("nav.notifications")} onClick={() => showToast(t("nav.noNotifications"))}>
-                <Bell size={18} />
+                <Bell size={18} aria-hidden="true" />
               </button>
               <button className="icon-btn desktop-only" aria-label={t("nav.logout")} title={t("nav.logout")} onClick={handleSignOut}>
-                <LogOut size={18} />
+                <LogOut size={18} aria-hidden="true" />
               </button>
               <button className="icon-btn" aria-label={t("nav.account")} onClick={() => navigate("/account")}>
                 <span className="avatar">{initial}</span>
@@ -106,9 +106,9 @@ export function MobileNav({ path }: { path: string }) {
           onClick={() => navigate(to)}
           aria-current={path === to ? "page" : undefined}
         >
-          <Icon size={19} strokeWidth={2.2} />
+          <Icon size={19} strokeWidth={2.2} aria-hidden="true" />
           <span>{label}</span>
-          {id === "bookings" && <i />}
+          {id === "bookings" && <i aria-hidden="true" />}
         </button>
       ))}
     </nav>
