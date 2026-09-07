@@ -4,85 +4,64 @@
 -- when the account is suspended, and keeps suspended providers out of the marketplace.
 
 create or replace function public.assert_provider_owner(p_provider_id uuid)
-returns void
-language plpgsql stable security definer set search_path = public as $$
-declare v_uid uuid := public.require_auth_uid(); v_status text; v_account text;
-begin
-  if p_provider_id is distinct from v_uid then raise exception 'forbidden'; end if;
-  select pp.verification_status, pr.account_status into v_status, v_account
-    from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=v_uid;
-  if not found or v_status is distinct from 'approved' or v_account is distinct from 'active' then raise exception 'forbidden'; end if;
-end $$;
+returns void language plpgsql stable security definer set search_path = public as $$
+declare v_uid uuid:=public.require_auth_uid(); v_status text; v_account text;
+begin if p_provider_id is distinct from v_uid then raise exception 'forbidden'; end if;
+select pp.verification_status,pr.account_status into v_status,v_account from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=v_uid;
+if not found or v_status is distinct from 'approved' or v_account is distinct from 'active' then raise exception 'forbidden'; end if; end $$;
 
-create or replace function public.create_booking(p_provider_listing_id integer,p_service_category text,p_service_description text,p_service_date timestamptz,p_location_text text,p_customer_note text default '') returns public.bookings
-language plpgsql security definer set search_path = public as $$
+create or replace function public.create_booking(p_provider_listing_id integer,p_service_category text,p_service_description text,p_service_date timestamptz,p_location_text text,p_customer_note text default '') returns public.bookings language plpgsql security definer set search_path=public as $$
 declare v_customer uuid:=public.require_auth_uid(); v_customer_status text; v_provider_profile_id uuid; v_provider_status text; v_verification text; v_customer_name text; v_row public.bookings;
-begin
-  select account_status,full_name into v_customer_status,v_customer_name from public.profiles where id=v_customer and role='customer';
-  if not found or v_customer_status is distinct from 'active' then raise exception 'forbidden'; end if;
-  if p_service_category is null or btrim(p_service_category)='' then raise exception 'invalid_service'; end if;
-  select provider_profile_id into v_provider_profile_id from public.providers where id=p_provider_listing_id and listing_kind='real' and published_at is not null;
-  if not found or v_provider_profile_id is null then raise exception 'provider_not_found'; end if;
-  select pp.verification_status,pr.account_status into v_verification,v_provider_status from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=v_provider_profile_id;
-  if not found or v_verification is distinct from 'approved' or v_provider_status is distinct from 'active' then raise exception 'provider_not_bookable'; end if;
-  insert into public.bookings(customer_id,provider_id,provider_listing_id,service_category,service_description,service_date,location_text,customer_note,status,customer_name)
-  values(v_customer,v_provider_profile_id,p_provider_listing_id,btrim(p_service_category),coalesce(p_service_description,''),p_service_date,p_location_text,coalesce(p_customer_note,''),'pending',v_customer_name)
-  returning * into v_row; return v_row;
-end $$;
-revoke all on function public.create_booking(integer,text,text,timestamptz,text,text) from public,anon;
-grant execute on function public.create_booking(integer,text,text,timestamptz,text,text) to authenticated;
+begin select account_status,full_name into v_customer_status,v_customer_name from public.profiles where id=v_customer and role='customer'; if not found or v_customer_status is distinct from 'active' then raise exception 'forbidden'; end if;
+if p_service_category is null or btrim(p_service_category)='' then raise exception 'invalid_service'; end if;
+select provider_profile_id into v_provider_profile_id from public.providers where id=p_provider_listing_id and listing_kind='real' and published_at is not null;
+if not found or v_provider_profile_id is null then raise exception 'provider_not_found'; end if;
+select pp.verification_status,pr.account_status into v_verification,v_provider_status from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=v_provider_profile_id;
+if not found or v_verification is distinct from 'approved' or v_provider_status is distinct from 'active' then raise exception 'provider_not_bookable'; end if;
+insert into public.bookings(customer_id,provider_id,provider_listing_id,service_category,service_description,service_date,location_text,customer_note,status,customer_name) values(v_customer,v_provider_profile_id,p_provider_listing_id,btrim(p_service_category),coalesce(p_service_description,''),p_service_date,p_location_text,coalesce(p_customer_note,''),'pending',v_customer_name) returning * into v_row; return v_row; end $$;
+revoke all on function public.create_booking(integer,text,text,timestamptz,text,text) from public,anon; grant execute on function public.create_booking(integer,text,text,timestamptz,text,text) to authenticated;
 
-create or replace function public.get_or_create_provider_conversation(p_provider_profile_id uuid)
-returns uuid language plpgsql security definer set search_path = public as $$
+create or replace function public.get_or_create_provider_conversation(p_provider_profile_id uuid) returns uuid language plpgsql security definer set search_path=public as $$
 declare v_customer uuid:=auth.uid(); v_customer_status text; v_provider_status text; v_verification text; v_conversation uuid;
-begin
-  if v_customer is null then raise exception 'not_authenticated'; end if;
-  select account_status into v_customer_status from public.profiles where id=v_customer and role='customer';
-  if not found or v_customer_status is distinct from 'active' then raise exception 'forbidden'; end if;
-  if p_provider_profile_id is null or v_customer=p_provider_profile_id then raise exception 'provider_not_found'; end if;
-  select pp.verification_status,pr.account_status into v_verification,v_provider_status from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=p_provider_profile_id;
-  if not found or v_verification is distinct from 'approved' or v_provider_status is distinct from 'active' then raise exception 'provider_not_bookable'; end if;
-  select c.id into v_conversation from public.conversations c join public.conversation_participants cp1 on cp1.conversation_id=c.id and cp1.user_id=v_customer join public.conversation_participants cp2 on cp2.conversation_id=c.id and cp2.user_id=p_provider_profile_id where c.booking_id is null limit 1;
-  if v_conversation is not null then return v_conversation; end if;
-  insert into public.conversations default values returning id into v_conversation;
-  insert into public.conversation_participants(conversation_id,user_id) values(v_conversation,v_customer),(v_conversation,p_provider_profile_id);
-  return v_conversation;
-end $$;
-grant execute on function public.get_or_create_provider_conversation(uuid) to authenticated;
-revoke all on function public.get_or_create_provider_conversation(uuid) from anon,public;
+begin if v_customer is null then raise exception 'not_authenticated'; end if; select account_status into v_customer_status from public.profiles where id=v_customer and role='customer'; if not found or v_customer_status is distinct from 'active' then raise exception 'forbidden'; end if;
+if p_provider_profile_id is null or v_customer=p_provider_profile_id then raise exception 'provider_not_found'; end if;
+select pp.verification_status,pr.account_status into v_verification,v_provider_status from public.provider_profiles pp join public.profiles pr on pr.id=pp.id where pp.id=p_provider_profile_id;
+if not found or v_verification is distinct from 'approved' or v_provider_status is distinct from 'active' then raise exception 'provider_not_bookable'; end if;
+select c.id into v_conversation from public.conversations c join public.conversation_participants cp1 on cp1.conversation_id=c.id and cp1.user_id=v_customer join public.conversation_participants cp2 on cp2.conversation_id=c.id and cp2.user_id=p_provider_profile_id where c.booking_id is null limit 1;
+if v_conversation is not null then return v_conversation; end if; insert into public.conversations default values returning id into v_conversation; insert into public.conversation_participants(conversation_id,user_id) values(v_conversation,v_customer),(v_conversation,p_provider_profile_id); return v_conversation; end $$;
+grant execute on function public.get_or_create_provider_conversation(uuid) to authenticated; revoke all on function public.get_or_create_provider_conversation(uuid) from anon,public;
 
-create or replace function public.refresh_provider_listing(p_provider_profile_id uuid)
-returns void language plpgsql security definer set search_path=public as $$
+create or replace function public.refresh_provider_listing(p_provider_profile_id uuid) returns void language plpgsql security definer set search_path=public as $$
 declare v_prof text; v_full_name text; v_city text; v_bio text; v_exp int; v_services text[]; v_price numeric; v_account_status text; v_services_json jsonb; v_price_text text; v_exp_text text; v_published timestamptz; v_existing integer;
-begin
-  select pp.profession,p.full_name,p.city,pp.bio,pp.experience_years,pp.services,pp.price_from,p.account_status into v_prof,v_full_name,v_city,v_bio,v_exp,v_services,v_price,v_account_status
-    from public.provider_profiles pp join public.profiles p on p.id=pp.id where pp.id=p_provider_profile_id;
-  if not found then return; end if;
-  if v_full_name is null or v_prof is null or v_city is null then delete from public.providers where provider_profile_id=p_provider_profile_id and listing_kind='real'; return; end if;
-  v_services_json:=to_jsonb(coalesce(v_services,ARRAY[]::text[]));
-  v_price_text:=case when v_price is null then null else v_price::text end;
-  v_exp_text:=case when v_exp is null then null else v_exp::text||' سنوات' end;
-  if v_account_status='active' and v_services is not null and array_length(v_services,1)>0 then v_published:=now(); else v_published:=null; end if;
-  select id into v_existing from public.providers where provider_profile_id=p_provider_profile_id and listing_kind='real';
-  if found then
-    update public.providers set name=v_full_name,job=v_prof,city=v_city,distance=null,price=v_price_text,rating=null,reviews=0,image=null,available=null,services=v_services_json,experience=v_exp_text,intro=v_bio,published_at=v_published where id=v_existing;
-  else
-    insert into public.providers(name,job,city,distance,price,rating,reviews,image,available,services,experience,intro,provider_profile_id,listing_kind,published_at)
-    values(v_full_name,v_prof,v_city,null,v_price_text,null,0,null,null,v_services_json,v_exp_text,v_bio,p_provider_profile_id,'real',v_published);
-  end if;
-end $$;
+begin select pp.profession,p.full_name,p.city,pp.bio,pp.experience_years,pp.services,pp.price_from,p.account_status into v_prof,v_full_name,v_city,v_bio,v_exp,v_services,v_price,v_account_status from public.provider_profiles pp join public.profiles p on p.id=pp.id where pp.id=p_provider_profile_id; if not found then return; end if;
+if v_full_name is null or v_prof is null or v_city is null then delete from public.providers where provider_profile_id=p_provider_profile_id and listing_kind='real'; return; end if;
+v_services_json:=to_jsonb(coalesce(v_services,ARRAY[]::text[])); v_price_text:=case when v_price is null then null else v_price::text end; v_exp_text:=case when v_exp is null then null else v_exp::text||' سنوات' end; if v_account_status='active' and v_services is not null and array_length(v_services,1)>0 then v_published:=now(); else v_published:=null; end if;
+select id into v_existing from public.providers where provider_profile_id=p_provider_profile_id and listing_kind='real'; if found then update public.providers set name=v_full_name,job=v_prof,city=v_city,distance=null,price=v_price_text,rating=null,reviews=0,image=null,available=null,services=v_services_json,experience=v_exp_text,intro=v_bio,published_at=v_published where id=v_existing; else insert into public.providers(name,job,city,distance,price,rating,reviews,image,available,services,experience,intro,provider_profile_id,listing_kind,published_at) values(v_full_name,v_prof,v_city,null,v_price_text,null,0,null,null,v_services_json,v_exp_text,v_bio,p_provider_profile_id,'real',v_published); end if; end $$;
 
-create or replace function public.admin_set_account_status(target uuid,new_status text)
-returns void language plpgsql security definer set search_path=public as $$
-declare actor uuid:=auth.uid();
-begin
-  if actor is null or not exists(select 1 from public.profiles where id=actor and role='admin') then raise exception 'forbidden'; end if;
-  if new_status not in ('active','suspended') then raise exception 'invalid status'; end if;
-  if target=actor then raise exception 'cannot change own status'; end if;
-  if not exists(select 1 from public.profiles where id=target) then raise exception 'account not found'; end if;
-  update public.profiles set account_status=new_status,updated_at=now() where id=target;
-  if new_status='suspended' then update public.providers set published_at=null,available=null where provider_profile_id=target and listing_kind='real'; else perform public.refresh_provider_listing(target); end if;
-  insert into public.admin_audit_log(admin_id,action,target_type,target_id,metadata) values(actor,case when new_status='suspended' then 'account_suspended' else 'account_reactivated' end,'profile',target,jsonb_build_object('status',new_status));
-end $$;
-revoke all on function public.admin_set_account_status(uuid,text) from public,anon;
-grant execute on function public.admin_set_account_status(uuid,text) to authenticated;
+create or replace function public.admin_set_account_status(target uuid,new_status text) returns void language plpgsql security definer set search_path=public as $$
+declare actor uuid:=auth.uid(); begin if actor is null or not exists(select 1 from public.profiles where id=actor and role='admin') then raise exception 'forbidden'; end if; if new_status not in ('active','suspended') then raise exception 'invalid status'; end if; if target=actor then raise exception 'cannot change own status'; end if; if not exists(select 1 from public.profiles where id=target) then raise exception 'account not found'; end if; update public.profiles set account_status=new_status,updated_at=now() where id=target; if new_status='suspended' then update public.providers set published_at=null,available=null where provider_profile_id=target and listing_kind='real'; else perform public.refresh_provider_listing(target); end if; insert into public.admin_audit_log(admin_id,action,target_type,target_id,metadata) values(actor,case when new_status='suspended' then 'account_suspended' else 'account_reactivated' end,'profile',target,jsonb_build_object('status',new_status)); end $$;
+revoke all on function public.admin_set_account_status(uuid,text) from public,anon; grant execute on function public.admin_set_account_status(uuid,text) to authenticated;
+
+create or replace function public.assert_active_chat_user() returns uuid language plpgsql stable security definer set search_path=public as $$ declare v_uid uuid:=auth.uid(); v_status text; begin if v_uid is null then raise exception 'not_authenticated'; end if; select account_status into v_status from public.profiles where id=v_uid; if not found or v_status is distinct from 'active' then raise exception 'forbidden'; end if; return v_uid; end $$;
+revoke all on function public.assert_active_chat_user() from public,anon; grant execute on function public.assert_active_chat_user() to authenticated;
+
+create or replace function public.list_my_conversations() returns table(conversation_id uuid,booking_id uuid,other_user_id uuid,other_user_name text,last_message text,last_message_at timestamptz,unread_count bigint) language sql stable security definer set search_path=public as $$
+select c.id,c.booking_id,other_cp.user_id,p.full_name,lm.body,lm.created_at,coalesce(unread.cnt,0) from public.conversations c join public.conversation_participants me on me.conversation_id=c.id and me.user_id=public.assert_active_chat_user() join lateral(select cp.user_id from public.conversation_participants cp where cp.conversation_id=c.id and cp.user_id<>public.assert_active_chat_user() limit 1) other_cp on true left join public.profiles p on p.id=other_cp.user_id left join lateral(select m.body,m.created_at from public.messages m where m.conversation_id=c.id order by m.created_at desc limit 1) lm on true left join lateral(select count(*)::bigint as cnt from public.messages m where m.conversation_id=c.id and m.sender_id<>public.assert_active_chat_user() and m.read_at is null) unread on true order by coalesce(lm.created_at,c.updated_at) desc; $$;
+grant execute on function public.list_my_conversations() to authenticated; revoke all on function public.list_my_conversations() from anon,public;
+
+create or replace function public.get_or_create_booking_conversation(p_booking_id uuid) returns uuid language plpgsql security definer set search_path=public as $$
+declare v_uid uuid:=public.assert_active_chat_user(); v_customer uuid; v_provider uuid; v_conversation uuid; begin select customer_id,provider_id into v_customer,v_provider from public.bookings where id=p_booking_id; if not found then raise exception 'not_found'; end if; if v_uid is distinct from v_customer and v_uid is distinct from v_provider then raise exception 'forbidden'; end if; if not exists(select 1 from public.profiles where id=v_customer and account_status='active') or not exists(select 1 from public.profiles where id=v_provider and account_status='active') then raise exception 'forbidden'; end if; select id into v_conversation from public.conversations where booking_id=p_booking_id; if v_conversation is not null then return v_conversation; end if; insert into public.conversations(booking_id) values(p_booking_id) on conflict(booking_id) do update set booking_id=excluded.booking_id returning id into v_conversation; insert into public.conversation_participants(conversation_id,user_id) values(v_conversation,v_customer),(v_conversation,v_provider) on conflict do nothing; return v_conversation; end $$;
+grant execute on function public.get_or_create_booking_conversation(uuid) to authenticated; revoke all on function public.get_or_create_booking_conversation(uuid) from anon,public;
+
+create or replace function public.get_conversation_messages(p_conversation_id uuid) returns table(id uuid,sender_id uuid,body text,created_at timestamptz,read_at timestamptz) language plpgsql stable security definer set search_path=public as $$ begin perform public.assert_active_chat_user(); if not exists(select 1 from public.conversation_participants where conversation_id=p_conversation_id and user_id=auth.uid()) then raise exception 'forbidden'; end if; return query select m.id,m.sender_id,m.body,m.created_at,m.read_at from public.messages m where m.conversation_id=p_conversation_id order by m.created_at asc; end $$;
+grant execute on function public.get_conversation_messages(uuid) to authenticated; revoke all on function public.get_conversation_messages(uuid) from anon,public;
+
+create or replace function public.send_chat_message(p_conversation_id uuid,p_body text) returns public.messages language plpgsql security definer set search_path=public as $$ declare v_row public.messages; v_body text:=btrim(coalesce(p_body,'')); begin perform public.assert_active_chat_user(); if char_length(v_body)=0 then raise exception 'empty_message'; end if; if char_length(v_body)>4000 then raise exception 'message_too_long'; end if; if not exists(select 1 from public.conversation_participants where conversation_id=p_conversation_id and user_id=auth.uid()) then raise exception 'forbidden'; end if; insert into public.messages(conversation_id,sender_id,body) values(p_conversation_id,auth.uid(),v_body) returning * into v_row; update public.conversations set updated_at=now() where id=p_conversation_id; return v_row; end $$;
+grant execute on function public.send_chat_message(uuid,text) to authenticated; revoke all on function public.send_chat_message(uuid,text) from anon,public;
+
+create or replace function public.mark_chat_read(p_conversation_id uuid) returns void language plpgsql security definer set search_path=public as $$ begin perform public.assert_active_chat_user(); if not exists(select 1 from public.conversation_participants where conversation_id=p_conversation_id and user_id=auth.uid()) then raise exception 'forbidden'; end if; update public.messages set read_at=now() where conversation_id=p_conversation_id and sender_id<>auth.uid() and read_at is null; end $$;
+grant execute on function public.mark_chat_read(uuid) to authenticated; revoke all on function public.mark_chat_read(uuid) from anon,public;
+
+drop policy if exists "bookings_select_customer" on public.bookings; create policy "bookings_select_customer" on public.bookings for select using (auth.uid()=customer_id and exists(select 1 from public.profiles p where p.id=auth.uid() and p.account_status='active'));
+drop policy if exists "bookings_select_provider" on public.bookings; create policy "bookings_select_provider" on public.bookings for select using (exists(select 1 from public.provider_profiles pp join public.profiles p on p.id=pp.id where pp.id=auth.uid() and pp.id=bookings.provider_id and p.account_status='active'));
+drop policy if exists "bookings_select_admin" on public.bookings; create policy "bookings_select_admin" on public.bookings for select using (exists(select 1 from public.profiles p where p.id=auth.uid() and p.role='admin' and p.account_status='active'));
