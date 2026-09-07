@@ -41,7 +41,6 @@ export const DOC_TYPES = {
 } as const;
 
 export type DocType = keyof typeof DOC_TYPES;
-
 export const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set(["image/png", "image/jpeg", "image/jpg", "application/pdf"]);
 
@@ -193,47 +192,6 @@ export async function deleteDocument(doc: { id: string; storage_path: string }):
   }
   if (doc?.id) {
     await supabase.from("provider_documents").delete().eq("id", doc.id);
-  }
-}
-
-export async function submitOnboarding(
-  userId: string,
-  personal: OnboardingPersonal,
-  professional: OnboardingProfessional,
-  requiredDocTypes: DocType[],
-): Promise<void> {
-  const { error: pErr } = await supabase
-    .from("profiles")
-    .update({ full_name: personal.full_name.trim(), phone: personal.phone.trim(), city: personal.city.trim() })
-    .eq("id", userId);
-  if (pErr) throw new Error("onb.errSavePersonal");
-
-  const exp = professional.experience_years.trim();
-  const price = professional.price_from.trim();
-  const radius = professional.service_radius_km.trim();
-  const { error: ppErr } = await supabase
-    .from("provider_profiles")
-    .upsert(
-      {
-        id: userId,
-        profession: professional.profession.trim() || null,
-        service_category: professional.service_category || null,
-        bio: professional.bio.trim() || null,
-        experience_years: exp === "" ? null : Number(exp),
-        services: professional.services.length ? professional.services : null,
-        price_from: price === "" ? null : Number(price),
-        service_radius_km: radius === "" ? null : Number(radius),
-        verification_status: "pending",
-      },
-      { onConflict: "id" },
-    );
-  if (ppErr) throw new Error("onb.errSubmit");
-
-  const docs = await listDocuments(userId);
-  for (const t of requiredDocTypes) {
-    if (!docs.some((d) => d.document_type === t)) {
-      throw new Error("onboarding.docsRequired");
-    }
   }
 }
 
