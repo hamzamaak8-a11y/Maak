@@ -1,0 +1,55 @@
+/* Maak Admin — authoritative brand placement + mobile control-center polish. */
+html:has(.admin-pro),body:has(.admin-pro),body:has(.admin-pro) #root{background:#0a0a0b!important;color:#f5f1e8!important}
+body:has(.admin-pro){overflow-x:hidden!important;color-scheme:dark!important}
+.admin-pro{background:#0a0a0b!important;color:#f5f1e8!important;min-height:100dvh!important}
+.admin-pro-main,.admin-pro-side,.admin-pro-top,.ap-panel,.ap-kpi,.ap-table-wrap,.ap-empty,.ap-info{background-color:#0a0a0b!important;color:#f5f1e8!important}
+.admin-pro-side{background:#0f0f10!important}
+.admin-pro-top{background:#0f0f10!important}
+.ap-kpi,.ap-panel{background:#0f0f10!important}
+.ap-kpi.accent,.ap-panel-featured{background:#0f0f10!important}
+.admin-pro-title h1,.ap-panel-head h2,.ap-kpi strong,.ap-row-main strong,.ap-table td strong,.ap-info-grid strong{color:#f5f1e8!important;text-shadow:none!important}
+.admin-pro-title p,.ap-eyebrow,.ap-panel-head p,.ap-kpi-top,.ap-kpi small,.ap-row-main>span,.ap-table th,.ap-table td,.ap-info-grid span,.ap-empty{color:#9b9ca4!important}
+.ap-primary{background:#c9a961!important;color:#0a0a0b!important}
+.ap-filter.active{background:rgba(201,169,97,.10)!important;color:#d6bc6a!important;border-color:rgba(201,169,97,.38)!important}
+.ap-kpi.accent strong{color:#d6bc6a!important}
+
+/* The supplied Maak symbol is the single compact mark used wherever space is limited. */
+.admin-pro-title{display:flex!important;align-items:center!important;gap:10px!important}
+.admin-pro-title:before{content:"";display:block;width:34px;height:34px;flex:0 0 34px;background:url("/Maak/assets/brand/maak-symbol.png") center/contain no-repeat}
+
+@media(max-width:760px){
+  .admin-pro{width:100%!important;overflow:hidden!important}
+  .admin-pro-main{width:100%!important;min-height:100dvh!important;background:#0a0a0b!important;padding:0 12px calc(28px + env(safe-area-inset-bottom))!important}
+  .admin-pro-top{margin:0 -12px 14px!important;padding:10px 12px!important;min-height:66px!important;background:#0f0f10!important;display:flex!important;align-items:center!important;gap:9px!important}
+  .admin-pro-title{flex:1 1 auto!important;min-width:0!important;gap:8px!important}
+  .admin-pro-title:before{width:30px!important;height:30px!important;flex-basis:30px!important}
+  .admin-pro-title h1{font-size:16px!important;line-height:1.15!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .admin-pro-title p,.ap-eyebrow{display:none!important}
+  .admin-pro-actions{flex:0 0 auto!important;margin-inline-start:auto!important}
+  .admin-pro-actions .ap-icon{display:none!important}
+  .admin-pro-actions .ap-primary{width:48px!important;min-width:48px!important;height:40px!important;min-height:40px!important;padding:0!important;border-radius:10px!important;display:grid!important;place-items:center!important;gap:0!important;font-size:0!important}
+  .admin-pro-actions .ap-primary svg{width:18px!important;height:18px!important}
+  .admin-pro-actions .ap-primary span{display:grid!important;width:17px!important;min-width:17px!important;height:17px!important;padding:0!important;font-size:9px!important;position:absolute!important;margin-top:-30px!important;margin-inline-end:-26px!important;background:#0f0f10!important;color:#d6bc6a!important;border:1px solid rgba(201,169,97,.32)!important}
+  .admin-pro-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-bottom:12px!important}
+  .ap-kpi{min-height:110px!important;padding:13px!important;border-radius:12px!important}
+  .ap-kpi strong{font-size:25px!important}
+  .ap-kpi small{font-size:9px!important}
+  .admin-pro-grid{grid-template-columns:1fr!important;gap:10px!important}
+  .ap-panel{border-radius:12px!important;background:#0f0f10!important}
+  .ap-panel-head{padding:14px!important}
+  .ap-panel-body{padding:12px!important}
+  .ap-toolbar{padding:10px 12px!important}
+  .ap-search{min-height:44px!important;background:#131315!important}
+  .ap-filter{min-height:38px!important;padding-inline:14px!important;border-radius:10px!important}
+  .ap-row{min-height:64px!important;padding:12px!important}
+  .ap-empty{min-height:210px!important;background:#0f0f10!important;justify-content:center!important}
+}
+
+@media(max-width:390px){
+  .admin-pro-main{padding-inline:9px!important}
+  .admin-pro-top{margin-inline:-9px!important;padding-inline:10px!important}
+  .admin-pro-title:before{width:28px!important;height:28px!important;flex-basis:28px!important}
+  .admin-pro-actions .ap-primary{width:44px!important;min-width:44px!important}
+  .admin-pro-kpis{gap:7px!important}
+  .ap-kpi{padding:11px!important}
+}
