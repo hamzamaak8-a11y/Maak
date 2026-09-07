@@ -207,3 +207,64 @@
   .ad-bars { gap: 7px; padding-inline: 2px; }
   .ad-bar-track { width: 22px; }
 }
+
+/* Maak admin full control center — shared visual layer for every section. */
+.admin-pro-main > .admin-pro-kpis { position: relative; z-index: 1; }
+.admin-pro-main > .ap-panel, .admin-pro-main > .admin-pro-grid, .admin-pro-main > .ad-bottom-grid { position: relative; z-index: 1; }
+.admin-pro .ap-panel:not(.ad-activity-panel):not(.ad-chart-panel) { background: #101214 !important; border-color: #292c31 !important; }
+.admin-pro .ap-panel-head { background: linear-gradient(180deg, rgba(255,255,255,.018), transparent) !important; }
+.admin-pro .ap-panel-head h2 { font-size: 16px !important; letter-spacing: -.02em; }
+.admin-pro .ap-panel-head p { max-width: 560px; color: #85878e !important; }
+.admin-pro .ap-section-label { color: #ff8157 !important; }
+.admin-pro .ap-toolbar { background: #0d0f11 !important; border-bottom-color: #25282d !important; }
+.admin-pro .ap-search { border-color: #30343a !important; background: #0a0c0e !important; }
+.admin-pro .ap-search:focus { border-color: rgba(255,90,31,.7) !important; box-shadow: 0 0 0 3px rgba(255,90,31,.1) !important; }
+.admin-pro .ap-filter.active { color: #ff956f !important; background: rgba(255,90,31,.13) !important; border-color: rgba(255,90,31,.36) !important; }
+.admin-pro .ap-list { background: #292c31 !important; }
+.admin-pro .ap-row { background: #101214 !important; border: 0 !important; }
+.admin-pro .ap-row:hover { background: #17191d !important; }
+.admin-pro .ap-row-main strong { color: #f5f0e8 !important; }
+.admin-pro .ap-row-main > span { color: #83868e !important; }
+.admin-pro .ap-avatar { border-color: #35383f !important; background: linear-gradient(145deg,#25282e,#17191c) !important; color: #ff956f !important; }
+.admin-pro .ap-activity-icon { color: #ff8057 !important; background: rgba(255,90,31,.13) !important; }
+.admin-pro .ap-table-wrap { background: #101214 !important; }
+.admin-pro .ap-table th { background: #15171a !important; color: #85878e !important; border-bottom-color: #292c31 !important; }
+.admin-pro .ap-table td { color: #d7d3cc !important; border-bottom-color: #24272c !important; }
+.admin-pro .ap-table tbody tr:hover td { background: #17191d !important; }
+.admin-pro .ap-table td strong { color: #f5f0e8 !important; }
+.admin-pro .ap-report-grid { gap: 14px !important; }
+.admin-pro .ap-report-card { min-height: 142px !important; border-color: #292c31 !important; background: linear-gradient(145deg,#15171a,#101214) !important; }
+.admin-pro .ap-report-card > div { color: #ff8057 !important; background: rgba(255,90,31,.13) !important; }
+.admin-pro .ap-report-card span { color: #9b9da4 !important; }
+.admin-pro .ap-report-card strong { color: #f7f1e8 !important; font-size: 30px !important; }
+.admin-pro .ap-hero-stat { background: linear-gradient(135deg,rgba(255,90,31,.12),#15171a 60%) !important; border-color: rgba(255,90,31,.27) !important; }
+.admin-pro .ap-hero-stat svg { color: #ff8057 !important; }
+.admin-pro .ap-timeline-row { padding: 9px 0 18px !important; }
+.admin-pro .ap-timeline-dot { background: #ff5a1f !important; box-shadow: 0 0 0 4px rgba(255,90,31,.13) !important; }
+.admin-pro .ap-timeline-row strong { color: #f5f0e8 !important; }
+.admin-pro .ap-timeline-row span { color: #93959c !important; }
+.admin-pro .ap-info { border-color: #292c31 !important; background: #15171a !important; }
+.admin-pro .ap-info h3 { color: #ff8157 !important; }
+.admin-pro .ap-info-grid { background: #292c31 !important; }
+.admin-pro .ap-info-grid > div { background: #101214 !important; }
+.admin-pro .ap-info-grid span { color: #777a82 !important; }
+.admin-pro .ap-info-grid strong { color: #f5f0e8 !important; }
+.admin-pro .ap-badge.warn { color: #ffb083 !important; background: rgba(255,145,94,.12) !important; }
+.admin-pro .ap-badge.ok { color: #8fd3b0 !important; }
+.admin-pro .ap-badge.no { color: #f19a9a !important; }
+.admin-pro .ap-drawer-overlay { background: rgba(4,5,6,.78) !important; }
+.admin-pro .ap-drawer { background: #111315 !important; border-color: #30343a !important; }
+.admin-pro .ap-drawer-head { background: linear-gradient(145deg,rgba(255,90,31,.09),transparent 50%) !important; border-bottom-color: #292c31 !important; }
+.admin-pro .ap-drawer-head h2 { color: #f7f1e8 !important; }
+.admin-pro .ap-drawer-section h3 { color: #ff8157 !important; }
+.admin-pro .ap-drawer-foot { background: #0e1012 !important; border-top-color: #292c31 !important; }
+.admin-pro .ap-docs button { background: #15171a !important; border-color: #30343a !important; }
+.admin-pro .ap-docs button:hover { border-color: rgba(255,90,31,.5) !important; color: #ff956f !important; }
+.admin-pro .ap-btn:hover { border-color: rgba(255,90,31,.42) !important; }
+.admin-pro .ap-btn.danger { color: #f19a9a !important; }
+.admin-pro .ap-btn.success { color: #8fd3b0 !important; }
+@media (max-width: 820px) {
+  .admin-pro-main > .admin-pro-kpis { margin-bottom: 12px !important; }
+  .admin-pro .ap-panel-head { min-height: 72px !important; }
+  .admin-pro .ap-report-card { min-height: 122px !important; }
+}
