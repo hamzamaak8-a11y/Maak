@@ -8,7 +8,7 @@ import type { AdminApplication, AdminBooking, AdminCustomer, AdminDocument } fro
 import { BOOKING_STATUS_LABELS } from "../lib/bookings";
 import type { BookingStatus, VerificationStatus } from "../types";
 import { useLanguage } from "../i18n";
-import "../styles/admin-command-center.css";
+import "../styles/admin-premium.css";
 
 type Section = "overview" | "providers" | "customers" | "bookings" | "system";
 type Copy = Record<string, string>;
