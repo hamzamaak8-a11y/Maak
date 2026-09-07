@@ -6,7 +6,7 @@ import { adminAr, adminFr } from "./admin";
 
 export type Lang = "ar" | "fr";
 export type Dir = "rtl" | "ltr";
-const STORAGE_KEY = "maak:lang";
+const STORAGE_KEY = "maak:lang:v2";
 const DICTS: Record<Lang, Record<string,string>> = { ar: { ...ar, ...chatAr, ...adminAr }, fr: { ...fr, ...chatFr, ...adminFr } };
 const CAT: Record<Lang, Record<string,string>> = { ar: catAr, fr: catFr };
 const SVC: Record<Lang, Record<string,string>> = { ar: svcAr, fr: svcFr };
