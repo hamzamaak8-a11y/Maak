@@ -1,45 +1,42 @@
-# maak Worker
+# Maak Worker
 
-Cloudflare Worker (public API). Reads providers from Supabase PostgreSQL via the Supabase REST (PostgREST) API using pure fetch — no DB driver, no nodejs_compat, no Hyperdrive, no filesystem.
+Cloudflare Worker for the public Maak marketplace API. It reads only published, real, provider-linked listings from Supabase through PostgREST.
 
-## Cloudflare deploy (production)
+## Production configuration
 
-The wrangler config lives at the REPO ROOT (`wrangler.jsonc`, name `maak`, main `worker/src/index.ts`). Cloudflare's Git-based Workers Build looks for wrangler.jsonc at the repo root, so this is what makes the deploy a real fetch-handler Worker with a *.workers.dev URL (without it, Cloudflare falls back to the frontend Vite build and deploys Static Assets — no Worker URL, no /health).
+The Wrangler configuration is at the repository root in `wrangler.jsonc` and points to `worker/src/index.ts`.
 
-From the repo root:
+Required Worker values:
 
-    npx wrangler deploy                 # uses root wrangler.jsonc -> Worker "maak"
-
-Cloudflare dashboard (Workers Build) settings:
-- Root directory: (empty / repo root)
-- Build command:  npm install          # optional; worker has no runtime npm deps
-- Deploy command: npx wrangler deploy
+- `SUPABASE_URL` — configured as a non-secret variable in `wrangler.jsonc`.
+- `MAAK_ALLOW_ORIGIN` — configured as a non-secret variable in `wrangler.jsonc`.
+- `SUPABASE_SERVICE_ROLE_KEY` — **secret**, configured in Cloudflare Worker secrets. Never commit or expose it to the frontend.
 
 ## Endpoints
-- GET  /health
-- GET  /api/providers
-- GET  /api/providers/:id
-- POST /admin/seed?token=<ADMIN_TOKEN>   (idempotent upsert of the 4 providers)
 
-## Local dev
+- `GET /health` — service health check.
+- `GET /api/providers` — published real providers only.
+- `GET /api/providers/:id` — one published real provider only.
 
-From worker/:
+There is no public seed, admin-token, or provider-write endpoint.
 
-    npm install                          # wrangler + workers-types + typescript
-    npm run dev                          # wrangler dev --config ../wrangler.jsonc
+## Local development
 
-Put local secrets in `../.dev.vars` (repo root, gitignored) as NAME=VALUE lines:
-    SUPABASE_URL=...
-    SUPABASE_SERVICE_ROLE_KEY=...
-    ADMIN_TOKEN=...
-    MAAK_ALLOW_ORIGIN=https://i36508871-eng.github.io
+From `worker/`:
 
-## DB init / seed (idempotent, no filesystem)
-- Create the table once: paste `worker/db/schema.sql` into the Supabase SQL editor.
-- Seed: `curl -X POST "https://maak.<sub>.workers.dev/admin/seed?token=<ADMIN_TOKEN>"`
-  (or paste `worker/db/seed.sql` into the Supabase SQL editor).
+    npm install
+    npm run dev
 
-## Verify (from worker/)
-- npm run typecheck   # tsc --noEmit
-- npm run build       # wrangler deploy --dry-run (bundle without publishing)
-- npm run deploy      # wrangler deploy (uses root wrangler.jsonc)
+For local secrets, use a gitignored Wrangler `.dev.vars` file. Never put the service-role key in frontend environment variables.
+
+## Database
+
+The SQL files under `worker/db/` are the source-controlled database migrations and controlled development fixtures. Production marketplace visibility is enforced by `listing_kind = 'real'`, a linked `provider_profile_id`, and a non-null `published_at` value.
+
+Provider verification, bookings, messaging, and admin actions are performed through Supabase RLS/RPCs; they are not exposed as Worker write endpoints.
+
+## Verification
+
+    npm run typecheck
+    npm run build
+    npm run deploy
