@@ -5,6 +5,7 @@ import { Logo } from "../components/atoms";
 import "../styles/auth.css";
 import "../styles/admin-auth.css";
 import "../styles/admin-quality-fixes.css";
+import "../styles/admin-auth-polish.css";
 import { useLanguage } from "../i18n";
 
 /**
