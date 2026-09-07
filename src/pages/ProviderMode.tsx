@@ -12,6 +12,7 @@ import {
   rejectBooking,
   startBooking,
 } from "../lib/bookings";
+import { listConversations } from "../lib/chat";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
 import Chat from "./Chat";
 import type { BookingRow, BookingStatus } from "../types";
@@ -50,6 +51,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   const { showToast } = useToast();
   const { profile, user } = useAuth();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [messageCount, setMessageCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("new");
@@ -72,16 +74,24 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
 
   useEffect(() => { void load(); }, [load]);
 
+  useEffect(() => {
+    let active = true;
+    void listConversations()
+      .then((rows) => { if (active) setMessageCount(rows.length); })
+      .catch(() => { if (active) setMessageCount(null); });
+    return () => { active = false; };
+  }, []);
+
   const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
   const counts = useMemo<Record<TabKey, number>>(() => ({
     profile: 0,
-    messages: 0,
+    messages: messageCount ?? 0,
     new: bookings.filter((b) => b.status === "pending").length,
     accepted: bookings.filter((b) => b.status === "accepted").length,
     in_progress: bookings.filter((b) => b.status === "in_progress").length,
     completed: bookings.filter((b) => b.status === "completed").length,
     rejected: bookings.filter((b) => b.status === "rejected").length,
-  }), [bookings]);
+  }), [bookings, messageCount]);
 
   const list = useMemo(() => {
     if (tab === "profile" || tab === "messages") return [];
@@ -134,12 +144,13 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
             key={tabItem.key}
             onClick={() => { setTab(tabItem.key); setOpenId(null); setRejectId(null); }}
           >
-            {tabItem.key === "messages" ? <MessageCircle size={15} /> : null}
+            {tabItem.key === "messages" ? <MessageCircle size={15} aria-hidden="true" /> : null}
             {t(tabItem.label)}
-            {counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
+            {tabItem.key !== "messages" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
+            {tabItem.key === "messages" && messageCount !== null && messageCount > 0 ? <span className="nav-count">{messageCount}</span> : null}
           </button>
         ))}
-        <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} /></button>
+        <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} aria-hidden="true" /></button>
       </aside>
 
       <main className="provider-main">
@@ -161,7 +172,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
 
             <div className="section-heading dashboard-heading">
               <div><span className="section-kicker">{t(TABS.find((tabItem) => tabItem.key === tab)?.label ?? "")}</span><h2>{t("pm.requestCount", { n: list.length })}</h2></div>
-              <button className="text-button" onClick={() => void load()}><ArrowLeft size={15} /> {t("pm.refresh")}</button>
+              <button className="text-button" onClick={() => void load()}><ArrowLeft size={15} aria-hidden="true" /> {t("pm.refresh")}</button>
             </div>
 
             {loading ? (
@@ -169,7 +180,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
             ) : error ? (
               <div className="empty-state"><p>{t(error)}</p><button className="ghost-button" onClick={() => void load()}>{t("common.retryBtn")}</button></div>
             ) : list.length === 0 ? (
-              <div className="empty-state"><CalendarDays size={24} /><h3>{t("pm.emptySection")}</h3></div>
+              <div className="empty-state"><CalendarDays size={24} aria-hidden="true" /><h3>{t("pm.emptySection")}</h3></div>
             ) : (
               list.map((b) => (
                 <div className="request-row" key={b.id}>
@@ -185,8 +196,8 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
                   <div className="cta-row">
                     {b.status === "pending" ? (
                       <>
-                        <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => acceptBooking(b.id), t("pm.requestAccepted"))}><Check size={15} /> {t("pm.acceptRequest")}</button>
-                        <button className="secondary" disabled={busy === b.id} onClick={() => { setRejectId(rejectId === b.id ? null : b.id); setRejectReason(""); }}><X size={15} /> {t("pm.rejectRequest")}</button>
+                        <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => acceptBooking(b.id), t("pm.requestAccepted"))}><Check size={15} aria-hidden="true" /> {t("pm.acceptRequest")}</button>
+                        <button className="secondary" disabled={busy === b.id} onClick={() => { setRejectId(rejectId === b.id ? null : b.id); setRejectReason(""); }}><X size={15} aria-hidden="true" /> {t("pm.rejectRequest")}</button>
                       </>
                     ) : b.status === "accepted" ? (
                       <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => startBooking(b.id), t("pm.serviceStarted"))}>{t("pm.startService")}</button>
