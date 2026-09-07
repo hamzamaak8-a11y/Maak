@@ -15,6 +15,7 @@ import "./styles/final-auth.css";
 import "./styles/admin-premium.css";
 import "./styles/maak-brand-system.css";
 import "./styles/maak-shell-polish.css";
+import "./styles/maak-final-calibration.css";
 
 (function () {
   try {
