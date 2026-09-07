@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Globe, Loader2, MailCheck } from "lucide-react";
+import { Eye, EyeOff, Globe, Loader2, MailCheck } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { Logo } from "../components/atoms";
@@ -17,6 +17,8 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
@@ -145,28 +147,50 @@ export default function Register() {
 
           <label className="auth-field">
             <span>{t("common.password")}</span>
-            <input
-              className="auth-input"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-              dir="ltr"
-            />
+            <div className="auth-password-wrap">
+              <input
+                className="auth-input"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+                dir="ltr"
+              />
+              <button
+                className="auth-password-toggle"
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                title={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+              >
+                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </div>
           </label>
 
           <label className="auth-field">
             <span>{t("auth.confirmPassword")}</span>
-            <input
-              className="auth-input"
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              autoComplete="new-password"
-              required
-              dir="ltr"
-            />
+            <div className="auth-password-wrap">
+              <input
+                className="auth-input"
+                type={showConfirm ? "text" : "password"}
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                autoComplete="new-password"
+                required
+                dir="ltr"
+              />
+              <button
+                className="auth-password-toggle"
+                type="button"
+                onClick={() => setShowConfirm((visible) => !visible)}
+                aria-label={showConfirm ? "إخفاء تأكيد كلمة المرور" : "إظهار تأكيد كلمة المرور"}
+                title={showConfirm ? "إخفاء تأكيد كلمة المرور" : "إظهار تأكيد كلمة المرور"}
+              >
+                {showConfirm ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </div>
           </label>
 
           {error ? <div className="auth-error">{t(error)}</div> : null}
