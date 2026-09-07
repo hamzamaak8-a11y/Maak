@@ -17,7 +17,6 @@ import "./styles/maak-shell-polish.css";
 import "./styles/maak-final-calibration.css";
 import "./styles/admin-premium.css";
 import "./styles/admin-final-overrides.css";
-import "./styles/admin-dashboard.css";
 import "./styles/admin-command.css";
 (function(){try{var stored=sessionStorage.getItem("maak:deep-link");if(stored){sessionStorage.removeItem("maak:deep-link");var current=window.location.pathname+window.location.search+window.location.hash;if(stored!==current)window.history.replaceState({},"",stored)}}catch(_){}})();
 if("serviceWorker" in navigator&&window.location.protocol==="https:"){window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(()=>{})})}
