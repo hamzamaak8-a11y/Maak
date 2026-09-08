@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft, ChevronRight, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users, UserRoundCheck, X, Zap } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft, ChevronRight, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users, UserRoundCheck, X } from "lucide-react";
 import * as admin from "../lib/admin2";
 import type { AdminApplication, AdminBooking, AdminCustomer } from "../lib/admin2";
 import type { VerificationStatus } from "../types";
