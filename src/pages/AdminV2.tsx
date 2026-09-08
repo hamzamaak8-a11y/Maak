@@ -1,44 +1,133 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft,
-  ChevronRight, CircleAlert, CreditCard, LayoutDashboard, Menu, Search, ShieldCheck,
-  Store, Users, UserRoundCheck, X, Zap,
+  ChevronRight, CircleAlert, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users,
+  UserRoundCheck, X, Zap,
 } from "lucide-react";
+import * as admin from "../lib/admin";
+import type { AdminApplication, AdminBooking, AdminCustomer } from "../lib/admin";
+import type { VerificationStatus } from "../types";
 
 type Page = "dashboard" | "bookings" | "verification" | "providers" | "customers" | "marketplace" | "reports";
-type Booking = { id: string; customer: string; provider: string; service: string; city: string; status: "pending" | "confirmed" | "completed"; amount: number };
-const bookings: Booking[] = [
-  { id: "BK-90421", customer: "Ayoub El Idrissi", provider: "Youssef El Amrani", service: "Peinture", city: "Casablanca", status: "confirmed", amount: 850 },
-  { id: "BK-90420", customer: "Sara Benali", provider: "Adil Chraibi", service: "Plomberie", city: "Rabat", status: "pending", amount: 420 },
-  { id: "BK-90419", customer: "Omar Tazi", provider: "Nadia Alaoui", service: "Nettoyage", city: "Marrakech", status: "completed", amount: 300 },
-  { id: "BK-90418", customer: "Hiba Amrani", provider: "Said El Morabit", service: "Électricité", city: "Tanger", status: "confirmed", amount: 620 },
-  { id: "BK-90417", customer: "Mehdi Rami", provider: "Imane Chafai", service: "Déménagement", city: "Agadir", status: "pending", amount: 1100 },
-];
 const nav: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard }, { id: "bookings", label: "Bookings", icon: CalendarCheck2 },
-  { id: "verification", label: "Verification", icon: ShieldCheck }, { id: "providers", label: "Providers", icon: UserRoundCheck },
-  { id: "customers", label: "Customers", icon: Users }, { id: "marketplace", label: "Marketplace", icon: Store }, { id: "reports", label: "Analytics", icon: BarChart3 },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "bookings", label: "Bookings", icon: CalendarCheck2 },
+  { id: "verification", label: "Verification", icon: ShieldCheck },
+  { id: "providers", label: "Providers", icon: UserRoundCheck },
+  { id: "customers", label: "Customers", icon: Users },
+  { id: "marketplace", label: "Marketplace", icon: Store },
+  { id: "reports", label: "Analytics", icon: BarChart3 },
 ];
-const formatMad = (value: number) => `${value.toLocaleString("fr-MA")} MAD`;
-function Status({ value }: { value: string }) { const map: Record<string, string> = { pending: "Pending", confirmed: "Confirmed", completed: "Completed" }; return <span className={`m2-status ${value}`}>{map[value] ?? value}</span>; }
-function StatCard({ label, value, delta, icon, tone = "teal" }: { label: string; value: string; delta: string; icon: ReactNode; tone?: string }) { const positive = delta.startsWith("+"); return <article className="m2-stat-card"><div className={`m2-stat-icon ${tone}`}>{icon}</div><p>{label}</p><strong>{value}</strong><span className={positive ? "positive" : "negative"}>{positive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{delta} vs last month</span></article>; }
-function Sparkline({ points }: { points: number[] }) { const min = Math.min(...points); const max = Math.max(...points); const range = max - min || 1; const path = points.map((p, i) => `${i === 0 ? "M" : "L"} ${(i / (points.length - 1)) * 100} ${100 - ((p - min) / range) * 86}`).join(" "); return <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="m2-spark" aria-hidden="true"><path d={path} /></svg>; }
+
+function formatDate(value: string | null) {
+  return value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
+}
+function statusLabel(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
+}
+function Status({ value }: { value: string }) {
+  const s = value.toLowerCase();
+  const tone = ["approved", "active", "completed", "accepted", "confirmed"].includes(s) ? "good" : ["rejected", "suspended", "cancelled"].includes(s) ? "bad" : "warn";
+  return <span className={`m2-status ${tone}`}>{statusLabel(value)}</span>;
+}
+function StatCard({ label, value, icon, note, tone = "teal" }: { label: string; value: string; icon: ReactNode; note: string; tone?: string }) {
+  return <article className="m2-stat-card"><div className={`m2-stat-icon ${tone}`}>{icon}</div><p>{label}</p><strong>{value}</strong><span className="m2-stat-note">{note}</span></article>;
+}
+
 export default function AdminV2() {
-  const [page, setPage] = useState<Page>("dashboard"); const [collapsed, setCollapsed] = useState(false); const [mobileOpen, setMobileOpen] = useState(false); const [search, setSearch] = useState(""); const [notice, setNotice] = useState("System healthy");
-  const filteredBookings = useMemo(() => { const q = search.trim().toLowerCase(); if (!q) return bookings; return bookings.filter((b) => [b.id, b.customer, b.provider, b.service, b.city, b.status].some((v) => v.toLowerCase().includes(q))); }, [search]);
-  const go = (next: Page) => { setPage(next); setMobileOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const [page, setPage] = useState<Page>("dashboard");
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [notice, setNotice] = useState("Live data from Maak");
+  const [pending, setPending] = useState(0);
+  const [approved, setApproved] = useState(0);
+  const [rejected, setRejected] = useState(0);
+  const [customers, setCustomers] = useState<{ rows: AdminCustomer[]; total: number }>({ rows: [], total: 0 });
+  const [bookings, setBookings] = useState<{ rows: AdminBooking[]; total: number }>({ rows: [], total: 0 });
+  const [providers, setProviders] = useState<AdminApplication[]>([]);
+  const [marketplace, setMarketplace] = useState<{ total: number; rows: admin.AdminMarketplaceListing[] }>({ total: 0, rows: [] });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoadError(null);
+    try {
+      const [p, a, r, c, b, apps, listings] = await Promise.all([
+        admin.countByStatus("pending"),
+        admin.countByStatus("approved"),
+        admin.countByStatus("rejected"),
+        admin.listCustomers(),
+        admin.listBookings(),
+        admin.listApplications("pending" as VerificationStatus),
+        admin.listMarketplace(),
+      ]);
+      setPending(p); setApproved(a); setRejected(r); setCustomers(c); setBookings(b); setProviders(apps); setMarketplace(listings);
+      setNotice("Live data from Maak");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Unable to load admin data");
+      setNotice("Some live data could not be loaded");
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { void load(); }, []);
+
+  const filteredBookings = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return bookings.rows;
+    return bookings.rows.filter((b) => [b.id, b.customer_name, b.provider_name, b.service_category, b.status, b.location_text].some((v) => String(v ?? "").toLowerCase().includes(q)));
+  }, [bookings.rows, search]);
+  const filteredCustomers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return customers.rows;
+    return customers.rows.filter((c) => [c.full_name, c.phone, c.city, c.account_status].some((v) => String(v ?? "").toLowerCase().includes(q)));
+  }, [customers.rows, search]);
+  const filteredProviders = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return providers;
+    return providers.filter((p) => [p.full_name, p.phone, p.city, p.profession, p.service_category, p.verification_status].some((v) => String(v ?? "").toLowerCase().includes(q)));
+  }, [providers, search]);
+  const go = (next: Page) => { setPage(next); setMobileOpen(false); setSearch(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+  if (loading) return <div className="admin-pro admin-loading"><LoaderDots /><span>Loading live admin data…</span></div>;
+
   return <div className="m2-shell">
-    <button className="m2-mobile-trigger" aria-label="Open admin navigation" onClick={() => setMobileOpen(true)}><Menu size={21} /></button>
+    <button className="m2-mobile-trigger" aria-label="Open admin navigation" onClick={() => setMobileOpen(true)}><Menu size={21}/></button>
     <aside className={`m2-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
-      <div className="m2-sidebar-inner"><div className="m2-brand-row"><div className="m2-brand-mark">m<span /></div>{!collapsed && <div><b>maak<span>.</span></b><small>CONTROL CENTER</small></div>}<button className="m2-icon-btn mobile-only" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18} /></button></div>
-        {!collapsed && <button className="m2-search" onClick={() => document.getElementById("m2-global-search")?.focus()}><Search size={16} /><span>Search anything…</span><kbd>⌘ K</kbd></button>}
-        <nav className="m2-nav" aria-label="Admin navigation"><p>WORKSPACE</p>{nav.slice(0,1).map((item)=>{const Icon=item.icon;return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}</button>})}<p>OPERATIONS</p>{nav.slice(1,6).map((item)=>{const Icon=item.icon;const badge=item.id==="verification"?18:item.id==="bookings"?64:0;return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}{!collapsed&&badge>0&&<b>{badge}</b>}</button>})}<p>INSIGHTS</p>{nav.slice(6).map((item)=>{const Icon=item.icon;return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}</button>})}</nav>
-        <div className="m2-sidebar-bottom">{!collapsed&&<div className="m2-health"><span><i/>All systems operational</span><small>API · Auth · Messaging · Storage</small><button onClick={()=>go("reports")}>View health <ChevronRight size={14}/></button></div>}<div className="m2-admin-user"><span className="m2-avatar">SI</span>{!collapsed&&<div><b>Salma Idrissi</b><small>Super Admin</small></div>}</div></div>
-        <button className="m2-collapse" onClick={()=>setCollapsed(v=>!v)} aria-label={collapsed?"Expand sidebar":"Collapse sidebar"}>{collapsed?<ChevronRight size={16}/>:<ChevronLeft size={16}/>}</button>
+      <div className="m2-sidebar-inner">
+        <div className="m2-brand-row"><div className="m2-brand-mark">m<span/></div>{!collapsed && <div><b>maak<span>.</span></b><small>CONTROL CENTER</small></div>}<button className="m2-icon-btn mobile-only" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18}/></button></div>
+        {!collapsed && <button className="m2-search" onClick={() => document.getElementById("m2-global-search")?.focus()}><Search size={16}/><span>Search anything…</span><kbd>⌘ K</kbd></button>}
+        <nav className="m2-nav" aria-label="Admin navigation">
+          <p>WORKSPACE</p>{nav.slice(0,1).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go}/>) }
+          <p>OPERATIONS</p>{nav.slice(1,6).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go} badge={item.id === "verification" ? pending : item.id === "bookings" ? bookings.total : undefined}/>) }
+          <p>INSIGHTS</p>{nav.slice(6).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go}/>) }
+        </nav>
+        <div className="m2-sidebar-bottom">{!collapsed && <div className="m2-health"><span><i/>Live connection</span><small>Supabase · Auth · Storage</small><button onClick={() => void load()}>Refresh <Zap size={14}/></button></div>}<div className="m2-admin-user"><span className="m2-avatar">AD</span>{!collapsed && <div><b>Maak Admin</b><small>Authenticated administrator</small></div>}</div></div>
+        <button className="m2-collapse" onClick={() => setCollapsed((v) => !v)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <ChevronRight size={16}/> : <ChevronLeft size={16}/>}</button>
       </div>
     </aside>
-    <main className="m2-main"><header className="m2-topbar"><div className="m2-breadcrumb"><span>Maak</span><ChevronRight size={14}/><strong>{nav.find(n=>n.id===page)?.label}</strong></div><div className="m2-top-actions"><label className="m2-global-search"><Search size={16}/><input id="m2-global-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" /></label><button className="m2-icon-btn" aria-label="Notifications" onClick={()=>setNotice("No new alerts")}><Bell size={18}/></button><button className="m2-profile-pill" onClick={()=>setNotice("Signed in as Super Admin")}>SI <span>Salma Idrissi</span></button></div></header>
-      {page==="dashboard" ? <><section className="m2-hero"><div><span className="m2-kicker"><i/>LIVE OPERATIONS · CASABLANCA</span><h1>Salam, Salma — <em>Maak is moving.</em></h1><p>Here is the operational pulse: <b>64 bookings</b> today, <b>18 providers</b> waiting for verification, and a healthy marketplace across Morocco.</p><div className="m2-hero-actions"><button className="m2-btn primary" onClick={()=>go("verification")}><ShieldCheck size={16}/> Review queue · 18</button><button className="m2-btn light" onClick={()=>go("bookings")}><CalendarCheck2 size={16}/> Today's bookings</button></div></div><div className="m2-hero-mini-grid"><div><span>BOOKINGS</span><b>64</b><small>+8.7%</small></div><div><span>REVENUE</span><b>9.4k</b><small>+12.4%</small></div><div><span>RATING</span><b>4.7</b><small>+0.2</small></div><div><span>VERIFY</span><b>18</b><small>needs review</small></div></div></section><section className="m2-grid m2-grid-4" aria-label="Key metrics"><StatCard label="Customers" value="2,846" delta="+9.8%" icon={<Users size={18}/>} /><StatCard label="Bookings" value="1,248" delta="+14.2%" icon={<CalendarCheck2 size={18}/>} tone="blue"/><StatCard label="Published listings" value="386" delta="+6.1%" icon={<Store size={18}/>} tone="gold"/><StatCard label="Revenue" value="184.6k" delta="+12.4%" icon={<CreditCard size={18}/>} tone="clay"/></section><section className="m2-grid m2-grid-main"><article className="m2-card m2-chart-card"><div className="m2-card-head"><div><span className="m2-kicker muted">MONEY IN MOTION</span><h2>184,600 MAD <small>· last 30 days</small></h2></div><button className="m2-filter" onClick={()=>setNotice("30-day view selected")}>30 days</button></div><div className="m2-chart-summary"><b>+12.4%</b><span>vs August</span><Sparkline points={[54,62,58,68,66,73,70,79,74,83,78,88,92,86,94]}/></div><div className="m2-bars">{[48,62,56,74,66,82,71,88,76,93,84,97].map((h,i)=><span key={i} style={{height:`${h}%`}}/>)}</div><div className="m2-chart-axis"><span>01 Sep</span><span>08 Sep</span><span>15 Sep</span><span>22 Sep</span><span>30 Sep</span></div></article><article className="m2-card m2-attention"><div className="m2-card-head"><div><span className="m2-kicker clay">NEEDS ACTION</span><h2>Priority queue</h2></div><span className="m2-critical">1 critical</span></div>{[{t:"Verification queue",s:"18 applications · oldest 3 days",p:"verification"},{t:"Booking dispute",s:"BK-90407 · 200 MAD frozen",p:"bookings"},{t:"Provider appeal",s:"Said El Morabit · review requested",p:"providers"},{t:"Marketplace health",s:"386 live listings · no incidents",p:"marketplace"}].map(a=><button key={a.t} className="m2-action-row" onClick={()=>go(a.p as Page)}><span className="m2-action-icon"><CircleAlert size={17}/></span><span><b>{a.t}</b><small>{a.s}</small></span><ChevronRight size={16}/></button>)}</article></section><section className="m2-grid m2-grid-main"><article className="m2-card"><div className="m2-card-head"><div><span className="m2-kicker muted">RECENT BOOKING ACTIVITY</span><h2>Latest operations</h2></div><button className="m2-link" onClick={()=>go("bookings")}>View all <ChevronRight size={14}/></button></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Amount</th></tr></thead><tbody>{filteredBookings.map(b=><tr key={b.id}><td><b>{b.id}</b><small>{b.city}</small></td><td>{b.customer}</td><td>{b.provider}</td><td>{b.service}</td><td><Status value={b.status}/></td><td className="tnum">{formatMad(b.amount)}</td></tr>)}</tbody></table></div></article><article className="m2-card m2-side-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PLATFORM PULSE</span><h2>Today</h2></div><Zap size={17}/></div><div className="m2-pulse"><div><span>Completion rate</span><b>87.4%</b><i><em style={{width:"87.4%"}}/></i></div><div><span>Provider approval</span><b>92.1%</b><i><em style={{width:"92.1%"}}/></i></div><div><span>Customer response</span><b>4m 18s</b><i><em style={{width:"74%"}}/></i></div></div><div className="m2-notice">{notice}</div></article></section></> : <section className="m2-placeholder"><span className="m2-placeholder-icon"><Activity size={22}/></span><span className="m2-kicker">ADMIN MODULE</span><h1>{nav.find(n=>n.id===page)?.label}</h1><p>This visual shell is ready for the real Maak data layer. The existing Supabase-backed admin implementation remains untouched while the new control-center UI is evaluated.</p><button className="m2-btn primary" onClick={()=>go("dashboard")}>Back to dashboard</button></section>}
+    <main className="m2-main">
+      <header className="m2-topbar"><div className="m2-breadcrumb"><span>Maak</span><ChevronRight size={14}/><strong>{nav.find((n) => n.id === page)?.label}</strong></div><div className="m2-top-actions"><label className="m2-global-search"><Search size={16}/><input id="m2-global-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search live data…"/></label><button className="m2-icon-btn" aria-label="Refresh data" onClick={() => void load()}><Bell size={18}/></button><span className="m2-profile-pill">AD <span>Admin</span></span></div></header>
+      {loadError && <div className="m2-notice error" role="alert">{loadError}</div>}
+      {page === "dashboard" && <Dashboard pending={pending} approved={approved} rejected={rejected} customers={customers.total} bookings={bookings.total} listings={marketplace.total} filteredBookings={filteredBookings} notice={notice} go={go}/>} 
+      {page === "bookings" && <DataPage title="Bookings" kicker="OPERATIONS" rows={filteredBookings.map((b) => [b.id, b.customer_name ?? "—", b.provider_name ?? "—", b.service_category, b.status, formatDate(b.service_date)])} headers={["Booking","Customer","Provider","Service","Status","Service date"]} empty="No bookings yet."/>}
+      {page === "customers" && <DataPage title="Customers" kicker="CUSTOMER BASE" rows={filteredCustomers.map((c) => [c.full_name ?? "Unnamed", c.phone ?? "—", c.city ?? "—", c.account_status, formatDate(c.created_at)])} headers={["Customer","Phone","City","Status","Created"]} empty="No customer accounts yet."/>}
+      {page === "verification" && <DataPage title="Provider verification" kicker="TRUST & SAFETY" rows={filteredProviders.map((p) => [p.full_name ?? "Unnamed", p.profession ?? "—", p.city ?? "—", p.experience_years == null ? "—" : `${p.experience_years} yrs`, p.verification_status, formatDate(p.updated_at)])} headers={["Applicant","Profession","City","Experience","Status","Updated"]} empty="No pending applications."/>}
+      {page === "providers" && <DataPage title="Providers" kicker="PROVIDER NETWORK" rows={providers.map((p) => [p.full_name ?? "Unnamed", p.profession ?? "—", p.service_category ?? "—", p.city ?? "—", p.verification_status])} headers={["Provider","Profession","Category","City","Status"]} empty="No provider profiles yet."/>}
+      {page === "marketplace" && <DataPage title="Marketplace" kicker="PUBLISHED INVENTORY" rows={marketplace.rows.map((r) => [r.name, r.job, r.city, r.rating == null ? "—" : String(r.rating), r.published_at ? formatDate(r.published_at) : "—"])} headers={["Listing","Service","City","Rating","Published"]} empty="No published real listings yet."/>}
+      {page === "reports" && <section className="m2-placeholder"><span className="m2-placeholder-icon"><BarChart3 size={22}/></span><span className="m2-kicker">REPORTING</span><h1>Live platform snapshot</h1><p>The current database exposes operational counts and booking records, but it does not contain a booking amount/revenue field. This screen therefore avoids inventing revenue figures.</p><div className="m2-grid m2-grid-4"><StatCard label="Customers" value={String(customers.total)} icon={<Users size={18}/>} note="Live count"/><StatCard label="Bookings" value={String(bookings.total)} icon={<CalendarCheck2 size={18}/>} note="Live count" tone="blue"/><StatCard label="Published listings" value={String(marketplace.total)} icon={<Store size={18}/>} note="Real listings only" tone="gold"/><StatCard label="Pending review" value={String(pending)} icon={<ShieldCheck size={18}/>} note="Verification queue" tone="clay"/></div></section>}
     </main>
   </div>;
+}
+
+function NavButton({ item, page, collapsed, go, badge }: { item: (typeof nav)[number]; page: Page; collapsed: boolean; go: (next: Page) => void; badge?: number }) { const Icon = item.icon; return <button className={page === item.id ? "active" : ""} onClick={() => go(item.id)} title={collapsed ? item.label : undefined}><Icon size={18}/>{!collapsed && <span>{item.label}</span>}{!collapsed && badge != null && badge > 0 && <b>{badge > 99 ? "99+" : badge}</b>}</button>; }
+function LoaderDots() { return <span className="m2-loader" aria-hidden="true"><i/><i/><i/></span>; }
+function DataPage({ title, kicker, rows, headers, empty }: { title: string; kicker: string; rows: string[][]; headers: string[]; empty: string }) { return <section className="m2-placeholder"><span className="m2-kicker">{kicker}</span><h1>{title}</h1><p>Live records from the existing Maak data layer.</p><div className="m2-card"><div className="m2-table-wrap"><table><thead><tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{j === headers.length - 2 ? <Status value={cell}/> : cell}</td>)}</tr>) : <tr><td colSpan={headers.length}><span className="m2-empty">{empty}</span></td></tr>}</tbody></table></div></div></section>; }
+function Dashboard({ pending, approved, rejected, customers, bookings, listings, filteredBookings, notice, go }: { pending: number; approved: number; rejected: number; customers: number; bookings: number; listings: number; filteredBookings: AdminBooking[]; notice: string; go: (next: Page) => void }) {
+  return <>
+    <section className="m2-hero"><div><span className="m2-kicker"><i/>LIVE OPERATIONS · MAAK</span><h1>Admin control, <em>grounded in live data.</em></h1><p>The control center is connected to the existing Maak Supabase layer. No demo records are inserted into production.</p><div className="m2-hero-actions"><button className="m2-btn primary" onClick={() => go("verification")}><ShieldCheck size={16}/> Review queue · {pending}</button><button className="m2-btn light" onClick={() => go("bookings")}><CalendarCheck2 size={16}/> Open bookings</button></div></div><div className="m2-hero-mini-grid"><div><span>PENDING</span><b>{pending}</b><small>verification</small></div><div><span>APPROVED</span><b>{approved}</b><small>providers</small></div><div><span>REJECTED</span><b>{rejected}</b><small>applications</small></div><div><span>LISTINGS</span><b>{listings}</b><small>published</small></div></div></section>
+    <section className="m2-grid m2-grid-4" aria-label="Live metrics"><StatCard label="Customers" value={String(customers)} icon={<Users size={18}/>} note="Live account count"/><StatCard label="Bookings" value={String(bookings)} icon={<CalendarCheck2 size={18}/>} note="Live booking count" tone="blue"/><StatCard label="Published listings" value={String(listings)} icon={<Store size={18}/>} note="Real listings only" tone="gold"/><StatCard label="Verification queue" value={String(pending)} icon={<ShieldCheck size={18}/>} note="Pending applications" tone="clay"/></section>
+    <section className="m2-grid m2-grid-main"><article className="m2-card m2-attention"><div className="m2-card-head"><div><span className="m2-kicker clay">NEEDS ACTION</span><h2>Priority queue</h2></div><span className="m2-critical">{pending} pending</span></div><button className="m2-action-row" onClick={() => go("verification")}><span className="m2-action-icon"><CircleAlert size={17}/></span><span><b>Provider verification</b><small>{pending} applications currently pending</small></span><ChevronRight size={16}/></button><button className="m2-action-row" onClick={() => go("bookings")}><span className="m2-action-icon"><CalendarCheck2 size={17}/></span><span><b>Booking operations</b><small>{bookings} total records</small></span><ChevronRight size={16}/></button><button className="m2-action-row" onClick={() => go("marketplace")}><span className="m2-action-icon"><Store size={17}/></span><span><b>Marketplace</b><small>{listings} published real listings</small></span><ChevronRight size={16}/></button></article><article className="m2-card m2-side-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PLATFORM PULSE</span><h2>Today</h2></div><Activity size={17}/></div><div className="m2-pulse"><div><span>Pending provider review</span><b>{pending}</b><i><em style={{ width: `${Math.min(100, pending * 4)}%` }}/></i></div><div><span>Approved providers</span><b>{approved}</b><i><em style={{ width: `${Math.min(100, approved * 4)}%` }}/></i></div><div><span>Rejected applications</span><b>{rejected}</b><i><em style={{ width: `${Math.min(100, rejected * 4)}%` }}/></i></div></div><div className="m2-notice">{notice}</div></article></section>
+    <section className="m2-card"><div className="m2-card-head"><div><span className="m2-kicker muted">RECENT BOOKING ACTIVITY</span><h2>Latest operations</h2></div><button className="m2-link" onClick={() => go("bookings")}>View all <ChevronRight size={14}/></button></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Date</th></tr></thead><tbody>{filteredBookings.length ? filteredBookings.slice(0, 8).map((b) => <tr key={b.id}><td><b>{b.id}</b><small>{b.location_text ?? "—"}</small></td><td>{b.customer_name ?? "—"}</td><td>{b.provider_name ?? "—"}</td><td>{b.service_category}</td><td><Status value={b.status}/></td><td>{formatDate(b.created_at)}</td></tr>) : <tr><td colSpan={6}><span className="m2-empty">No bookings yet.</span></td></tr>}</tbody></table></div></section>
+  </>;
 }
