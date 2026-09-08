@@ -1,0 +1,21 @@
+/* Maak Admin — clean information layer
+   Keep the control center data-first: remove decorative/helper copy while
+   preserving navigation, actions, statuses, errors, and live data. */
+.m2-sidebar .m2-nav > p,
+.m2-sidebar .m2-brand-row small,
+.m2-card-head .m2-kicker {
+  display: none;
+}
+
+.m2-card-head {
+  align-items: center;
+}
+
+.m2-placeholder h1,
+.m2-placeholder h2 {
+  margin-top: 0;
+}
+
+.m2-notice {
+  margin-bottom: 10px;
+}
