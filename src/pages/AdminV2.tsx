@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft,
-  ChevronRight, CircleAlert, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users,
-  UserRoundCheck, X, Zap,
-} from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft, ChevronRight, CircleAlert, CreditCard, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users, UserRoundCheck, X, Zap } from "lucide-react";
 import * as admin from "../lib/admin";
 import type { AdminApplication, AdminBooking, AdminCustomer } from "../lib/admin";
 import type { VerificationStatus } from "../types";
 
 type Page = "dashboard" | "bookings" | "verification" | "providers" | "customers" | "marketplace" | "reports";
+
+type Loaded = { bookings: AdminBooking[]; bookingsTotal: number; customers: AdminCustomer[]; customersTotal: number; providers: AdminApplication[]; providersApproved: number; providersPending: number; providersRejected: number; marketplaceTotal: number };
+
+const emptyData: Loaded = { bookings: [], bookingsTotal: 0, customers: [], customersTotal: 0, providers: [], providersApproved: 0, providersPending: 0, providersRejected: 0, marketplaceTotal: 0 };
 const nav: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "bookings", label: "Bookings", icon: CalendarCheck2 },
@@ -19,115 +19,87 @@ const nav: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
   { id: "reports", label: "Analytics", icon: BarChart3 },
 ];
 
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
-}
-function statusLabel(value: string) {
-  return value.replaceAll("_", " ").replace(/\b\w/g, (m) => m.toUpperCase());
-}
-function Status({ value }: { value: string }) {
-  const s = value.toLowerCase();
-  const tone = ["approved", "active", "completed", "accepted", "confirmed"].includes(s) ? "good" : ["rejected", "suspended", "cancelled"].includes(s) ? "bad" : "warn";
-  return <span className={`m2-status ${tone}`}>{statusLabel(value)}</span>;
-}
-function StatCard({ label, value, icon, note, tone = "teal" }: { label: string; value: string; icon: ReactNode; note: string; tone?: string }) {
-  return <article className="m2-stat-card"><div className={`m2-stat-icon ${tone}`}>{icon}</div><p>{label}</p><strong>{value}</strong><span className="m2-stat-note">{note}</span></article>;
-}
+const fmtDate = (value: string | null) => value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
+const statusLabel = (value: string) => ({ pending: "Pending", confirmed: "Confirmed", accepted: "Accepted", in_progress: "In progress", completed: "Completed", cancelled: "Cancelled", rejected: "Rejected", approved: "Approved", suspended: "Suspended" } as Record<string, string>)[value] ?? value;
+const statusClass = (value: string) => value === "completed" || value === "confirmed" || value === "accepted" || value === "approved" || value === "active" ? "confirmed" : value === "cancelled" || value === "rejected" || value === "suspended" ? "cancelled" : "pending";
+
+function Status({ value }: { value: string }) { return <span className={`m2-status ${statusClass(value)}`}>{statusLabel(value)}</span>; }
+function StatCard({ label, value, delta, icon, tone = "teal" }: { label: string; value: string; delta?: string; icon: ReactNode; tone?: string }) { const positive = !delta || delta.startsWith("+"); return <article className="m2-stat-card"><div className={`m2-stat-icon ${tone}`}>{icon}</div><p>{label}</p><strong>{value}</strong>{delta ? <span className={positive ? "positive" : "negative"}>{positive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{delta}</span> : null}</article>; }
+function Empty({ text }: { text: string }) { return <div className="m2-placeholder"><span className="m2-placeholder-icon"><Activity size={22} /></span><h2>{text}</h2></div>; }
 
 export default function AdminV2() {
   const [page, setPage] = useState<Page>("dashboard");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [notice, setNotice] = useState("Live data from Maak");
-  const [pending, setPending] = useState(0);
-  const [approved, setApproved] = useState(0);
-  const [rejected, setRejected] = useState(0);
-  const [customers, setCustomers] = useState<{ rows: AdminCustomer[]; total: number }>({ rows: [], total: 0 });
-  const [bookings, setBookings] = useState<{ rows: AdminBooking[]; total: number }>({ rows: [], total: 0 });
-  const [providers, setProviders] = useState<AdminApplication[]>([]);
-  const [marketplace, setMarketplace] = useState<{ total: number; rows: admin.AdminMarketplaceListing[] }>({ total: 0, rows: [] });
+  const [notice, setNotice] = useState("Live data");
+  const [data, setData] = useState<Loaded>(emptyData);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<AdminApplication | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [providerStatus, setProviderStatus] = useState<VerificationStatus>("pending");
 
-  const load = async () => {
-    setLoadError(null);
+  async function load() {
+    setLoading(true);
     try {
-      const [p, a, r, c, b, apps, listings] = await Promise.all([
-        admin.countByStatus("pending"),
-        admin.countByStatus("approved"),
-        admin.countByStatus("rejected"),
-        admin.listCustomers(),
-        admin.listBookings(),
-        admin.listApplications("pending" as VerificationStatus),
-        admin.listMarketplace(),
+      const [bookings, customers, providers, approved, pending, rejected, marketplace] = await Promise.all([
+        admin.listBookings(), admin.listCustomers(), admin.listApplications(providerStatus),
+        admin.countByStatus("approved"), admin.countByStatus("pending"), admin.countByStatus("rejected"), admin.listMarketplace(),
       ]);
-      setPending(p); setApproved(a); setRejected(r); setCustomers(c); setBookings(b); setProviders(apps); setMarketplace(listings);
-      setNotice("Live data from Maak");
+      setData({ bookings: bookings.rows, bookingsTotal: bookings.total, customers: customers.rows, customersTotal: customers.total, providers, providersApproved: approved, providersPending: pending, providersRejected: rejected, marketplaceTotal: marketplace.total });
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Unable to load admin data");
-      setNotice("Some live data could not be loaded");
+      setNotice(error instanceof Error ? error.message : "Unable to load admin data");
     } finally { setLoading(false); }
-  };
+  }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(); }, [providerStatus]);
 
-  const filteredBookings = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return bookings.rows;
-    return bookings.rows.filter((b) => [b.id, b.customer_name, b.provider_name, b.service_category, b.status, b.location_text].some((v) => String(v ?? "").toLowerCase().includes(q)));
-  }, [bookings.rows, search]);
-  const filteredCustomers = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return customers.rows;
-    return customers.rows.filter((c) => [c.full_name, c.phone, c.city, c.account_status].some((v) => String(v ?? "").toLowerCase().includes(q)));
-  }, [customers.rows, search]);
-  const filteredProviders = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return providers;
-    return providers.filter((p) => [p.full_name, p.phone, p.city, p.profession, p.service_category, p.verification_status].some((v) => String(v ?? "").toLowerCase().includes(q)));
-  }, [providers, search]);
+  const q = search.trim().toLowerCase();
+  const filteredBookings = useMemo(() => q ? data.bookings.filter(b => [b.id, b.customer_name, b.provider_name, b.service_category, b.status, b.location_text].some(v => String(v ?? "").toLowerCase().includes(q))) : data.bookings, [data.bookings, q]);
+  const filteredCustomers = useMemo(() => q ? data.customers.filter(c => [c.full_name, c.phone, c.city, c.account_status].some(v => String(v ?? "").toLowerCase().includes(q))) : data.customers, [data.customers, q]);
+  const filteredProviders = useMemo(() => q ? data.providers.filter(p => [p.full_name, p.phone, p.city, p.profession, p.service_category, p.account_status].some(v => String(v ?? "").toLowerCase().includes(q))) : data.providers, [data.providers, q]);
+
   const go = (next: Page) => { setPage(next); setMobileOpen(false); setSearch(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  async function providerAction(action: "approve" | "reject") {
+    if (!selected) return;
+    if (action === "reject" && !rejectReason.trim()) { setNotice("A rejection reason is required"); return; }
+    setBusyId(selected.id);
+    try {
+      if (action === "approve") await admin.approveProvider(selected.id);
+      else await admin.rejectProvider(selected.id, rejectReason);
+      setSelected(null); setRejectReason(""); setNotice(action === "approve" ? "Provider approved" : "Provider rejected"); await load();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Action failed"); } finally { setBusyId(null); }
+  }
 
-  if (loading) return <div className="admin-pro admin-loading"><LoaderDots /><span>Loading live admin data…</span></div>;
+  const currentLabel = nav.find(n => n.id === page)?.label ?? "Dashboard";
+  const pendingCount = data.providersPending;
 
   return <div className="m2-shell">
-    <button className="m2-mobile-trigger" aria-label="Open admin navigation" onClick={() => setMobileOpen(true)}><Menu size={21}/></button>
+    <button className="m2-mobile-trigger" aria-label="Open admin navigation" onClick={() => setMobileOpen(true)}><Menu size={21} /></button>
     <aside className={`m2-sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}>
       <div className="m2-sidebar-inner">
-        <div className="m2-brand-row"><div className="m2-brand-mark">m<span/></div>{!collapsed && <div><b>maak<span>.</span></b><small>CONTROL CENTER</small></div>}<button className="m2-icon-btn mobile-only" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18}/></button></div>
+        <div className="m2-brand-row"><div className="m2-brand-mark">m<span /></div>{!collapsed && <div><b>maak<span>.</span></b><small>CONTROL CENTER</small></div>}<button className="m2-icon-btn mobile-only" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><X size={18} /></button></div>
         {!collapsed && <button className="m2-search" onClick={() => document.getElementById("m2-global-search")?.focus()}><Search size={16}/><span>Search anything…</span><kbd>⌘ K</kbd></button>}
-        <nav className="m2-nav" aria-label="Admin navigation">
-          <p>WORKSPACE</p>{nav.slice(0,1).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go}/>) }
-          <p>OPERATIONS</p>{nav.slice(1,6).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go} badge={item.id === "verification" ? pending : item.id === "bookings" ? bookings.total : undefined}/>) }
-          <p>INSIGHTS</p>{nav.slice(6).map((item) => <NavButton key={item.id} item={item} page={page} collapsed={collapsed} go={go}/>) }
-        </nav>
-        <div className="m2-sidebar-bottom">{!collapsed && <div className="m2-health"><span><i/>Live connection</span><small>Supabase · Auth · Storage</small><button onClick={() => void load()}>Refresh <Zap size={14}/></button></div>}<div className="m2-admin-user"><span className="m2-avatar">AD</span>{!collapsed && <div><b>Maak Admin</b><small>Authenticated administrator</small></div>}</div></div>
-        <button className="m2-collapse" onClick={() => setCollapsed((v) => !v)} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <ChevronRight size={16}/> : <ChevronLeft size={16}/>}</button>
+        <nav className="m2-nav" aria-label="Admin navigation"><p>WORKSPACE</p>{nav.slice(0,1).map(item => { const Icon=item.icon; return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}</button>; })}<p>OPERATIONS</p>{nav.slice(1,6).map(item => { const Icon=item.icon; const badge=item.id==="verification"?pendingCount:item.id==="bookings"?data.bookingsTotal:0; return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}{!collapsed&&badge>0&&<b>{badge>99?"99+":badge}</b>}</button>; })}<p>INSIGHTS</p>{nav.slice(6).map(item => { const Icon=item.icon; return <button key={item.id} className={page===item.id?"active":""} onClick={()=>go(item.id)} title={collapsed?item.label:undefined}><Icon size={18}/>{!collapsed&&<span>{item.label}</span>}</button>; })}</nav>
+        <div className="m2-sidebar-bottom">{!collapsed&&<div className="m2-health"><span><i/> {notice}</span><small>Supabase · Auth · RPC · Storage</small><button onClick={()=>void load()}>Refresh <Zap size={13}/></button></div>}<div className="m2-admin-user"><span className="m2-avatar">MK</span>{!collapsed&&<div><b>Maak Admin</b><small>Authorized account</small></div>}</div></div>
+        <button className="m2-collapse" onClick={()=>setCollapsed(v=>!v)} aria-label={collapsed?"Expand sidebar":"Collapse sidebar"}>{collapsed?<ChevronRight size={16}/>:<ChevronLeft size={16}/>}</button>
       </div>
     </aside>
     <main className="m2-main">
-      <header className="m2-topbar"><div className="m2-breadcrumb"><span>Maak</span><ChevronRight size={14}/><strong>{nav.find((n) => n.id === page)?.label}</strong></div><div className="m2-top-actions"><label className="m2-global-search"><Search size={16}/><input id="m2-global-search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search live data…"/></label><button className="m2-icon-btn" aria-label="Refresh data" onClick={() => void load()}><Bell size={18}/></button><span className="m2-profile-pill">AD <span>Admin</span></span></div></header>
-      {loadError && <div className="m2-notice error" role="alert">{loadError}</div>}
-      {page === "dashboard" && <Dashboard pending={pending} approved={approved} rejected={rejected} customers={customers.total} bookings={bookings.total} listings={marketplace.total} filteredBookings={filteredBookings} notice={notice} go={go}/>} 
-      {page === "bookings" && <DataPage title="Bookings" kicker="OPERATIONS" rows={filteredBookings.map((b) => [b.id, b.customer_name ?? "—", b.provider_name ?? "—", b.service_category, b.status, formatDate(b.service_date)])} headers={["Booking","Customer","Provider","Service","Status","Service date"]} empty="No bookings yet."/>}
-      {page === "customers" && <DataPage title="Customers" kicker="CUSTOMER BASE" rows={filteredCustomers.map((c) => [c.full_name ?? "Unnamed", c.phone ?? "—", c.city ?? "—", c.account_status, formatDate(c.created_at)])} headers={["Customer","Phone","City","Status","Created"]} empty="No customer accounts yet."/>}
-      {page === "verification" && <DataPage title="Provider verification" kicker="TRUST & SAFETY" rows={filteredProviders.map((p) => [p.full_name ?? "Unnamed", p.profession ?? "—", p.city ?? "—", p.experience_years == null ? "—" : `${p.experience_years} yrs`, p.verification_status, formatDate(p.updated_at)])} headers={["Applicant","Profession","City","Experience","Status","Updated"]} empty="No pending applications."/>}
-      {page === "providers" && <DataPage title="Providers" kicker="PROVIDER NETWORK" rows={providers.map((p) => [p.full_name ?? "Unnamed", p.profession ?? "—", p.service_category ?? "—", p.city ?? "—", p.verification_status])} headers={["Provider","Profession","Category","City","Status"]} empty="No provider profiles yet."/>}
-      {page === "marketplace" && <DataPage title="Marketplace" kicker="PUBLISHED INVENTORY" rows={marketplace.rows.map((r) => [r.name, r.job, r.city, r.rating == null ? "—" : String(r.rating), r.published_at ? formatDate(r.published_at) : "—"])} headers={["Listing","Service","City","Rating","Published"]} empty="No published real listings yet."/>}
-      {page === "reports" && <section className="m2-placeholder"><span className="m2-placeholder-icon"><BarChart3 size={22}/></span><span className="m2-kicker">REPORTING</span><h1>Live platform snapshot</h1><p>The current database exposes operational counts and booking records, but it does not contain a booking amount/revenue field. This screen therefore avoids inventing revenue figures.</p><div className="m2-grid m2-grid-4"><StatCard label="Customers" value={String(customers.total)} icon={<Users size={18}/>} note="Live count"/><StatCard label="Bookings" value={String(bookings.total)} icon={<CalendarCheck2 size={18}/>} note="Live count" tone="blue"/><StatCard label="Published listings" value={String(marketplace.total)} icon={<Store size={18}/>} note="Real listings only" tone="gold"/><StatCard label="Pending review" value={String(pending)} icon={<ShieldCheck size={18}/>} note="Verification queue" tone="clay"/></div></section>}
+      <header className="m2-topbar"><div className="m2-breadcrumb"><span>Maak</span><ChevronRight size={14}/><strong>{currentLabel}</strong></div><div className="m2-top-actions"><label className="m2-global-search"><Search size={16}/><input id="m2-global-search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" aria-label="Search admin data"/></label><button className="m2-icon-btn" aria-label="Notifications" onClick={()=>setNotice("No new alerts")}><Bell size={18}/></button></div></header>
+      {loading ? <section className="m2-placeholder"><span className="m2-placeholder-icon"><Activity size={22}/></span><h1>Loading live data…</h1></section> : page === "dashboard" ? <>
+        <section className="m2-hero"><div><span className="m2-kicker"><i/>LIVE ADMIN DATA</span><h1>Maak <em>Control Center.</em></h1><p>Operational view from the current platform database. <b>{pendingCount} provider applications</b> are currently waiting for verification.</p><div className="m2-hero-actions"><button className="m2-btn primary" onClick={()=>go("verification")}><ShieldCheck size={16}/> Review queue · {pendingCount}</button><button className="m2-btn light" onClick={()=>go("bookings")}><CalendarCheck2 size={16}/> Bookings · {data.bookingsTotal}</button></div></div><div className="m2-hero-mini-grid"><div><span>BOOKINGS</span><b>{data.bookingsTotal}</b><small>live count</small></div><div><span>CUSTOMERS</span><b>{data.customersTotal}</b><small>registered</small></div><div><span>PROVIDERS</span><b>{data.providersApproved}</b><small>approved</small></div><div><span>LISTINGS</span><b>{data.marketplaceTotal}</b><small>published</small></div></div></section>
+        <section className="m2-grid m2-grid-4" aria-label="Key metrics"><StatCard label="Customers" value={data.customersTotal.toLocaleString("fr-MA")} icon={<Users size={18}/>} /><StatCard label="Bookings" value={data.bookingsTotal.toLocaleString("fr-MA")} icon={<CalendarCheck2 size={18}/>} tone="blue"/><StatCard label="Published listings" value={data.marketplaceTotal.toLocaleString("fr-MA")} icon={<Store size={18}/>} tone="gold"/><StatCard label="Pending verification" value={data.providersPending.toLocaleString("fr-MA")} icon={<ShieldCheck size={18}/>} tone="clay"/></section>
+        <section className="m2-grid m2-grid-main"><article className="m2-card"><div className="m2-card-head"><div><span className="m2-kicker muted">VERIFICATION</span><h2>Provider pipeline</h2></div><button className="m2-link" onClick={()=>go("verification")}>Open queue <ChevronRight size={14}/></button></div><div className="m2-pulse"><div><span>Pending</span><b>{data.providersPending}</b><i><em style={{width:`${Math.min(100, data.providersPending ? 100 : 0)}%`}}/></i></div><div><span>Approved</span><b>{data.providersApproved}</b><i><em style={{width:`${data.providersApproved+data.providersPending+data.providersRejected ? (data.providersApproved/(data.providersApproved+data.providersPending+data.providersRejected))*100 : 0}%`}}/></i></div><div><span>Rejected</span><b>{data.providersRejected}</b><i><em style={{width:`${data.providersApproved+data.providersPending+data.providersRejected ? (data.providersRejected/(data.providersApproved+data.providersPending+data.providersRejected))*100 : 0}%`}}/></i></div></div></article><article className="m2-card m2-attention"><div className="m2-card-head"><div><span className="m2-kicker clay">RECENT OPERATIONS</span><h2>Latest bookings</h2></div><button className="m2-link" onClick={()=>go("bookings")}>View all <ChevronRight size={14}/></button></div>{data.bookings.slice(0,4).map(b=><button key={b.id} className="m2-action-row" onClick={()=>go("bookings")}><span className="m2-action-icon"><CalendarCheck2 size={16}/></span><span><b>{b.service_category || "Service"}</b><small>{b.customer_name || "Customer"} · {b.city ?? b.location_text ?? ""}</small></span><Status value={b.status}/></button>)}{data.bookings.length===0&&<Empty text="No bookings in the current database."/>}</article></section>
+        <section className="m2-grid m2-grid-main"><article className="m2-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PLATFORM DATA</span><h2>Latest booking activity</h2></div></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Created</th></tr></thead><tbody>{filteredBookings.slice(0,8).map(b=><tr key={b.id}><td><b>{b.id.slice(0,8)}</b></td><td>{b.customer_name||"—"}</td><td>{b.provider_name||"—"}</td><td>{b.service_category||"—"}</td><td><Status value={b.status}/></td><td>{fmtDate(b.created_at)}</td></tr>)}</tbody></table>{filteredBookings.length===0&&<Empty text="No matching bookings."/>}</div></article><article className="m2-card m2-side-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PLATFORM PULSE</span><h2>Live state</h2></div><Activity size={17}/></div><div className="m2-pulse"><div><span>Published listings</span><b>{data.marketplaceTotal}</b></div><div><span>Customers</span><b>{data.customersTotal}</b></div><div><span>Approved providers</span><b>{data.providersApproved}</b></div><div><span>Review queue</span><b>{data.providersPending}</b></div></div><div className="m2-notice">{notice}</div></article></section>
+      </> : page === "verification" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PROVIDER VERIFICATION</span><h2>Applications</h2></div><select className="m2-filter" value={providerStatus} onChange={e=>setProviderStatus(e.target.value as VerificationStatus)}><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div><div className="m2-table-wrap"><table><thead><tr><th>Name</th><th>Profession</th><th>City</th><th>Experience</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody>{filteredProviders.map(p=><tr key={p.id}><td><b>{p.full_name||"—"}</b><small>{p.phone||""}</small></td><td>{p.profession||"—"}</td><td>{p.city||"—"}</td><td>{p.experience_years ?? 0} yrs</td><td><Status value={p.verification_status}/></td><td>{fmtDate(p.updated_at)}</td><td><button className="m2-link" onClick={()=>{setSelected(p);setRejectReason("")}}>Review</button></td></tr>)}</tbody></table>{filteredProviders.length===0&&<Empty text="No applications match this queue."/>}</div></section>
+      : page === "bookings" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">BOOKINGS</span><h2>All bookings</h2></div><span className="count-badge">{data.bookingsTotal}</span></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Date</th><th>Location</th></tr></thead><tbody>{filteredBookings.map(b=><tr key={b.id}><td><b>{b.id.slice(0,8)}</b></td><td>{b.customer_name||"—"}</td><td>{b.provider_name||"—"}</td><td>{b.service_category||"—"}</td><td><Status value={b.status}/></td><td>{fmtDate(b.service_date)}</td><td>{b.location_text||"—"}</td></tr>)}</tbody></table>{filteredBookings.length===0&&<Empty text="No bookings found."/>}</div></section>
+      : page === "customers" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">CUSTOMERS</span><h2>Customer accounts</h2></div><span className="count-badge">{data.customersTotal}</span></div><div className="m2-table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>{filteredCustomers.map(c=><tr key={c.id}><td><b>{c.full_name||"Unnamed user"}</b></td><td>{c.phone||"—"}</td><td>{c.city||"—"}</td><td><Status value={c.account_status}/></td><td>{fmtDate(c.created_at)}</td></tr>)}</tbody></table>{filteredCustomers.length===0&&<Empty text="No customer accounts found."/>}</div></section>
+      : page === "providers" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PROVIDERS</span><h2>Provider accounts</h2></div><button className="m2-link" onClick={()=>go("verification")}>Verification queue <ChevronRight size={14}/></button></div><div className="m2-table-wrap"><table><thead><tr><th>Name</th><th>Profession</th><th>City</th><th>Experience</th><th>Verification</th><th>Account</th></tr></thead><tbody>{filteredProviders.map(p=><tr key={p.id}><td>{p.full_name||"—"}</td><td>{p.profession||"—"}</td><td>{p.city||"—"}</td><td>{p.experience_years ?? 0}</td><td><Status value={p.verification_status}/></td><td><Status value={p.account_status}/></td></tr>)}</tbody></table>{filteredProviders.length===0&&<Empty text="No provider records in this queue."/>}</div></section>
+      : <section className="m2-placeholder"><span className="m2-placeholder-icon"><BarChart3 size={22}/></span><span className="m2-kicker">{currentLabel.toUpperCase()}</span><h1>{currentLabel}</h1><p>The shell is connected to the same live admin data layer. This section is intentionally kept read-only until its domain-specific controls are wired to the existing authorization RPCs.</p><button className="m2-btn primary" onClick={()=>go("dashboard")}>Back to dashboard</button></section>}
+
+      {selected && <div className="m2-modal-backdrop" role="presentation"><section className="m2-modal" role="dialog" aria-modal="true" aria-label="Provider review"><div className="m2-card-head"><div><span className="m2-kicker clay">REVIEW APPLICATION</span><h2>{selected.full_name||"Applicant"}</h2></div><button className="m2-icon-btn" aria-label="Close review" onClick={()=>setSelected(null)}><X size={18}/></button></div><div className="m2-review-grid"><div><small>Profession</small><b>{selected.profession||"—"}</b></div><div><small>City</small><b>{selected.city||"—"}</b></div><div><small>Experience</small><b>{selected.experience_years ?? 0} years</b></div><div><small>Service</small><b>{selected.service_category||"—"}</b></div></div><textarea className="field" value={rejectReason} onChange={e=>setRejectReason(e.target.value)} placeholder="Reason for rejection (required only when rejecting)" aria-label="Rejection reason"/><div className="m2-modal-actions"><button className="m2-btn light" onClick={()=>setSelected(null)}>Cancel</button><button className="m2-btn danger" disabled={!!busyId} onClick={()=>void providerAction("reject")}>Reject</button><button className="m2-btn primary" disabled={!!busyId} onClick={()=>void providerAction("approve")}>{busyId?"Working…":"Approve"}</button></div></section></div>}
     </main>
   </div>;
-}
-
-function NavButton({ item, page, collapsed, go, badge }: { item: (typeof nav)[number]; page: Page; collapsed: boolean; go: (next: Page) => void; badge?: number }) { const Icon = item.icon; return <button className={page === item.id ? "active" : ""} onClick={() => go(item.id)} title={collapsed ? item.label : undefined}><Icon size={18}/>{!collapsed && <span>{item.label}</span>}{!collapsed && badge != null && badge > 0 && <b>{badge > 99 ? "99+" : badge}</b>}</button>; }
-function LoaderDots() { return <span className="m2-loader" aria-hidden="true"><i/><i/><i/></span>; }
-function DataPage({ title, kicker, rows, headers, empty }: { title: string; kicker: string; rows: string[][]; headers: string[]; empty: string }) { return <section className="m2-placeholder"><span className="m2-kicker">{kicker}</span><h1>{title}</h1><p>Live records from the existing Maak data layer.</p><div className="m2-card"><div className="m2-table-wrap"><table><thead><tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr></thead><tbody>{rows.length ? rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{j === headers.length - 2 ? <Status value={cell}/> : cell}</td>)}</tr>) : <tr><td colSpan={headers.length}><span className="m2-empty">{empty}</span></td></tr>}</tbody></table></div></div></section>; }
-function Dashboard({ pending, approved, rejected, customers, bookings, listings, filteredBookings, notice, go }: { pending: number; approved: number; rejected: number; customers: number; bookings: number; listings: number; filteredBookings: AdminBooking[]; notice: string; go: (next: Page) => void }) {
-  return <>
-    <section className="m2-hero"><div><span className="m2-kicker"><i/>LIVE OPERATIONS · MAAK</span><h1>Admin control, <em>grounded in live data.</em></h1><p>The control center is connected to the existing Maak Supabase layer. No demo records are inserted into production.</p><div className="m2-hero-actions"><button className="m2-btn primary" onClick={() => go("verification")}><ShieldCheck size={16}/> Review queue · {pending}</button><button className="m2-btn light" onClick={() => go("bookings")}><CalendarCheck2 size={16}/> Open bookings</button></div></div><div className="m2-hero-mini-grid"><div><span>PENDING</span><b>{pending}</b><small>verification</small></div><div><span>APPROVED</span><b>{approved}</b><small>providers</small></div><div><span>REJECTED</span><b>{rejected}</b><small>applications</small></div><div><span>LISTINGS</span><b>{listings}</b><small>published</small></div></div></section>
-    <section className="m2-grid m2-grid-4" aria-label="Live metrics"><StatCard label="Customers" value={String(customers)} icon={<Users size={18}/>} note="Live account count"/><StatCard label="Bookings" value={String(bookings)} icon={<CalendarCheck2 size={18}/>} note="Live booking count" tone="blue"/><StatCard label="Published listings" value={String(listings)} icon={<Store size={18}/>} note="Real listings only" tone="gold"/><StatCard label="Verification queue" value={String(pending)} icon={<ShieldCheck size={18}/>} note="Pending applications" tone="clay"/></section>
-    <section className="m2-grid m2-grid-main"><article className="m2-card m2-attention"><div className="m2-card-head"><div><span className="m2-kicker clay">NEEDS ACTION</span><h2>Priority queue</h2></div><span className="m2-critical">{pending} pending</span></div><button className="m2-action-row" onClick={() => go("verification")}><span className="m2-action-icon"><CircleAlert size={17}/></span><span><b>Provider verification</b><small>{pending} applications currently pending</small></span><ChevronRight size={16}/></button><button className="m2-action-row" onClick={() => go("bookings")}><span className="m2-action-icon"><CalendarCheck2 size={17}/></span><span><b>Booking operations</b><small>{bookings} total records</small></span><ChevronRight size={16}/></button><button className="m2-action-row" onClick={() => go("marketplace")}><span className="m2-action-icon"><Store size={17}/></span><span><b>Marketplace</b><small>{listings} published real listings</small></span><ChevronRight size={16}/></button></article><article className="m2-card m2-side-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PLATFORM PULSE</span><h2>Today</h2></div><Activity size={17}/></div><div className="m2-pulse"><div><span>Pending provider review</span><b>{pending}</b><i><em style={{ width: `${Math.min(100, pending * 4)}%` }}/></i></div><div><span>Approved providers</span><b>{approved}</b><i><em style={{ width: `${Math.min(100, approved * 4)}%` }}/></i></div><div><span>Rejected applications</span><b>{rejected}</b><i><em style={{ width: `${Math.min(100, rejected * 4)}%` }}/></i></div></div><div className="m2-notice">{notice}</div></article></section>
-    <section className="m2-card"><div className="m2-card-head"><div><span className="m2-kicker muted">RECENT BOOKING ACTIVITY</span><h2>Latest operations</h2></div><button className="m2-link" onClick={() => go("bookings")}>View all <ChevronRight size={14}/></button></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Date</th></tr></thead><tbody>{filteredBookings.length ? filteredBookings.slice(0, 8).map((b) => <tr key={b.id}><td><b>{b.id}</b><small>{b.location_text ?? "—"}</small></td><td>{b.customer_name ?? "—"}</td><td>{b.provider_name ?? "—"}</td><td>{b.service_category}</td><td><Status value={b.status}/></td><td>{formatDate(b.created_at)}</td></tr>) : <tr><td colSpan={6}><span className="m2-empty">No bookings yet.</span></td></tr>}</tbody></table></div></section>
-  </>;
 }
