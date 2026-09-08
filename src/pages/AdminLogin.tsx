@@ -6,6 +6,7 @@ import "../styles/auth.css";
 import "../styles/admin-auth.css";
 import "../styles/admin-quality-fixes.css";
 import "../styles/admin-auth-polish.css";
+import "../styles/admin-auth-v2.css";
 import { useLanguage } from "../i18n";
 
 /**
