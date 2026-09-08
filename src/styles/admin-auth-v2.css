@@ -1,0 +1,104 @@
+/* Maak Control Center — authentication surface aligned with Admin V2 */
+.admin-auth-screen{
+  min-height:100dvh!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:24px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  background:#f5f3ee!important;
+}
+.admin-auth-screen::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  background:
+    radial-gradient(circle at 12% 12%,rgba(14,124,107,.10),transparent 30%),
+    radial-gradient(circle at 88% 86%,rgba(228,87,46,.08),transparent 32%);
+}
+.admin-auth-card{
+  width:min(460px,100%)!important;
+  padding:34px!important;
+  position:relative!important;
+  z-index:1!important;
+  border:1px solid rgba(16,22,22,.09)!important;
+  border-radius:22px!important;
+  background:#fff!important;
+  box-shadow:0 22px 55px rgba(20,24,24,.13)!important;
+}
+.admin-auth-card .auth-brand{margin:0 auto 22px!important;display:flex!important;justify-content:center!important}
+.admin-auth-card .auth-brand img{width:auto!important;max-width:184px!important;height:42px!important;object-fit:contain!important}
+.admin-auth-card .lang-toggle-btn{
+  min-height:38px!important;
+  border:1px solid rgba(16,22,22,.09)!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:#68716d!important;
+  font-size:11px!important;
+  font-weight:800!important;
+}
+.admin-auth-card .lang-toggle-btn:hover{background:#f7f7f4!important}
+.admin-auth-card .auth-admin-chip{
+  margin:0 auto 14px!important;
+  padding:7px 11px!important;
+  border:1px solid rgba(14,124,107,.16)!important;
+  background:#e9f5f1!important;
+  color:#0e7c6b!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+.admin-auth-card .auth-title{
+  color:#101616!important;
+  font-family:Fraunces,Georgia,serif!important;
+  font-size:30px!important;
+  font-weight:600!important;
+  letter-spacing:-.03em!important;
+  line-height:1.08!important;
+}
+.admin-auth-card .auth-subtitle{color:#727773!important;font-size:12.5px!important;line-height:1.7!important;margin:9px auto 24px!important;max-width:390px!important}
+.admin-auth-card .auth-form{gap:15px!important}
+.admin-auth-card .auth-field{gap:7px!important}
+.admin-auth-card .auth-field>span{color:#5f6763!important;font-size:11.5px!important;font-weight:800!important}
+.admin-auth-card .auth-input{
+  min-height:52px!important;
+  border:1px solid rgba(16,22,22,.11)!important;
+  border-radius:12px!important;
+  background:#fbfbf9!important;
+  color:#101616!important;
+  font-size:14px!important;
+  padding:13px 14px!important;
+}
+.admin-auth-card .auth-input:focus{border-color:#0e7c6b!important;box-shadow:0 0 0 4px rgba(14,124,107,.10)!important;background:#fff!important}
+.admin-auth-card .auth-password-toggle{width:38px!important;height:38px!important;border-radius:10px!important;color:#727b76!important}
+.admin-auth-card .auth-password-toggle:hover{background:#e9f5f1!important;color:#0e7c6b!important}
+.admin-auth-card .auth-error{border-radius:12px!important;background:#fff1ed!important;border:1px solid #f0d3ca!important;color:#a4472e!important;font-size:11.5px!important;padding:11px 13px!important}
+.admin-auth-card .auth-btn{
+  min-height:52px!important;
+  margin-top:2px!important;
+  border-radius:12px!important;
+  background:#e4572e!important;
+  color:#fff!important;
+  font-size:13px!important;
+  font-weight:850!important;
+  box-shadow:0 10px 22px rgba(228,87,46,.16)!important;
+}
+.admin-auth-card .auth-btn:hover{background:#f07451!important}
+.admin-auth-card .auth-btn:disabled{opacity:.72!important;box-shadow:none!important}
+
+@media(max-width:540px){
+  .admin-auth-screen{padding:14px!important;place-items:center!important}
+  .admin-auth-card{padding:24px 18px 22px!important;border-radius:18px!important}
+  .admin-auth-card .auth-brand img{max-width:160px!important;height:38px!important}
+  .admin-auth-card .auth-title{font-size:26px!important}
+  .admin-auth-card .auth-subtitle{font-size:12px!important;margin-bottom:20px!important}
+  .admin-auth-card .auth-input,.admin-auth-card .auth-btn{min-height:50px!important}
+}
+
+@media(max-width:360px){
+  .admin-auth-screen{padding:10px!important}
+  .admin-auth-card{padding:20px 14px!important}
+  .admin-auth-card .auth-title{font-size:24px!important}
+}
+
+@media(prefers-reduced-motion:reduce){.admin-auth-card *,.admin-auth-card *::before,.admin-auth-card *::after{transition:none!important}}
