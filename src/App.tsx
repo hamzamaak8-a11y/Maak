@@ -7,7 +7,6 @@ import { Router, matchPath, useRouter } from "./router";
 import { Header, MobileNav } from "./components/navigation";
 import { Logo } from "./components/atoms";
 import AdminCommandPalette from "./components/AdminCommandPalette";
-import Admin from "./pages/Admin";
 import AdminV2 from "./pages/AdminV2";
 import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
@@ -55,7 +54,7 @@ function CustomerShell() {
 
 function AdminGate() {
   const { path, navigate } = useRouter();
-  const { user, loading, profile, profileLoading, signOut } = useAuth();
+  const { user, loading, profile, profileLoading } = useAuth();
   const isLoginPage = path === "/admin/login";
   const ready = !loading && !profileLoading;
   const isAdmin = ready && !!user && profile?.role === "admin" && profile?.account_status !== "suspended";
@@ -68,8 +67,7 @@ function AdminGate() {
   if (loading) return <AppSplash/>;
   if (isLoginPage) return ready && isAdmin ? <AppSplash/> : <AdminLogin/>;
   if (!isAdmin) return <AppSplash/>;
-  if (path === "/admin/v2") return <AdminV2/>;
-  return <Admin switchRole={() => void signOut()}/>;
+  return <AdminV2/>;
 }
 
 function AdminSurface() {
