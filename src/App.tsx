@@ -8,6 +8,7 @@ import { Header, MobileNav } from "./components/navigation";
 import { Logo } from "./components/atoms";
 import AdminCommandPalette from "./components/AdminCommandPalette";
 import Admin from "./pages/Admin";
+import AdminV2 from "./pages/AdminV2";
 import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
 import Home from "./pages/Home";
@@ -67,6 +68,7 @@ function AdminGate() {
   if (loading) return <AppSplash/>;
   if (isLoginPage) return ready && isAdmin ? <AppSplash/> : <AdminLogin/>;
   if (!isAdmin) return <AppSplash/>;
+  if (path === "/admin/v2") return <AdminV2/>;
   return <Admin switchRole={() => void signOut()}/>;
 }
 
