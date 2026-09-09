@@ -1,8 +1,8 @@
 import { AlertCircle, Briefcase, ChevronLeft, Clock3, Loader2, MapPin, Search, ShieldCheck, Star, ThumbsUp, X } from "lucide-react";
 import type { Category, Provider } from "../types";
 
-import maakLockup from "../assets/brand/maak-lockup.png";
-import maakSymbol from "../assets/brand/maak-symbol.png";
+import maakLockup from "../assets/brand/maak-lockup.jpg";
+import maakSymbol from "../assets/brand/maak-symbol.jpg";
 import { useLanguage } from "../i18n";
 
 export function Logo({ inverse = false, size = "lg", variant = "mark" }: { inverse?: boolean; size?: "sm" | "md" | "lg"; variant?: "mark" | "lockup" }) {
