@@ -1,31 +1,38 @@
 import { categories } from "./data";
 import type { Category, Provider } from "./types";
-
-const API_BASE: string = (import.meta.env.VITE_API_URL as string | undefined) || "";
+import { supabase } from "./lib/supabaseClient";
 
 /**
- * Marketplace data comes exclusively from the Worker API (which applies the
- * published-real-provider filter server-side). There is intentionally NO
- * client-side fallback dataset: when the API is unreachable or returns an
- * error we surface an honest error state, and when it returns an empty list
- * the marketplace shows an honest empty state. Never fabricate providers.
+ * Marketplace reads use the public Supabase policy for published, real
+ * providers. There is intentionally no client-side fallback dataset: an
+ * unreachable/erroring database produces an error state, while zero eligible
+ * rows produces the honest empty marketplace state.
  */
 export async function fetchProviders(): Promise<Provider[]> {
-  const res = await fetch(API_BASE + "/api/providers");
-  if (!res.ok) {
-    throw new Error("svc.errProviders");
-  }
-  const data: unknown = await res.json();
-  return Array.isArray(data) ? (data as Provider[]) : [];
+  const { data, error } = await supabase
+    .from("providers")
+    .select("*")
+    .eq("listing_kind", "real")
+    .not("published_at", "is", null)
+    .not("provider_profile_id", "is", null)
+    .order("id", { ascending: true });
+
+  if (error) throw new Error("svc.errProviders");
+  return (data ?? []) as Provider[];
 }
 
 export async function fetchProvider(id: number): Promise<Provider | undefined> {
-  const res = await fetch(API_BASE + "/api/providers/" + id);
-  if (res.status === 404) return undefined;
-  if (!res.ok) {
-    throw new Error("svc.errProvider");
-  }
-  return (await res.json()) as Provider;
+  const { data, error } = await supabase
+    .from("providers")
+    .select("*")
+    .eq("id", id)
+    .eq("listing_kind", "real")
+    .not("published_at", "is", null)
+    .not("provider_profile_id", "is", null)
+    .maybeSingle();
+
+  if (error) throw new Error("svc.errProvider");
+  return (data ?? undefined) as Provider | undefined;
 }
 
 export function getCategories(): Category[] {
