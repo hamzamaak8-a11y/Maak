@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { LanguageProvider, useLanguage } from "./i18n";
 import { AuthProvider, useAuth } from "./auth";
 import { BookingsProvider, ToastProvider, ToastViewport } from "./context";
@@ -70,8 +70,30 @@ function AdminGate() {
   return <AdminV2/>;
 }
 
+function AdminLogoutControl() {
+  const { path, navigate } = useRouter();
+  const { signOut } = useAuth();
+  if (!path.startsWith("/admin") || path === "/admin/login") return null;
+  async function handleSignOut() {
+    await signOut();
+    navigate("/admin/login");
+  }
+  return (
+    <button
+      className="m2-icon-btn"
+      type="button"
+      onClick={() => void handleSignOut()}
+      aria-label="Sign out"
+      title="Sign out"
+      style={{ position: "fixed", right: 20, bottom: 20, zIndex: 120 }}
+    >
+      <LogOut size={18} />
+    </button>
+  );
+}
+
 function AdminSurface() {
-  return <ToastProvider><AdminGate/><AdminCommandPalette/><ToastViewport/></ToastProvider>;
+  return <ToastProvider><AdminGate/><AdminLogoutControl/><AdminCommandPalette/><ToastViewport/></ToastProvider>;
 }
 
 function RoleShell() {
