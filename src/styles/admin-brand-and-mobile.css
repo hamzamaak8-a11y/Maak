@@ -13,12 +13,12 @@ body:has(.admin-pro){overflow-x:hidden!important;color-scheme:dark!important}
 .ap-filter.active{background:rgba(201,169,97,.10)!important;color:#d6bc6a!important;border-color:rgba(201,169,97,.38)!important}
 .ap-kpi.accent strong{color:#d6bc6a!important}
 
-/* Use the exact Maak symbol artwork in the dark admin rail; avoid unreadable dark-on-dark lockup text. */
-.admin-pro-side .brand-lockup{content:url("/Maak/assets/brand/maak-symbol.png")!important;width:44px!important;height:44px!important;object-fit:contain!important;max-width:none!important;margin:0!important}
+/* Use the exact Maak symbol artwork in the dark admin rail; let Vite resolve the source asset for every base path. */
+.admin-pro-side .brand-lockup{content:url("../assets/brand/maak-symbol.png")!important;width:44px!important;height:44px!important;object-fit:contain!important;max-width:none!important;margin:0!important}
 
 /* The supplied Maak symbol is the single compact mark used wherever space is limited. */
 .admin-pro-title{display:flex!important;align-items:center!important;gap:10px!important}
-.admin-pro-title:before{content:"";display:block;width:34px;height:34px;flex:0 0 34px;background:url("/Maak/assets/brand/maak-symbol.png") center/contain no-repeat}
+.admin-pro-title:before{content:"";display:block;width:34px;height:34px;flex:0 0 34px;background:url("../assets/brand/maak-symbol.png") center/contain no-repeat}
 
 @media(max-width:760px){
   .admin-pro{width:100%!important;overflow:hidden!important}
