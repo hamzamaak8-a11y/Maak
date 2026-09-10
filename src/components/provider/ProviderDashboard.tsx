@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CalendarCheck2, CheckCircle2, Coins, RefreshCw } from "lucide-react";
 import { useLanguage } from "../../i18n";
 import { fetchProviderDashboardStats } from "../../lib/provider";
-import type { ProviderDashboardStats, ProviderRecentActivityItem, UpcomingProviderBooking } from "../../types";
+import type { ProviderDashboardStats, ProviderRecentActivityItem } from "../../types";
 import StatCard from "./StatCard";
 import RatingCard from "./RatingCard";
 import UpcomingSchedule from "./UpcomingSchedule";
@@ -20,9 +20,9 @@ const EMPTY_STATS: ProviderDashboardStats = {
   recent_activity: [],
 };
 
-function formatDate(value: string, lang: string, options?: Intl.DateTimeFormatOptions) {
+function formatDate(value: string, lang: string) {
   try {
-    return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-MA", options ?? { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+    return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-MA", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
   } catch {
     return value;
   }
@@ -63,7 +63,7 @@ export default function ProviderDashboard({ providerName }: Props) {
           <div>
             <span className="section-kicker">{t("providerDashboard.kicker")}</span>
             <h1>{t("providerDashboard.title")}</h1>
-            <p className="provider-dashboard-subtitle">{t("providerDashboard.subtitle", { name: providerName })}</p>
+            <p className="provider-dashboard-subtitle">{t("providerDashboard.subtitle")}</p>
           </div>
         </div>
         <div className="empty-state"><p>{t("providerDashboard.loading")}</p></div>
@@ -87,8 +87,6 @@ export default function ProviderDashboard({ providerName }: Props) {
       </div>
     );
   }
-
-  const upcoming = stats.upcoming_bookings as UpcomingProviderBooking[];
 
   return (
     <div className="provider-dashboard">
@@ -132,11 +130,10 @@ export default function ProviderDashboard({ providerName }: Props) {
 
       <div className="provider-dashboard-grid">
         <UpcomingSchedule
-          bookings={upcoming}
+          bookings={stats.upcoming_bookings}
           title={t("providerDashboard.upcoming")}
           serviceLabel={t("providerDashboard.scheduleKicker")}
           empty={t("providerDashboard.upcomingEmpty")}
-          serviceLabel={t("providerDashboard.service")}
           statusLabel={(status) => t(`status.${status}`)}
           formatDate={(value) => formatDate(value, lang)}
           locationLabel={t("providerDashboard.location")}
