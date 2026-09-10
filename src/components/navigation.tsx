@@ -1,4 +1,4 @@
-import { Bell, ClipboardList, Globe, Home, LogOut, MessageCircle, Search, UserRound } from "lucide-react";
+import { ClipboardList, Globe, Home, LogOut, MessageCircle, Search, UserRound } from "lucide-react";
 import { useRouter } from "../router";
 import { useToast } from "../context";
 import { useAuth } from "../auth";
