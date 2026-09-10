@@ -1,0 +1,59 @@
+name: E2E Maak
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.MAAK_E2E_SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.MAAK_E2E_SUPABASE_SERVICE_ROLE_KEY }}
+      MAAK_E2E_BASE_URL: http://127.0.0.1:4173
+      MAAK_E2E_PROVIDER_EMAIL: ${{ secrets.MAAK_E2E_PROVIDER_EMAIL }}
+      MAAK_E2E_PROVIDER_PASSWORD: ${{ secrets.MAAK_E2E_PROVIDER_PASSWORD }}
+      MAAK_E2E_CUSTOMER_EMAIL: ${{ secrets.MAAK_E2E_CUSTOMER_EMAIL }}
+      MAAK_E2E_CUSTOMER_PASSWORD: ${{ secrets.MAAK_E2E_CUSTOMER_PASSWORD }}
+      MAAK_E2E_ADMIN_EMAIL: ${{ secrets.MAAK_E2E_ADMIN_EMAIL }}
+      MAAK_E2E_ADMIN_PASSWORD: ${{ secrets.MAAK_E2E_ADMIN_PASSWORD }}
+      MAAK_E2E_STATE_FILE: test-results/e2e-state.json
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Resolve frontend dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E suite
+        run: npm run test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maak-playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
+      - name: Cleanup E2E fixtures
+        if: always()
+        run: |
+          node scripts/seed-e2e-fixtures.mjs --cleanup || true
+          node scripts/seed-e2e.mjs --cleanup || true
