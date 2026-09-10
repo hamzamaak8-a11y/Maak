@@ -1,3 +1,4 @@
+# Temporary one-shot dependency lock refresh for TASK #10; removed automatically after success.
 name: Refresh worker dependency lock
 
 on:
