@@ -73,6 +73,40 @@ cp .env.production.example .env.production
 
 ثم اضبط القيم العامة المطلوبة. استخدم `.env.example` كمرجع لأسرار Worker، لكن لا تضع الأسرار نفسها في ملفات committed.
 
+## E2E seed tool
+
+لإنشاء حساب عميل وحساب مقدم خدمة موثق ومنشور، توفر أسبوعي `09:00-17:00`، ومحادثة اختبار قابلة لإعادة التشغيل:
+
+```bash
+node scripts/seed-e2e.mjs
+```
+
+ضع القيم التالية في ملف `.env.local` أو `.env.development` محلياً فقط:
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=<local-secret-only>
+VITE_SUPABASE_URL=https://<project>.supabase.co
+MAAK_E2E_PROVIDER_PASSWORD=<strong-local-password>
+MAAK_E2E_CUSTOMER_PASSWORD=<strong-local-password>
+```
+
+اختيارياً يمكن تغيير البريدين عبر:
+
+```env
+MAAK_E2E_PROVIDER_EMAIL=e2e-provider@maak.test
+MAAK_E2E_CUSTOMER_EMAIL=e2e-customer@maak.test
+```
+
+إعادة التشغيل آمنة: السكربت يتعرف على حساباته عبر `app_metadata.maak_e2e_seed` ويحدّثها بدلاً من إنشاء نسخ مكررة، ويرفض تعديل حساب موجود يحمل البريد نفسه من دون هذه العلامة.
+
+لإزالة بيانات E2E:
+
+```bash
+node scripts/seed-e2e.mjs --cleanup
+```
+
+لا يطبع السكربت كلمات المرور، ولا تُحفظ أي مفاتيح سرية في المستودع؛ `.env`, `.env.*`, و`.env.local` ضمن `.gitignore`.
+
 ## Commands
 
 ```bash
