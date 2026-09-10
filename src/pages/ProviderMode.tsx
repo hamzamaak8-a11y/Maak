@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, Loader2, MessageCircle, ShieldAlert, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Loader2, ShieldAlert, X } from "lucide-react";
 import { Logo } from "../components/atoms";
 import { useToast } from "../context";
 import { useAuth } from "../auth";
@@ -13,18 +13,15 @@ import {
   startBooking,
 } from "../lib/bookings";
 import { fetchProviderProfile } from "../lib/onboarding";
-import { listConversations } from "../lib/chat";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
-import Chat from "./Chat";
 import type { BookingRow, BookingStatus } from "../types";
 import { useLanguage } from "../i18n";
 import { useRouter } from "../router";
 
-type TabKey = "profile" | "messages" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
+type TabKey = "profile" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "profile", label: "pm.tabProfile" },
-  { key: "messages", label: "nav.messages" },
   { key: "new", label: "pm.tabNew" },
   { key: "accepted", label: "pm.tabAccepted" },
   { key: "in_progress", label: "pm.tabInProgress" },
@@ -56,7 +53,6 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   const [accessChecking, setAccessChecking] = useState(true);
   const [accessAllowed, setAccessAllowed] = useState(false);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [messageCount, setMessageCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<TabKey>("new");
@@ -108,28 +104,18 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
     if (accessAllowed) void load();
   }, [accessAllowed, load]);
 
-  useEffect(() => {
-    if (!accessAllowed) return;
-    let active = true;
-    void listConversations()
-      .then((rows) => { if (active) setMessageCount(rows.length); })
-      .catch(() => { if (active) setMessageCount(null); });
-    return () => { active = false; };
-  }, [accessAllowed]);
-
   const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
   const counts = useMemo<Record<TabKey, number>>(() => ({
     profile: 0,
-    messages: messageCount ?? 0,
     new: bookings.filter((b) => b.status === "pending").length,
     accepted: bookings.filter((b) => b.status === "accepted").length,
     in_progress: bookings.filter((b) => b.status === "in_progress").length,
     completed: bookings.filter((b) => b.status === "completed").length,
     rejected: bookings.filter((b) => b.status === "rejected").length,
-  }), [bookings, messageCount]);
+  }), [bookings]);
 
   const list = useMemo(() => {
-    if (tab === "profile" || tab === "messages") return [];
+    if (tab === "profile") return [];
     const target: BookingStatus = tab === "new" ? "pending" : tab;
     return bookings.filter((b) => b.status === target);
   }, [bookings, tab]);
@@ -199,10 +185,8 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
             key={tabItem.key}
             onClick={() => { setTab(tabItem.key); setOpenId(null); setRejectId(null); }}
           >
-            {tabItem.key === "messages" ? <MessageCircle size={15} aria-hidden="true" /> : null}
             {t(tabItem.label)}
-            {tabItem.key !== "messages" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
-            {tabItem.key === "messages" && messageCount !== null && messageCount > 0 ? <span className="nav-count">{messageCount}</span> : null}
+            {tabItem.key !== "profile" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
           </button>
         ))}
         <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} aria-hidden="true" /></button>
@@ -211,8 +195,6 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
       <main className="provider-main">
         {tab === "profile" ? (
           <ProviderProfileEditor />
-        ) : tab === "messages" ? (
-          <Chat />
         ) : (
           <>
             <div className="admin-top">
