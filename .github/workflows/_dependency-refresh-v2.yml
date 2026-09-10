@@ -1,3 +1,4 @@
+# Trigger the one-shot lock refresh after aligning Wrangler and workers-types.
 name: Refresh worker dependency lock v2
 
 on:
