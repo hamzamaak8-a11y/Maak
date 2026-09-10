@@ -37,7 +37,7 @@ loadEnvFile(path.join(ROOT, ".env.development"));
 loadEnvFile(path.join(ROOT, ".env"));
 
 const args = new Set(process.argv.slice(2));
-const cleanup = args.has("--cleanup");
+const cleanupMode = args.has("--cleanup");
 const allowedArgs = new Set(["--cleanup"]);
 const unknownArgs = process.argv.slice(2).filter((arg) => !allowedArgs.has(arg));
 if (unknownArgs.length) {
@@ -60,7 +60,7 @@ if (!serviceRoleKey) {
   console.error("Missing SUPABASE_SERVICE_ROLE_KEY. Keep it only in a local ignored .env file.");
   process.exit(1);
 }
-if (!cleanup && (!providerPassword || !customerPassword)) {
+if (!cleanupMode && (!providerPassword || !customerPassword)) {
   console.error("Seeding requires MAAK_E2E_PROVIDER_PASSWORD and MAAK_E2E_CUSTOMER_PASSWORD.");
   process.exit(1);
 }
@@ -366,7 +366,7 @@ async function seed() {
 }
 
 try {
-  if (cleanup) {
+  if (cleanupMode) {
     await cleanup();
   } else {
     await seed();
