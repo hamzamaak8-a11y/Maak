@@ -22,6 +22,7 @@ export type Provider = {
 export type Category = { name: string; icon: LucideIcon; count: string };
 
 export type BookingStatus = "pending" | "accepted" | "rejected" | "cancelled" | "in_progress" | "completed";
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded";
 
 export type BookingRow = {
   id: string; customer_id: string; provider_id: string; provider_listing_id: number | null;
@@ -29,6 +30,7 @@ export type BookingRow = {
   customer_note: string; provider_note: string; status: BookingStatus; rejection_reason: string | null;
   customer_name: string | null; created_at: string; updated_at: string; accepted_at: string | null;
   started_at: string | null; completed_at: string | null; cancelled_at: string | null;
+  price: number | null; currency: string; payment_status: PaymentStatus; payment_method: string | null; paid_at: string | null;
 };
 
 export type Role = "customer" | "provider" | "admin";
@@ -90,6 +92,9 @@ export type UpcomingProviderBooking = {
   location_text: string | null;
   status: Extract<BookingStatus, "pending" | "accepted">;
   created_at: string;
+  price: number | null;
+  currency: string;
+  payment_status: PaymentStatus;
 };
 
 export type ProviderRecentActivityItem = Notification;
