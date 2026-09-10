@@ -7,7 +7,8 @@
     "dev": "vite --host 0.0.0.0 --port 5000",
     "build": "tsc && vite build && mkdir -p dist/admin dist/admin/login && cp dist/index.html dist/admin/index.html && cp dist/index.html dist/admin/login/index.html && cp -R dist/assets dist/admin/assets && cp -R dist/assets dist/admin/login/assets && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/ && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/login/",
     "typecheck": "tsc --noEmit",
-    "qa:smoke": "node scripts/smoke.mjs"
+    "qa:smoke": "node scripts/smoke.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
@@ -16,6 +17,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
