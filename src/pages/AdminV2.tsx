@@ -42,11 +42,24 @@ export default function AdminV2() {
   async function load() {
     setLoading(true);
     try {
-      const [bookings, customers, providers, approved, pending, rejected, marketplace] = await Promise.all([
-        admin.listBookings(), admin.listCustomers(), admin.listApplications(providerStatus),
-        admin.countByStatus("approved"), admin.countByStatus("pending"), admin.countByStatus("rejected"), admin.listMarketplace(),
+      const [stats, bookings, customers, providers, marketplace] = await Promise.all([
+        admin.fetchAdminStats(),
+        admin.listBookings(),
+        admin.listCustomers(),
+        admin.listApplications(providerStatus),
+        admin.listMarketplace(),
       ]);
-      setData({ bookings: bookings.rows, bookingsTotal: bookings.total, customers: customers.rows, customersTotal: customers.total, providers, providersApproved: approved, providersPending: pending, providersRejected: rejected, marketplaceTotal: marketplace.total });
+      setData({
+        bookings: bookings.rows,
+        bookingsTotal: stats.total_bookings,
+        customers: customers.rows,
+        customersTotal: stats.total_customers,
+        providers,
+        providersApproved: stats.approved_providers,
+        providersPending: stats.providers_by_status.pending ?? 0,
+        providersRejected: stats.providers_by_status.rejected ?? 0,
+        marketplaceTotal: stats.published_listings,
+      });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to load admin data");
     } finally { setLoading(false); }
