@@ -3,6 +3,7 @@ import type { ProviderRecentActivityItem } from "../../types";
 
 type RecentActivityProps = {
   items: ProviderRecentActivityItem[];
+  kicker: string;
   title: string;
   empty: string;
   formatDate: (value: string) => string;
@@ -16,12 +17,12 @@ function ActivityIcon({ type }: { type: string }) {
   return <Clock3 size={17} aria-hidden="true" />;
 }
 
-export default function RecentActivity({ items, title, empty, formatDate, translateNotification }: RecentActivityProps) {
+export default function RecentActivity({ items, kicker, title, empty, formatDate, translateNotification }: RecentActivityProps) {
   return (
     <section className="provider-panel provider-activity-panel">
       <div className="provider-panel-heading">
         <div>
-          <span className="section-kicker">{title}</span>
+          <span className="section-kicker">{kicker}</span>
           <h2>{title}</h2>
         </div>
         <Bell size={20} aria-hidden="true" />
