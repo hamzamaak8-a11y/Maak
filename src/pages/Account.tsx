@@ -34,9 +34,7 @@ export default function Account() {
   const [customerLoading, setCustomerLoading] = useState(false);
   const [customerError, setCustomerError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!loading && !user) navigate("/login");
-  }, [loading, user, navigate]);
+  useEffect(() => { if (!loading && !user) navigate("/login"); }, [loading, user, navigate]);
 
   useEffect(() => {
     if (!user || role === "customer") return;
@@ -44,15 +42,10 @@ export default function Account() {
     (async () => {
       try {
         const prof = await fetchProviderProfile(user.id);
-        if (active) {
-          setStatus(prof?.verification_status ?? null);
-          setRejectionReason(prof?.rejection_reason ?? null);
-        }
+        if (active) { setStatus(prof?.verification_status ?? null); setRejectionReason(prof?.rejection_reason ?? null); }
       } catch (e) {
         if (active) setLoadErr(e instanceof Error ? e.message : t("account.statusError"));
-      } finally {
-        if (active) setLoadingStatus(false);
-      }
+      } finally { if (active) setLoadingStatus(false); }
     })();
     return () => { active = false; };
   }, [user, role]);
@@ -69,16 +62,12 @@ export default function Account() {
         setCustomerBookings(bookings);
         setCustomerReviews(reviews);
       })
-      .catch((e) => {
-        if (active) setCustomerError(e instanceof Error ? e.message : "customer.saveFailed");
-      })
+      .catch((e) => { if (active) setCustomerError(e instanceof Error ? e.message : "customer.saveFailed"); })
       .finally(() => { if (active) setCustomerLoading(false); });
     return () => { active = false; };
   }, [user, role]);
 
-  useEffect(() => {
-    if (role === "customer") setCustomerProfile(profile);
-  }, [profile, role]);
+  useEffect(() => { if (role === "customer") setCustomerProfile(profile); }, [profile, role]);
 
   async function handleSignOut() {
     await signOut();
@@ -86,9 +75,7 @@ export default function Account() {
     navigate("/");
   }
 
-  if (loading || (user && role !== "customer" && loadingStatus)) {
-    return <main className="screen onb-loading"><Loader2 className="auth-spin" size={26} /></main>;
-  }
+  if (loading || (user && role !== "customer" && loadingStatus)) return <main className="screen onb-loading"><Loader2 className="auth-spin" size={26} /></main>;
   if (!user) return null;
 
   const email = user.email ?? "";
@@ -96,78 +83,28 @@ export default function Account() {
 
   let statusBlock: ReactNode;
   if (loadErr) {
-    statusBlock = (
-      <div className="acct-status">
-        <p className="acct-status-body">{t(loadErr)}</p>
-        <button className="secondary" onClick={() => window.location.reload()}>{t("common.retry")}</button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><p className="acct-status-body">{t(loadErr)}</p><button className="secondary" onClick={() => window.location.reload()}>{t("common.retry")}</button></div>;
   } else if (role === "admin") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title"><ShieldCheck size={16} /> {t("adm.dashboard")}</h3>
-        <p className="acct-status-body">{t("admLogin.gateBody")}</p>
-        <button className="primary" onClick={() => navigate("/admin")}><ShieldCheck size={16} /> {t("adm.dashboard")}</button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title"><ShieldCheck size={16} /> {t("adm.dashboard")}</h3><p className="acct-status-body">{t("admLogin.gateBody")}</p><button className="primary" onClick={() => navigate("/admin")}><ShieldCheck size={16} /> {t("adm.dashboard")}</button></div>;
   } else if (status === null && role !== "provider") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title">{t("account.applyTitle")}</h3>
-        <p className="acct-status-body">{t("account.applyBody")}</p>
-        <button className="primary" onClick={() => navigate("/onboarding")}><Rocket size={16} /> {t("acct.startApplication")}</button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title">{t("account.applyTitle")}</h3><p className="acct-status-body">{t("account.applyBody")}</p><button className="primary" onClick={() => navigate("/onboarding")}><Rocket size={16} /> {t("acct.startApplication")}</button></div>;
   } else if (status === "draft") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title">{t("account.draftTitle")}</h3>
-        <p className="acct-status-body">{t("account.draftBody")}</p>
-        <button className="primary" onClick={() => navigate("/onboarding")}>{t("account.draftCta")}</button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title">{t("account.draftTitle")}</h3><p className="acct-status-body">{t("account.draftBody")}</p><button className="primary" onClick={() => navigate("/onboarding")}>{t("account.draftCta")}</button></div>;
   } else if (status === "pending") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title"><Clock size={15} /> {t("acct.underReview")}</h3>
-        <p className="acct-status-body">{t("account.reviewBody")}</p>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title"><Clock size={15} /> {t("acct.underReview")}</h3><p className="acct-status-body">{t("account.reviewBody")}</p></div>;
   } else if (status === "rejected") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title"><Edit3 size={15} /> {t("acct.editResend")}</h3>
-        <p className="acct-status-body">{t("acct.rejectedBody")}</p>
-        {rejectionReason ? <p className="acct-reason"><b>{t("account.reason")}</b> {rejectionReason}</p> : null}
-        <button className="primary" onClick={() => navigate("/onboarding")}>{t("account.editCta")}</button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title"><Edit3 size={15} /> {t("acct.editResend")}</h3><p className="acct-status-body">{t("acct.rejectedBody")}</p>{rejectionReason ? <p className="acct-reason"><b>{t("account.reason")}</b> {rejectionReason}</p> : null}<button className="primary" onClick={() => navigate("/onboarding")}>{t("account.editCta")}</button></div>;
   } else if (status === "approved" || role === "provider") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title"><ShieldCheck size={15} /> {t("acct.accredited")}</h3>
-        <p className="acct-status-body">{t("acct.accreditedBody")}</p>
-        <button className="primary" onClick={() => navigate("/provider-mode")} style={{ marginTop: 10 }}>
-          <Briefcase size={16} /> {t("pm.workspace")}
-        </button>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title"><ShieldCheck size={15} /> {t("acct.accredited")}</h3><p className="acct-status-body">{t("acct.accreditedBody")}</p><button className="primary" onClick={() => navigate("/provider-mode")} style={{ marginTop: 10 }}><Briefcase size={16} /> {t("pm.workspace")}</button></div>;
   } else if (status === "suspended") {
-    statusBlock = (
-      <div className="acct-status">
-        <h3 className="acct-status-title"><Ban size={15} /> {t("acct.suspendedTitle")}</h3>
-        <p className="acct-status-body">{t("acct.suspendedBody")}</p>
-      </div>
-    );
+    statusBlock = <div className="acct-status"><h3 className="acct-status-title"><Ban size={15} /> {t("acct.suspendedTitle")}</h3><p className="acct-status-body">{t("acct.suspendedBody")}</p></div>;
   } else {
     statusBlock = <div className="acct-status"><p className="acct-status-body">{t("account.unknownStatus")}</p></div>;
   }
 
   return (
     <main className="screen">
-      <div className="page-title">
-        <div><span className="section-kicker">{t("nav.account")}</span><h1>{t("account.personalInfo")}</h1></div>
-      </div>
+      <div className="page-title"><div><span className="section-kicker">{t("nav.account")}</span><h1>{t("account.personalInfo")}</h1></div></div>
 
       {role === "customer" ? (
         customerLoading ? <div className="customer-loading"><Loader2 className="spin" size={22} /><span>{t("bookings.loading")}</span></div> : customerError ? (
@@ -177,6 +114,10 @@ export default function Account() {
             <CustomerProfileCard profile={customerProfile ?? profile!} email={email} onSaved={(next) => { setCustomerProfile(next); showToast(t("customer.profileSaved")); }} />
             <CustomerBookingHistory bookings={customerBookings} />
             <CustomerReviewHistory reviews={customerReviews} />
+            <div className="customer-account-tools">
+              <span>{t("lang.label")}</span>
+              <button className="lang-toggle-btn" onClick={toggleLang}><Globe size={13} /><span>{lang === "ar" ? "العربية (التبديل إلى Français)" : "Français (Passer en Arabe)"}</span></button>
+            </div>
           </div>
         )
       ) : (
@@ -191,9 +132,7 @@ export default function Account() {
         </div>
       )}
 
-      <div className="onb-nav" style={{ marginTop: 18 }}>
-        <button className="secondary" onClick={handleSignOut}><LogOut size={16} /> {t("acct.signOut")}</button>
-      </div>
+      <div className="onb-nav" style={{ marginTop: 18 }}><button className="secondary" onClick={handleSignOut}><LogOut size={16} /> {t("acct.signOut")}</button></div>
     </main>
   );
 }
