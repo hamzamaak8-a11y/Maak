@@ -1,0 +1,235 @@
+.provider-dashboard {
+  display: grid;
+  gap: 24px;
+}
+
+.provider-dashboard-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.provider-dashboard-head h1 {
+  margin: 4px 0 8px;
+}
+
+.provider-dashboard-subtitle {
+  margin: 0;
+  max-width: 700px;
+  color: var(--text-soft);
+}
+
+.provider-dashboard-refresh {
+  flex: 0 0 auto;
+}
+
+.provider-dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.provider-stat-card,
+.provider-rating-card,
+.provider-panel {
+  background: linear-gradient(145deg, var(--surface-2), var(--surface));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+}
+
+.provider-stat-card {
+  min-height: 132px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.provider-stat-copy {
+  display: grid;
+  gap: 7px;
+}
+
+.provider-stat-copy span,
+.provider-stat-copy small,
+.provider-card-kicker,
+.provider-rating-card small {
+  color: var(--text-soft);
+}
+
+.provider-stat-copy strong {
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.provider-stat-icon,
+.provider-activity-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--gold-soft);
+  color: var(--gold-bright);
+  flex: 0 0 auto;
+}
+
+.provider-rating-card {
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.provider-rating-value {
+  display: block;
+  margin-top: 5px;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.provider-stars {
+  display: flex;
+  gap: 3px;
+  color: var(--gold);
+}
+
+.provider-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 18px;
+}
+
+.provider-panel {
+  padding: 20px;
+}
+
+.provider-panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.provider-panel-heading h2 {
+  margin: 4px 0 0;
+  font-size: 21px;
+}
+
+.provider-panel-heading > svg {
+  color: var(--gold);
+}
+
+.provider-panel-empty {
+  min-height: 210px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: var(--text-soft);
+  text-align: center;
+}
+
+.provider-schedule-list,
+.provider-activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.provider-schedule-item {
+  display: grid;
+  grid-template-columns: minmax(132px, 0.34fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 13px 14px;
+  border: 1px solid var(--hair);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.provider-schedule-date {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+
+.provider-schedule-date strong {
+  font-size: 14px;
+}
+
+.provider-schedule-date span {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--gold-soft);
+  color: var(--gold-bright);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.provider-schedule-main {
+  min-width: 0;
+}
+
+.provider-schedule-main h3,
+.provider-activity-item h3 {
+  margin: 0 0 5px;
+  font-size: 15px;
+}
+
+.provider-schedule-main p,
+.provider-schedule-main small,
+.provider-activity-item p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.provider-schedule-main small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.provider-activity-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.provider-activity-item:last-child {
+  border-bottom: 0;
+}
+
+.provider-activity-item.unread {
+  margin-inline: -8px;
+  padding-inline: 8px;
+  border-radius: 12px;
+  background: var(--gold-soft);
+}
+
+.provider-activity-item time {
+  display: block;
+  margin-top: 6px;
+  color: var(--text-mute);
+  font-size: 11px;
+}
+
+@media (max-width: 1100px) {
+  .provider-dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .provider-dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .provider-dashboard-head { align-items: flex-start; flex-direction: column; }
+  .provider-dashboard-stats { grid-template-columns: 1fr; }
+  .provider-stat-card { min-height: 112px; }
+  .provider-schedule-item { grid-template-columns: 1fr; gap: 8px; }
+  .provider-panel { padding: 16px; }
+}
