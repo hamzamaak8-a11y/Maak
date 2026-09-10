@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft, ChevronRight, LayoutDashboard, Menu, Search, ShieldCheck, Store, Users, UserRoundCheck, X } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Bell, CalendarCheck2, ChevronLeft, ChevronRight, LayoutDashboard, Menu, Search, ShieldCheck, Star, Store, Users, UserRoundCheck, X } from "lucide-react";
 import * as admin from "../lib/admin2";
-import type { AdminApplication, AdminBooking, AdminCustomer } from "../lib/admin2";
+import type { AdminApplication, AdminBooking, AdminCustomer, AdminReview } from "../lib/admin2";
 import type { VerificationStatus } from "../types";
 
-type Page = "dashboard" | "bookings" | "verification" | "providers" | "customers" | "marketplace" | "reports";
-type Loaded = { bookings: AdminBooking[]; bookingsTotal: number; customers: AdminCustomer[]; customersTotal: number; providers: AdminApplication[]; providersApproved: number; providersPending: number; providersRejected: number; marketplaceTotal: number };
+type Page = "dashboard" | "bookings" | "verification" | "providers" | "customers" | "marketplace" | "reports" | "reviews";
+type Loaded = { bookings: AdminBooking[]; bookingsTotal: number; customers: AdminCustomer[]; customersTotal: number; providers: AdminApplication[]; providersApproved: number; providersPending: number; providersRejected: number; marketplaceTotal: number; reviews: AdminReview[]; reviewsTotal: number };
 
-const emptyData: Loaded = { bookings: [], bookingsTotal: 0, customers: [], customersTotal: 0, providers: [], providersApproved: 0, providersPending: 0, providersRejected: 0, marketplaceTotal: 0 };
+const emptyData: Loaded = { bookings: [], bookingsTotal: 0, customers: [], customersTotal: 0, providers: [], providersApproved: 0, providersPending: 0, providersRejected: 0, marketplaceTotal: 0, reviews: [], reviewsTotal: 0 };
 const nav: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "bookings", label: "Bookings", icon: CalendarCheck2 },
@@ -16,6 +16,7 @@ const nav: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
   { id: "customers", label: "Customers", icon: Users },
   { id: "marketplace", label: "Marketplace", icon: Store },
   { id: "reports", label: "Analytics", icon: BarChart3 },
+  { id: "reviews", label: "Reviews", icon: Star },
 ];
 
 const fmtDate = (value: string | null) => value ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
@@ -35,6 +36,7 @@ export default function AdminV2() {
   const [data, setData] = useState<Loaded>(emptyData);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reviewBusyId, setReviewBusyId] = useState<string | null>(null);
   const [selected, setSelected] = useState<AdminApplication | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [providerStatus, setProviderStatus] = useState<VerificationStatus>("pending");
@@ -42,12 +44,13 @@ export default function AdminV2() {
   async function load() {
     setLoading(true);
     try {
-      const [stats, bookings, customers, providers, marketplace] = await Promise.all([
+      const [stats, bookings, customers, providers, marketplace, reviews] = await Promise.all([
         admin.fetchAdminStats(),
         admin.listBookings(),
         admin.listCustomers(),
         admin.listApplications(providerStatus),
         admin.listMarketplace(),
+        admin.listAdminReviews(),
       ]);
       setData({
         bookings: bookings.rows,
@@ -59,6 +62,8 @@ export default function AdminV2() {
         providersPending: stats.providers_by_status.pending ?? 0,
         providersRejected: stats.providers_by_status.rejected ?? 0,
         marketplaceTotal: stats.published_listings,
+        reviews: reviews.rows,
+        reviewsTotal: reviews.total,
       });
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Unable to load admin data");
@@ -71,6 +76,7 @@ export default function AdminV2() {
   const filteredBookings = useMemo(() => q ? data.bookings.filter(b => [b.id, b.customer_name, b.provider_name, b.service_category, b.status, b.location_text].some(v => String(v ?? "").toLowerCase().includes(q))) : data.bookings, [data.bookings, q]);
   const filteredCustomers = useMemo(() => q ? data.customers.filter(c => [c.full_name, c.phone, c.city, c.account_status].some(v => String(v ?? "").toLowerCase().includes(q))) : data.customers, [data.customers, q]);
   const filteredProviders = useMemo(() => q ? data.providers.filter(p => [p.full_name, p.phone, p.city, p.profession, p.service_category, p.account_status].some(v => String(v ?? "").toLowerCase().includes(q))) : data.providers, [data.providers, q]);
+  const filteredReviews = useMemo(() => q ? data.reviews.filter(r => [r.id, r.booking_id, r.customer_name, r.provider_name, r.comment, r.rating, r.is_hidden ? "hidden" : "visible"].some(v => String(v ?? "").toLowerCase().includes(q))) : data.reviews, [data.reviews, q]);
 
   const go = (next: Page) => { setPage(next); setMobileOpen(false); setSearch(""); window.scrollTo({ top: 0, behavior: "smooth" }); };
   async function providerAction(action: "approve" | "reject") {
@@ -82,6 +88,15 @@ export default function AdminV2() {
       else await admin.rejectProvider(selected.id, rejectReason);
       setSelected(null); setRejectReason(""); setNotice(action === "approve" ? "Provider approved" : "Provider rejected"); await load();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Action failed"); } finally { setBusyId(null); }
+  }
+
+  async function toggleReview(reviewId: string) {
+    setReviewBusyId(reviewId);
+    try {
+      await admin.toggleReviewVisibility(reviewId);
+      setNotice("Review visibility updated");
+      await load();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Review moderation failed"); } finally { setReviewBusyId(null); }
   }
 
   const currentLabel = nav.find(n => n.id === page)?.label ?? "Dashboard";
@@ -110,6 +125,7 @@ export default function AdminV2() {
       : page === "bookings" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">BOOKINGS</span><h2>All bookings</h2></div><span className="count-badge">{data.bookingsTotal}</span></div><div className="m2-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Date</th><th>Location</th></tr></thead><tbody>{filteredBookings.map(b=><tr key={b.id}><td><b>{b.id.slice(0,8)}</b></td><td>{b.customer_name||"—"}</td><td>{b.provider_name||"—"}</td><td>{b.service_category||"—"}</td><td><Status value={b.status}/></td><td>{fmtDate(b.service_date)}</td><td>{b.location_text||"—"}</td></tr>)}</tbody></table>{filteredBookings.length===0&&<Empty text="No bookings found."/>}</div></section>
       : page === "customers" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">CUSTOMERS</span><h2>Customer accounts</h2></div><span className="count-badge">{data.customersTotal}</span></div><div className="m2-table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>City</th><th>Status</th><th>Created</th></tr></thead><tbody>{filteredCustomers.map(c=><tr key={c.id}><td><b>{c.full_name||"Unnamed user"}</b></td><td>{c.phone||"—"}</td><td>{c.city||"—"}</td><td><Status value={c.account_status}/></td><td>{fmtDate(c.created_at)}</td></tr>)}</tbody></table>{filteredCustomers.length===0&&<Empty text="No customer accounts found."/>}</div></section>
       : page === "providers" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">PROVIDERS</span><h2>Provider accounts</h2></div><button className="m2-link" onClick={()=>go("verification")}>Verification queue <ChevronRight size={14}/></button></div><div className="m2-table-wrap"><table><thead><tr><th>Name</th><th>Profession</th><th>City</th><th>Experience</th><th>Verification</th><th>Account</th></tr></thead><tbody>{filteredProviders.map(p=><tr key={p.id}><td>{p.full_name||"—"}</td><td>{p.profession||"—"}</td><td>{p.city||"—"}</td><td>{p.experience_years ?? 0}</td><td><Status value={p.verification_status}/></td><td><Status value={p.account_status}/></td></tr>)}</tbody></table>{filteredProviders.length===0&&<Empty text="No provider records in this queue."/>}</div></section>
+      : page === "reviews" ? <section className="m2-card m2-page-card"><div className="m2-card-head"><div><span className="m2-kicker muted">REVIEWS</span><h2>Review moderation</h2></div><span className="count-badge">{data.reviewsTotal}</span></div><div className="m2-table-wrap"><table><thead><tr><th>Customer</th><th>Provider</th><th>Rating</th><th>Comment</th><th>Visibility</th><th>Created</th><th>Action</th></tr></thead><tbody>{filteredReviews.map(review=><tr key={review.id}><td>{review.customer_name||"—"}</td><td>{review.provider_name||"—"}</td><td><span style={{display:"inline-flex",alignItems:"center",gap:4}}><Star size={14} fill="currentColor"/> {review.rating}/5</span></td><td style={{maxWidth:320}}>{review.comment||"—"}</td><td><Status value={review.is_hidden ? "suspended" : "approved"}/></td><td>{fmtDate(review.created_at)}</td><td><button className="m2-btn light" disabled={reviewBusyId===review.id} onClick={()=>void toggleReview(review.id)}>{reviewBusyId===review.id ? "Working…" : review.is_hidden ? "Show" : "Hide"}</button></td></tr>)}</tbody></table>{filteredReviews.length===0&&<Empty text="No reviews found."/>}</div></section>
       : <section className="m2-placeholder"><span className="m2-placeholder-icon"><BarChart3 size={22}/></span><span className="m2-kicker">{currentLabel.toUpperCase()}</span><h1>{currentLabel}</h1><button className="m2-btn primary" onClick={()=>go("dashboard")}>Back to dashboard</button></section>}
 
       {selected && <div className="m2-modal-backdrop" role="presentation"><section className="m2-modal" role="dialog" aria-modal="true" aria-label="Provider review"><div className="m2-card-head"><div><span className="m2-kicker clay">REVIEW APPLICATION</span><h2>{selected.full_name||"Applicant"}</h2></div><button className="m2-icon-btn" aria-label="Close review" onClick={()=>setSelected(null)}><X size={18}/></button></div><div className="m2-review-grid"><div><small>Profession</small><b>{selected.profession||"—"}</b></div><div><small>City</small><b>{selected.city||"—"}</b></div><div><small>Experience</small><b>{selected.experience_years ?? 0} years</b></div><div><small>Service</small><b>{selected.service_category||"—"}</b></div></div><label className="field-label" htmlFor="m2-rejection-reason">Rejection reason</label><textarea id="m2-rejection-reason" className="field" value={rejectReason} onChange={e=>setRejectReason(e.target.value)} aria-label="Rejection reason"/><div className="m2-modal-actions"><button className="m2-btn light" onClick={()=>setSelected(null)}>Cancel</button><button className="m2-btn danger" disabled={!!busyId} onClick={()=>void providerAction("reject")}>Reject</button><button className="m2-btn primary" disabled={!!busyId} onClick={()=>void providerAction("approve")}>{busyId?"Working…":"Approve"}</button></div></section></div>}
