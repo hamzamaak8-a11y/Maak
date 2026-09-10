@@ -4,7 +4,6 @@ import {
   Globe,
   Home,
   LogOut,
-  MessageCircle,
   Search,
   UserRound,
 } from "lucide-react";
@@ -32,7 +31,6 @@ export function Header({ path }: { path: string }) {
     ["home", t("nav.home"), Home, "/"],
     ["discover", t("nav.discover"), Search, "/discover"],
     ["bookings", t("nav.bookings"), ClipboardList, "/bookings"],
-    ["chat", t("nav.messages"), MessageCircle, "/chat"],
     ["account", t("nav.account"), UserRound, "/account"],
   ] as const;
 
@@ -93,7 +91,6 @@ export function MobileNav({ path }: { path: string }) {
     ["home", t("nav.home"), Home, "/"],
     ["discover", t("nav.discover"), Search, "/discover"],
     ["bookings", t("nav.bookings"), ClipboardList, "/bookings"],
-    ["chat", t("nav.messages"), MessageCircle, "/chat"],
     ["account", t("nav.account"), UserRound, "/account"],
   ] as const;
 
