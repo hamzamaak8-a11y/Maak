@@ -1,5 +1,18 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+
+function normalizeLegacyPublicAssetUrls(): Plugin {
+  return {
+    name: "maak-normalize-legacy-public-assets",
+    apply: "build",
+    enforce: "pre",
+    transform(code, id) {
+      if (!/\.(css|html|js|jsx|ts|tsx)$/.test(id)) return null;
+      const normalized = code.replaceAll("/Maak/icon-192.png", "./icon-192.png");
+      return normalized === code ? null : { code: normalized, map: null };
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -7,7 +20,7 @@ export default defineConfig(({ mode }) => {
   const base = env.VITE_BASE || "./";
 
   return {
-    plugins: [react()],
+    plugins: [normalizeLegacyPublicAssetUrls(), react()],
     base,
     server: {
       allowedHosts: true,
