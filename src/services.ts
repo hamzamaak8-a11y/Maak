@@ -1,38 +1,38 @@
 import { categories } from "./data";
 import type { Category, Provider } from "./types";
-import { supabase } from "./lib/supabaseClient";
+
+const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
 /**
- * Marketplace reads use the public Supabase policy for published, real
- * providers. There is intentionally no client-side fallback dataset: an
- * unreachable/erroring database produces an error state, while zero eligible
- * rows produces the honest empty marketplace state.
+ * Marketplace reads go through the Cloudflare Worker API.
+ * The browser must not query the providers table directly; the Worker is the
+ * public API and caching/protection layer in front of Supabase.
  */
 export async function fetchProviders(): Promise<Provider[]> {
-  const { data, error } = await supabase
-    .from("providers")
-    .select("*")
-    .eq("listing_kind", "real")
-    .not("published_at", "is", null)
-    .not("provider_profile_id", "is", null)
-    .order("id", { ascending: true });
+  if (!API_URL) throw new Error("svc.errProviders");
 
-  if (error) throw new Error("svc.errProviders");
-  return (data ?? []) as Provider[];
+  try {
+    const res = await fetch(`${API_URL}/api/providers`);
+    if (!res.ok) throw new Error("Worker API failed");
+    return (await res.json()) as Provider[];
+  } catch (err) {
+    console.error("Worker fetch failed", err);
+    throw new Error("svc.errProviders");
+  }
 }
 
 export async function fetchProvider(id: number): Promise<Provider | undefined> {
-  const { data, error } = await supabase
-    .from("providers")
-    .select("*")
-    .eq("id", id)
-    .eq("listing_kind", "real")
-    .not("published_at", "is", null)
-    .not("provider_profile_id", "is", null)
-    .maybeSingle();
+  if (!API_URL) throw new Error("svc.errProvider");
 
-  if (error) throw new Error("svc.errProvider");
-  return (data ?? undefined) as Provider | undefined;
+  try {
+    const res = await fetch(`${API_URL}/api/providers/${id}`);
+    if (res.status === 404) return undefined;
+    if (!res.ok) throw new Error("Worker API failed");
+    return (await res.json()) as Provider;
+  } catch (err) {
+    console.error("Worker fetch failed", err);
+    throw new Error("svc.errProvider");
+  }
 }
 
 export function getCategories(): Category[] {
