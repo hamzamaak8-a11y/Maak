@@ -3,14 +3,8 @@ import type { Category, Provider } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
 
-/**
- * Marketplace reads go through the Cloudflare Worker API.
- * The browser must not query the providers table directly; the Worker is the
- * public API and caching/protection layer in front of Supabase.
- */
 export async function fetchProviders(): Promise<Provider[]> {
   if (!API_URL) throw new Error("svc.errProviders");
-
   try {
     const res = await fetch(`${API_URL}/api/providers`);
     if (!res.ok) throw new Error("Worker API failed");
@@ -23,7 +17,6 @@ export async function fetchProviders(): Promise<Provider[]> {
 
 export async function fetchProvider(id: number): Promise<Provider | undefined> {
   if (!API_URL) throw new Error("svc.errProvider");
-
   try {
     const res = await fetch(`${API_URL}/api/providers/${id}`);
     if (res.status === 404) return undefined;
@@ -40,17 +33,80 @@ export function getCategories(): Category[] {
 }
 
 export function filterProviders(providers: Provider[], query: string): Provider[] {
-  const q = query.trim();
+  const q = query.trim().toLocaleLowerCase();
   if (!q) return providers;
-  // Category chips pass the canonical category name; match those against the
-  // category keyword roots so "الكهرباء" also finds "كهربائي" listings, and
-  // fall back to a plain substring match for free-text search.
-  const roots = CATEGORY_ROOTS[q];
-  const needles = roots && roots.length > 0 ? roots : [q];
+  const roots = CATEGORY_ROOTS[q] ?? [q];
   return providers.filter((provider) => {
-    const hay = provider.job + " " + provider.services.join(" ") + " " + provider.name;
-    return needles.some((needle) => hay.includes(needle));
+    const hay = `${provider.job} ${provider.services.join(" ")} ${provider.name} ${provider.city}`.toLocaleLowerCase();
+    return roots.some((needle) => hay.includes(needle.toLocaleLowerCase()));
   });
+}
+
+export type MarketplacePriceRange = "" | "0-100" | "100-250" | "250-500" | "500+";
+export type MarketplaceAvailability = "" | "today" | "week";
+
+export type MarketplaceFilters = {
+  query: string;
+  category: string;
+  city: string;
+  minRating: number | null;
+  priceRange: MarketplacePriceRange;
+  availability: MarketplaceAvailability;
+};
+
+function numericValue(value: string | null): number | null {
+  if (!value) return null;
+  const cleaned = value.replace(/,/g, ".").replace(/[^0-9.]/g, " ");
+  const match = cleaned.match(/\d+(?:\.\d+)?/);
+  if (!match) return null;
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function providerRating(provider: Provider): number | null {
+  return numericValue(provider.rating);
+}
+
+export function providerPrice(provider: Provider): number | null {
+  return numericValue(provider.price);
+}
+
+function matchesPriceRange(price: number | null, range: MarketplacePriceRange): boolean {
+  if (!range) return true;
+  if (price == null) return false;
+  if (range === "0-100") return price <= 100;
+  if (range === "100-250") return price > 100 && price <= 250;
+  if (range === "250-500") return price > 250 && price <= 500;
+  return price > 500;
+}
+
+export function filterMarketplaceProviders(providers: Provider[], filters: MarketplaceFilters): Provider[] {
+  let result = filterProviders(providers, filters.query);
+
+  if (filters.category) {
+    result = filterProviders(result, filters.category);
+  }
+
+  if (filters.city) {
+    result = result.filter((provider) => provider.city === filters.city);
+  }
+
+  if (filters.minRating != null) {
+    result = result.filter((provider) => {
+      const rating = providerRating(provider);
+      return rating != null && rating >= filters.minRating!;
+    });
+  }
+
+  if (filters.priceRange) {
+    result = result.filter((provider) => matchesPriceRange(providerPrice(provider), filters.priceRange));
+  }
+
+  if (filters.availability) {
+    result = result.filter((provider) => provider.available === true);
+  }
+
+  return result;
 }
 
 const CATEGORY_ROOTS: Record<string, string[]> = {
