@@ -9,11 +9,12 @@ type Tab = "users" | "providers" | "bookings" | "reviews";
 type ProviderStatus = VerificationStatus | "all";
 const providerStatuses: ProviderStatus[] = ["all", "pending", "approved", "rejected"];
 const bookingStatuses = ["all", "pending", "accepted", "in_progress", "completed", "cancelled", "rejected"];
+const displayStatus = (value: string) => value.split("_").join(" ");
 
 function ActionButton({ label, onClick, tone = "default", disabled = false, icon }: { label: string; onClick: () => void; tone?: "default" | "danger" | "success"; disabled?: boolean; icon: ReactNode }) {
   return <button className={`adm-action ${tone}`} type="button" onClick={onClick} disabled={disabled}>{icon}<span>{label}</span></button>;
 }
-function Status({ value }: { value: string }) { return <span className={`adm-pill ${value}`}>{value.replaceAll("_", " ")}</span>; }
+function Status({ value }: { value: string }) { return <span className={`adm-pill ${value}`}>{displayStatus(value)}</span>; }
 function Empty({ text }: { text: string }) { return <div className="adm-empty"><ShieldCheck size={22} /><p>{text}</p></div>; }
 
 export default function AdminModeration() {
@@ -30,26 +31,16 @@ export default function AdminModeration() {
   const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
-    setLoading(true);
-    setNotice("");
+    setLoading(true); setNotice("");
     try {
       const [userPage, pending, approved, rejected, bookingPage, reviewPage] = await Promise.all([
-        admin.getAdminUsers(),
-        admin.getAdminProviders("pending"),
-        admin.getAdminProviders("approved"),
-        admin.getAdminProviders("rejected"),
-        admin.getAdminBookings(),
-        admin.getAdminReviews(),
+        admin.getAdminUsers(), admin.getAdminProviders("pending"), admin.getAdminProviders("approved"), admin.getAdminProviders("rejected"), admin.getAdminBookings(), admin.getAdminReviews(),
       ]);
       setUsers(userPage.rows);
       setProviders([...pending, ...approved, ...rejected].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
-      setBookings(bookingPage.rows);
-      setReviews(reviewPage.rows);
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Unable to load moderation data");
-    } finally {
-      setLoading(false);
-    }
+      setBookings(bookingPage.rows); setReviews(reviewPage.rows);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Unable to load moderation data"); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
 
@@ -59,29 +50,15 @@ export default function AdminModeration() {
   const filteredBookings = useMemo(() => bookings.filter((b) => (bookingStatus === "all" || b.status === bookingStatus) && [b.id, b.customer_name, b.provider_name, b.service_category, b.status, b.payment_status, b.payment_method, b.location_text].some((v) => String(v ?? "").toLowerCase().includes(q))), [bookings, bookingStatus, q]);
   const filteredReviews = useMemo(() => reviews.filter((r) => [r.id, r.booking_id, r.customer_name, r.provider_name, r.comment, r.rating, r.is_hidden ? "hidden" : "visible"].some((v) => String(v ?? "").toLowerCase().includes(q))), [reviews, q]);
 
-  async function act(id: string, fn: () => Promise<void>, success: string) {
-    setBusy(id);
-    try { await fn(); setNotice(success); await load(); }
-    catch (error) { setNotice(error instanceof Error ? error.message : "Action failed"); }
-    finally { setBusy(null); }
-  }
+  async function act(id: string, fn: () => Promise<void>, success: string) { setBusy(id); try { await fn(); setNotice(success); await load(); } catch (error) { setNotice(error instanceof Error ? error.message : "Action failed"); } finally { setBusy(null); } }
   function confirmDelete(label: string) { return window.confirm(`Delete ${label}? This action cannot be undone.`); }
 
   return <section className="adm-center">
-    <header className="adm-head">
-      <div><span className="adm-kicker">ADMIN MODERATION</span><h1>Control &amp; moderation</h1><p>Manage users, provider applications, bookings and customer reviews from one secure workspace.</p></div>
-      <button className="adm-refresh" type="button" onClick={() => void load()} disabled={loading}><RotateCcw size={16} /> Refresh</button>
-    </header>
+    <header className="adm-head"><div><span className="adm-kicker">ADMIN MODERATION</span><h1>Control &amp; moderation</h1><p>Manage users, provider applications, bookings and customer reviews from one secure workspace.</p></div><button className="adm-refresh" type="button" onClick={() => void load()} disabled={loading}><RotateCcw size={16} /> Refresh</button></header>
     {notice && <div className="adm-notice" role="status"><span>{notice}</span><button type="button" aria-label="Dismiss" onClick={() => setNotice("")}><XCircle size={16} /></button></div>}
     <div className="adm-toolbar"><label className="adm-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search users, providers, bookings or reviews" aria-label="Search moderation data" /></label></div>
-    <nav className="adm-tabs" aria-label="Moderation sections">
-      {(["users", "providers", "bookings", "reviews"] as Tab[]).map((id) => <button key={id} className={tab === id ? "active" : ""} type="button" onClick={() => setTab(id)}>{id[0].toUpperCase() + id.slice(1)}<span>{id === "users" ? users.length : id === "providers" ? providers.length : id === "bookings" ? bookings.length : reviews.length}</span></button>)}
-    </nav>
-    {loading ? <div className="adm-loading"><RotateCcw size={20} className="adm-spin" />Loading moderation data…</div> : tab === "users" ?
-      <UserTable rows={filteredUsers} busy={busy} onSuspend={(id) => void act(id, () => admin.suspendUser(id), "User suspended")} onActivate={(id) => void act(id, () => admin.activateUser(id), "User activated")} onDelete={(id) => { if (confirmDelete("this suspended user")) void act(id, () => admin.deleteUser(id), "User deleted"); }} /> :
-      tab === "providers" ? <ProviderTable rows={filteredProviders} status={providerStatus} onStatus={setProviderStatus} busy={busy} onApprove={(id) => void act(id, () => admin.approveProvider(id), "Provider approved")} onReject={(id) => { const reason = window.prompt("Rejection reason:", "")?.trim(); if (reason) void act(id, () => admin.rejectProvider(id, reason), "Provider rejected"); }} /> :
-      tab === "bookings" ? <BookingTable rows={filteredBookings} status={bookingStatus} onStatus={setBookingStatus} busy={busy} onCancel={(id) => { const reason = window.prompt("Cancellation reason:", "") ?? ""; void act(id, () => admin.cancelBooking(id, reason), "Booking cancelled"); }} onComplete={(id) => void act(id, () => admin.markBookingCompleted(id), "Booking marked completed")} onRefund={(id) => { if (confirmDelete("this payment/refund")) void act(id, () => admin.refundBooking(id, "Admin refund"), "Booking refunded"); }} /> :
-      <ReviewTable rows={filteredReviews} busy={busy} onToggle={(id) => void act(id, () => admin.toggleReviewVisibility(id).then(() => undefined), "Review visibility updated")} onDelete={(id) => { if (confirmDelete("this review")) void act(id, () => admin.deleteReview(id), "Review deleted"); }} />}
+    <nav className="adm-tabs" aria-label="Moderation sections">{(["users", "providers", "bookings", "reviews"] as Tab[]).map((id) => <button key={id} className={tab === id ? "active" : ""} type="button" onClick={() => setTab(id)}>{id[0].toUpperCase() + id.slice(1)}<span>{id === "users" ? users.length : id === "providers" ? providers.length : id === "bookings" ? bookings.length : reviews.length}</span></button>)}</nav>
+    {loading ? <div className="adm-loading"><RotateCcw size={20} className="adm-spin" />Loading moderation data…</div> : tab === "users" ? <UserTable rows={filteredUsers} busy={busy} onSuspend={(id) => void act(id, () => admin.suspendUser(id), "User suspended")} onActivate={(id) => void act(id, () => admin.activateUser(id), "User activated")} onDelete={(id) => { if (confirmDelete("this suspended user")) void act(id, () => admin.deleteUser(id), "User deleted"); }} /> : tab === "providers" ? <ProviderTable rows={filteredProviders} status={providerStatus} onStatus={setProviderStatus} busy={busy} onApprove={(id) => void act(id, () => admin.approveProvider(id), "Provider approved")} onReject={(id) => { const reason = window.prompt("Rejection reason:", "")?.trim(); if (reason) void act(id, () => admin.rejectProvider(id, reason), "Provider rejected"); }} /> : tab === "bookings" ? <BookingTable rows={filteredBookings} status={bookingStatus} onStatus={setBookingStatus} busy={busy} onCancel={(id) => { const reason = window.prompt("Cancellation reason:", "") ?? ""; void act(id, () => admin.cancelBooking(id, reason), "Booking cancelled"); }} onComplete={(id) => void act(id, () => admin.markBookingCompleted(id), "Booking marked completed")} onRefund={(id) => { if (confirmDelete("this payment/refund")) void act(id, () => admin.refundBooking(id, "Admin refund"), "Booking refunded"); }} /> : <ReviewTable rows={filteredReviews} busy={busy} onToggle={(id) => void act(id, () => admin.toggleReviewVisibility(id).then(() => undefined), "Review visibility updated")} onDelete={(id) => { if (confirmDelete("this review")) void act(id, () => admin.deleteReview(id), "Review deleted"); }} />}
   </section>;
 }
 
@@ -94,7 +71,7 @@ function ProviderTable({ rows, status, onStatus, busy, onApprove, onReject }: { 
 }
 
 function BookingTable({ rows, status, onStatus, busy, onCancel, onComplete, onRefund }: { rows: AdminBooking[]; status: string; onStatus: (s: string) => void; busy: string | null; onCancel: (id: string) => void; onComplete: (id: string) => void; onRefund: (id: string) => void }) {
-  return <div className="adm-card"><div className="adm-card-title"><div><span>BOOKING MODERATION</span><h2>All bookings</h2></div><select value={status} onChange={(e) => onStatus(e.target.value)} aria-label="Booking status">{bookingStatuses.map((s) => <option key={s} value={s}>{s.replaceAll("_", " ")}</option>)}</select></div><div className="adm-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Payment</th><th>Amount</th><th>Actions</th></tr></thead><tbody>{rows.map((b) => <tr key={b.id}><td><strong>{b.id.slice(0, 8)}</strong><small>{b.service_date ? new Date(b.service_date).toLocaleString("en-GB") : "No date"}</small></td><td>{b.customer_name || "—"}</td><td>{b.provider_name || "—"}</td><td>{b.service_category || "—"}</td><td><Status value={b.status} /></td><td><Status value={b.payment_status} /></td><td>{b.price == null ? "—" : `${b.price.toFixed(2)} ${b.currency}`}</td><td className="adm-actions">{!["completed", "cancelled", "rejected"].includes(b.status) && <ActionButton label="Cancel" tone="danger" disabled={busy === b.id} onClick={() => onCancel(b.id)} icon={<XCircle size={15} />} />}{b.status === "in_progress" && <ActionButton label="Complete" tone="success" disabled={busy === b.id} onClick={() => onComplete(b.id)} icon={<CheckCircle2 size={15} />} />}{b.payment_status === "paid" && <ActionButton label="Refund" tone="danger" disabled={busy === b.id} onClick={() => onRefund(b.id)} icon={<RotateCcw size={15} />} />}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No bookings match the current filters." />}</div></div>;
+  return <div className="adm-card"><div className="adm-card-title"><div><span>BOOKING MODERATION</span><h2>All bookings</h2></div><select value={status} onChange={(e) => onStatus(e.target.value)} aria-label="Booking status">{bookingStatuses.map((s) => <option key={s} value={s}>{displayStatus(s)}</option>)}</select></div><div className="adm-table-wrap"><table><thead><tr><th>Booking</th><th>Customer</th><th>Provider</th><th>Service</th><th>Status</th><th>Payment</th><th>Amount</th><th>Actions</th></tr></thead><tbody>{rows.map((b) => <tr key={b.id}><td><strong>{b.id.slice(0, 8)}</strong><small>{b.service_date ? new Date(b.service_date).toLocaleString("en-GB") : "No date"}</small></td><td>{b.customer_name || "—"}</td><td>{b.provider_name || "—"}</td><td>{b.service_category || "—"}</td><td><Status value={b.status} /></td><td><Status value={b.payment_status} /></td><td>{b.price == null ? "—" : `${b.price.toFixed(2)} ${b.currency}`}</td><td className="adm-actions">{!["completed", "cancelled", "rejected"].includes(b.status) && <ActionButton label="Cancel" tone="danger" disabled={busy === b.id} onClick={() => onCancel(b.id)} icon={<XCircle size={15} />} />}{b.status === "in_progress" && <ActionButton label="Complete" tone="success" disabled={busy === b.id} onClick={() => onComplete(b.id)} icon={<CheckCircle2 size={15} />} />}{b.payment_status === "paid" && <ActionButton label="Refund" tone="danger" disabled={busy === b.id} onClick={() => onRefund(b.id)} icon={<RotateCcw size={15} />} />}</td></tr>)}</tbody></table>{!rows.length && <Empty text="No bookings match the current filters." />}</div></div>;
 }
 
 function ReviewTable({ rows, busy, onToggle, onDelete }: { rows: AdminReview[]; busy: string | null; onToggle: (id: string) => void; onDelete: (id: string) => void }) {
