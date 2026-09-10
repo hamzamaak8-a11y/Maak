@@ -26,13 +26,15 @@ const worker = readFileSync(join(dist, "sw.js"), "utf8");
 
 const checks = [
   ["index.html is non-empty", index.trim().length > 0],
-  ["404.html contains /Maak/ base", notFound.includes('var BASE = "/Maak/"')],
-  ["manifest uses /Maak/ start URL", manifest.includes('"start_url": "/Maak/"')],
-  ["manifest uses /Maak/ scope", manifest.includes('"scope": "/Maak/"')],
-  ["service worker has /Maak/ fallback", worker.includes("/Maak/index.html")],
+  ["404.html detects its base path dynamically", notFound.includes("var base = isGithubPages")],
+  ["manifest uses relative start URL", manifest.includes('"start_url": "./"')],
+  ["manifest uses relative scope", manifest.includes('"scope": "./"')],
+  ["manifest uses relative ID", manifest.includes('"id": "./"')],
+  ["service worker builds a relative app root", worker.includes('new URL("./", self.location)')],
+  ["service worker uses a relative index fallback", worker.includes('new URL("./index.html", self.location)')],
   [
     "service worker bypasses /api/ requests",
-    worker.includes('if(url.pathname.startsWith("/api/"))return;'),
+    worker.includes('if (url.pathname.startsWith("/api/")) return;'),
   ],
 ];
 
