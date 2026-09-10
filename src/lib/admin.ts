@@ -107,3 +107,37 @@ export async function listBookings(): Promise<{ rows: AdminBooking[]; total: num
   const names = new Map<string, string | null>((profs ?? []).map((p) => [p.id as string, (p.full_name as string | null) ?? null]));
   return { rows: rows.map((r) => ({ ...r, customer_name: r.customer_name || names.get(r.customer_id) || null, provider_name: names.get(r.provider_id) ?? null })), total: count ?? 0 };
 }
+
+export type AdminReview = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  provider_id: string;
+  rating: number;
+  comment: string | null;
+  is_hidden: boolean;
+  created_at: string;
+  customer_name: string | null;
+  provider_name: string | null;
+};
+
+export type AdminReviewsPage = { rows: AdminReview[]; total: number };
+
+export async function listAdminReviews(limit = ADMIN_PAGE_SIZE, offset = 0): Promise<AdminReviewsPage> {
+  const { data, error } = await supabase.rpc("get_admin_reviews", {
+    p_limit: limit,
+    p_offset: offset,
+  });
+  if (error) throw msg(error, "adm.loadReviewsFail");
+  const payload = (data ?? {}) as { reviews?: unknown; total_count?: unknown };
+  return {
+    rows: Array.isArray(payload.reviews) ? (payload.reviews as AdminReview[]) : [],
+    total: typeof payload.total_count === "number" ? payload.total_count : 0,
+  };
+}
+
+export async function toggleReviewVisibility(reviewId: string): Promise<AdminReview> {
+  const { data, error } = await supabase.rpc("admin_toggle_review_visibility", { p_review_id: reviewId });
+  if (error) throw msg(error, "adm.reviewVisibilityFail");
+  return data as AdminReview;
+}
