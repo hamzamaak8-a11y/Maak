@@ -12,7 +12,6 @@ import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
 import Home from "./pages/Home";
 import Bookings from "./pages/Bookings";
-import Chat from "./pages/Chat";
 import ProviderDetail from "./pages/ProviderDetail";
 import BookingFlow from "./pages/BookingFlow";
 import Login from "./pages/Login";
@@ -29,10 +28,9 @@ function AppSplash() {
 }
 
 function CustomerShell() {
-  const { path } = useRouter();
+  const { path, navigate } = useRouter();
   const bookingParams = matchPath("/provider/:id/booking", path);
   const providerParams = bookingParams ? null : matchPath("/provider/:id", path);
-  const chatProviderParams = matchPath("/chat/provider/:providerId", path);
   let content: ReactNode;
   if (path === "/login") content = <Login/>;
   else if (path === "/register") content = <Register/>;
@@ -40,13 +38,14 @@ function CustomerShell() {
   else if (path === "/reset-password") content = <ResetPassword/>;
   else if (bookingParams) content = <BookingFlow id={Number(bookingParams.id)}/>;
   else if (providerParams) content = <ProviderDetail id={Number(providerParams.id)}/>;
-  else if (chatProviderParams) content = <Chat providerId={chatProviderParams.providerId}/>;
   else if (path === "/bookings") content = <Bookings/>;
-  else if (path === "/chat") content = <Chat/>;
   else if (path === "/onboarding") content = <Onboarding/>;
   else if (path === "/account") content = <Account/>;
   else if (path === "/discover") content = <Discover/>;
-  else content = <Home/>;
+  else {
+    if (path === "/chat" || path.startsWith("/chat/")) navigate("/");
+    content = <Home/>;
+  }
   const isProviderScreen = path.startsWith("/provider");
   const isAuthScreen = path === "/login" || path === "/register" || path === "/forgot-password" || path === "/reset-password";
   return <div className="app"><div className="shell">{!isAuthScreen && <Header path={path}/>}<main className="app-main" key={path}>{content}</main></div>{!isAuthScreen && !isProviderScreen && <MobileNav path={path}/>}<ToastViewport/></div>;
