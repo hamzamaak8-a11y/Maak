@@ -6,47 +6,42 @@ import { Avatar } from "../components/atoms";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
 import { BOOKING_STATUS_LABELS, mapBookingError } from "../lib/bookings";
+import { getProviderAvailability, type ProviderAvailability } from "../lib/availability";
+import TimeSlotPicker from "../components/availability/TimeSlotPicker";
 import type { BookingRow } from "../types";
 import { useLanguage } from "../i18n";
 import { rememberReturnTo } from "../lib/returnTo";
 
 const STEPS = ["bflow.service", "bflow.details", "bflow.schedule", "bflow.review"];
-const DATES = ["bflow.today", "bflow.tomorrow", "bflow.thisWeek"];
-const TIMES = ["09:00", "11:00", "14:00", "16:00", "18:00", "20:00"];
 
 type FormState = {
   service: string;
   description: string;
-  date: string;
-  time: string;
+  serviceDate: string;
   location: string;
 };
 
-function toServiceDate(day: string, time: string): string {
-  const d = new Date();
-  if (day === "bflow.tomorrow") d.setDate(d.getDate() + 1);
-  else if (day === "bflow.thisWeek") d.setDate(d.getDate() + 6);
-  const parts = time.split(":");
-  d.setHours(Number(parts[0]), Number(parts[1]), 0, 0);
-  return d.toISOString();
+function formatAppointment(iso: string, lang: string): string {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat(lang === "fr" ? "fr-FR" : "ar-MA", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
 }
 
 export default function BookingFlow({ id }: { id: number }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { navigate } = useRouter();
   const { user } = useAuth();
   const { createBooking } = useBookings();
   const { provider, status } = useProvider(id);
 
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormState>({
-    service: "",
-    description: "",
-    date: "bflow.today",
-    time: "18:00",
-    location: "",
-  });
-  const [errors, setErrors] = useState<{ service?: string; location?: string }>({});
+  const [form, setForm] = useState<FormState>({ service: "", description: "", serviceDate: "", location: "" });
+  const [availability, setAvailability] = useState<ProviderAvailability[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState(false);
+  const [errors, setErrors] = useState<{ service?: string; location?: string; serviceDate?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [failMsg, setFailMsg] = useState("");
   const [completed, setCompleted] = useState<BookingRow | null>(null);
@@ -57,6 +52,18 @@ export default function BookingFlow({ id }: { id: number }) {
     }
   }, [provider, form.service]);
 
+  useEffect(() => {
+    if (!provider || !user || !isBookable(provider)) return;
+    let active = true;
+    setAvailabilityLoading(true);
+    setAvailabilityError(false);
+    getProviderAvailability(provider.id)
+      .then((rows) => { if (active) setAvailability(rows); })
+      .catch(() => { if (active) setAvailabilityError(true); })
+      .finally(() => { if (active) setAvailabilityLoading(false); });
+    return () => { active = false; };
+  }, [provider, user]);
+
   const update = (key: keyof FormState, value: string) =>
     setForm((current) => ({ ...current, [key]: value }));
 
@@ -64,20 +71,17 @@ export default function BookingFlow({ id }: { id: number }) {
     step > 0 ? setStep(step - 1) : navigate(provider ? "/provider/" + provider.id : "/discover");
 
   const next = () => {
-    const nextErrors: { service?: string; location?: string } = {};
+    const nextErrors: { service?: string; location?: string; serviceDate?: string } = {};
     if (step === 0 && !form.service.trim()) nextErrors.service = t("bflow.pickService");
+    if (step === 2 && !form.serviceDate) nextErrors.serviceDate = t("availability.slotRequired");
     if (step === 2 && !form.location.trim()) nextErrors.location = t("bflow.pickLocation");
-    if (Object.keys(nextErrors).length) {
-      setErrors(nextErrors);
-      return;
-    }
+    if (Object.keys(nextErrors).length) { setErrors(nextErrors); return; }
     setErrors({});
-    if (step < 3) setStep(step + 1);
-    else void submit();
+    if (step < 3) setStep(step + 1); else void submit();
   };
 
   const submit = async () => {
-    if (!isBookable(provider) || submitting) return;
+    if (!isBookable(provider) || submitting || !form.serviceDate) return;
     setSubmitting(true);
     setFailMsg("");
     try {
@@ -85,7 +89,7 @@ export default function BookingFlow({ id }: { id: number }) {
         providerListingId: provider.id,
         serviceCategory: form.service.trim(),
         serviceDescription: form.description.trim(),
-        serviceDate: toServiceDate(form.date, form.time),
+        serviceDate: form.serviceDate,
         locationText: form.location.trim(),
       });
       setCompleted(row);
@@ -96,316 +100,31 @@ export default function BookingFlow({ id }: { id: number }) {
     }
   };
 
-  if (status === "loading") {
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/discover")}>
-          <ChevronLeft size={16} /> {t("bk.back")}
-        </button>
-        <div className="pdetail-loading">
-          <Loader2 className="spin" size={24} />
-          <p>{t("pdetail.loading")}</p>
-        </div>
-      </main>
-    );
-  }
-  if (status === "error") {
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/discover")}>
-          <ChevronLeft size={16} /> {t("bk.back")}
-        </button>
-        <div className="pdetail-error">
-          <AlertCircle size={24} />
-          <h3>{t("pdetail.error")}</h3>
-          <p>{t("bk.tryAgain")}</p>
-          <button className="ghost-button" onClick={() => navigate("/discover")}>
-            {t("pdetail.back")}
-          </button>
-        </div>
-      </main>
-    );
-  }
-  if (!provider) {
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/discover")}>
-          <ChevronLeft size={16} /> {t("bk.back")}
-        </button>
-        <div className="pdetail-error">
-          <MapPin size={24} />
-          <h3>{t("pdetail.notFound")}</h3>
-        </div>
-      </main>
-    );
-  }
-
-  if (!isBookable(provider)) {
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/discover")}>
-          <ChevronLeft size={16} /> {t("bk.back")}
-        </button>
-        <div className="pdetail-error">
-          <AlertCircle size={24} />
-          <h3>{t("pdetail.notBookable")}</h3>
-          <p>{t("bflow.cannotBook")}</p>
-          <button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button>
-        </div>
-      </main>
-    );
-  }
+  if (status === "loading") return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("bk.back")}</button><div className="pdetail-loading"><Loader2 className="spin" size={24} /><p>{t("pdetail.loading")}</p></div></main>;
+  if (status === "error") return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("bk.back")}</button><div className="pdetail-error"><AlertCircle size={24} /><h3>{t("pdetail.error")}</h3><p>{t("bk.tryAgain")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
+  if (!provider) return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("bk.back")}</button><div className="pdetail-error"><MapPin size={24} /><h3>{t("pdetail.notFound")}</h3></div></main>;
+  if (!isBookable(provider)) return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("bk.back")}</button><div className="pdetail-error"><AlertCircle size={24} /><h3>{t("pdetail.notBookable")}</h3><p>{t("bflow.cannotBook")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
 
   if (!user) {
-    const goAuth = (target: "/login" | "/register") => {
-      rememberReturnTo("/provider/" + provider.id + "/booking");
-      navigate(target);
-    };
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/provider/" + provider.id)}>
-          <ChevronLeft size={16} /> {t("bk.backToFile")}
-        </button>
-        <div className="auth-gate">
-          <h3>{t("bflow.loginRequired")}</h3>
-          <p>{t("bflow.preserved")}</p>
-          <div className="actions">
-            <button className="primary" onClick={() => goAuth("/login")}>
-              {t("adminLogin.signIn")} <ArrowLeft size={16} />
-            </button>
-            <button className="ghost-button" onClick={() => goAuth("/register")}>
-              {t("auth.createAccountBtn")}
-            </button>
-          </div>
-        </div>
-      </main>
-    );
+    const goAuth = (target: "/login" | "/register") => { rememberReturnTo("/provider/" + provider.id + "/booking"); navigate(target); };
+    return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/provider/" + provider.id)}><ChevronLeft size={16} /> {t("bk.backToFile")}</button><div className="auth-gate"><h3>{t("bflow.loginRequired")}</h3><p>{t("bflow.preserved")}</p><div className="actions"><button className="primary" onClick={() => goAuth("/login")}>{t("adminLogin.signIn")} <ArrowLeft size={16} /></button><button className="ghost-button" onClick={() => goAuth("/register")}>{t("auth.createAccountBtn")}</button></div></div></main>;
   }
 
-  if (completed) {
-    return (
-      <main className="screen booking">
-        <button className="booking-back" onClick={() => navigate("/provider/" + provider.id)}>
-          <ChevronLeft size={16} /> {t("bk.backToFile")}
-        </button>
-        <section className="booking-success">
-          <span className="ok">
-            <Check size={30} />
-          </span>
-          <h1>{t("bflow.sent")}</h1>
-          <p>{t("bflow.sentBody")}</p>
-          <span className="status-pill pending">{BOOKING_STATUS_LABELS.pending}</span>
-          <div className="summary review-list">
-            <div className="review-row">
-              <span className="k">{t("bk.providerLabel")}</span>
-              <span className="v">{provider.name}</span>
-            </div>
-            <div className="review-row">
-              <span className="k">{t("pm.service")}</span>
-              <span className="v">{completed.service_category}</span>
-            </div>
-            <div className="review-row">
-              <span className="k">{t("pm.location")}</span>
-              <span className="v">{completed.location_text ?? "—"}</span>
-            </div>
-          </div>
-          <div className="actions">
-            <button className="primary" onClick={() => navigate("/bookings")}>
-              {t("bk.viewMyRequests")} <ArrowLeft size={16} />
-            </button>
-            <button className="ghost-button" onClick={() => navigate("/discover")}>
-              {t("pdetail.back")}
-            </button>
-          </div>
-        </section>
-      </main>
-    );
-  }
+  if (completed) return <main className="screen booking"><button className="booking-back" onClick={() => navigate("/provider/" + provider.id)}><ChevronLeft size={16} /> {t("bk.backToFile")}</button><section className="booking-success"><span className="ok"><Check size={30} /></span><h1>{t("bflow.sent")}</h1><p>{t("bflow.sentBody")}</p><span className="status-pill pending">{BOOKING_STATUS_LABELS.pending}</span><div className="summary review-list"><div className="review-row"><span className="k">{t("bk.providerLabel")}</span><span className="v">{provider.name}</span></div><div className="review-row"><span className="k">{t("pm.service")}</span><span className="v">{completed.service_category}</span></div><div className="review-row"><span className="k">{t("availability.dateLabel")}</span><span className="v">{formatAppointment(completed.service_date, lang)}</span></div><div className="review-row"><span className="k">{t("pm.location")}</span><span className="v">{completed.location_text ?? "—"}</span></div></div><div className="actions"><button className="primary" onClick={() => navigate("/bookings")}>{t("bk.viewMyRequests")} <ArrowLeft size={16} /></button><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></section></main>;
 
   return (
     <main className="screen booking">
-      <button className="booking-back" onClick={goBack}>
-        <ChevronLeft size={16} /> {t("bk.back")}
-      </button>
-      <div className="booking-head">
-        <span className="section-kicker">{t("bflow.request")}</span>
-        <h1>{t("bk.bookWith")} {provider.name}</h1>
-        <div className="booking-provider">
-          <Avatar name={provider.name} src={provider.image} />
-          <div>
-            <div className="bp-name">{provider.name}</div>
-            <div className="bp-job">{provider.job}</div>
-            <div className="bp-city">
-              <MapPin size={11} /> {provider.city}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="booking-steps" role="list">
-        {STEPS.map((label, index) => (
-          <div
-            className={"booking-step" + (index === step ? " on" : "") + (index < step ? " done" : "")}
-            key={label}
-          >
-            <span className="num">
-              {index < step ? <Check size={14} /> : index + 1}
-            </span>
-            <span className="label">{t(label)}</span>
-          </div>
-        ))}
-      </div>
-
+      <button className="booking-back" onClick={goBack}><ChevronLeft size={16} /> {t("bk.back")}</button>
+      <div className="booking-head"><span className="section-kicker">{t("bflow.request")}</span><h1>{t("bk.bookWith")} {provider.name}</h1><div className="booking-provider"><Avatar name={provider.name} src={provider.image} /><div><div className="bp-name">{provider.name}</div><div className="bp-job">{provider.job}</div><div className="bp-city"><MapPin size={11} /> {provider.city}</div></div></div></div>
+      <div className="booking-steps" role="list">{STEPS.map((label, index) => <div className={"booking-step" + (index === step ? " on" : "") + (index < step ? " done" : "")} key={label}><span className="num">{index < step ? <Check size={14} /> : index + 1}</span><span className="label">{t(label)}</span></div>)}</div>
       <div className="booking-body">
-        {failMsg ? (
-          <div className="booking-fail">
-            <AlertCircle size={16} /> {t(failMsg)}
-          </div>
-        ) : null}
-
-        {step === 0 ? (
-          <div className="booking-field">
-            <label>{t("bflow.serviceType")}</label>
-            <p className="hint">{t("bflow.pickServiceHint")}</p>
-            <div className="service-chips">
-              {provider.services.map((service) => (
-                <button
-                  className={"service-chip-opt" + (form.service === service ? " active" : "")}
-                  key={service}
-                  onClick={() => {
-                    update("service", service);
-                    setErrors((current) => ({ ...current, service: undefined }));
-                  }}
-                >
-{t(service)}
-                </button>
-              ))}
-            </div>
-            {errors.service ? <p className="err">{errors.service}</p> : null}
-          </div>
-        ) : null}
-
-        {step === 1 ? (
-          <div className="booking-field">
-            <label>{t("bflow.desc")}</label>
-            <p className="hint">{t("bk.notesHint")}</p>
-            <textarea
-              className="booking-native"
-              rows={5}
-              maxLength={500}
-              placeholder={t("bflow.descExample")}
-              value={form.description}
-              onChange={(event) => update("description", event.target.value)}
-            />
-            <p className="hint counter">{form.description.length}/500</p>
-          </div>
-        ) : null}
-
-        {step === 2 ? (
-          <>
-            <div className="booking-field">
-              <label>{t("bflow.date")}</label>
-              <p className="hint">{t("bflow.dateHint")}</p>
-              <div className="service-chips">
-                {DATES.map((day) => (
-                  <button
-                    className={"service-chip-opt" + (form.date === day ? " active" : "")}
-                    key={day}
-                    onClick={() => update("date", day)}
-                  >
-                    {t(day)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="booking-field">
-              <label>{t("bflow.time")}</label>
-              <p className="hint">{t("bflow.timeHint")}</p>
-              <div className="time-grid">
-                {TIMES.map((time) => (
-                  <button
-                    className={"time-opt" + (form.time === time ? " active" : "")}
-                    key={time}
-                    onClick={() => update("time", time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="booking-field">
-              <label>{t("bflow.locTitle")}</label>
-              <p className="hint">{t("bflow.locHint")}</p>
-              <input
-                className="booking-native"
-                value={form.location}
-                placeholder={t("bflow.locExample")}
-                onChange={(event) => {
-                  update("location", event.target.value);
-                  setErrors((current) => ({ ...current, location: undefined }));
-                }}
-              />
-              {errors.location ? <p className="err">{errors.location}</p> : null}
-            </div>
-          </>
-        ) : null}
-
-        {step === 3 ? (
-          <div className="booking-field">
-            <label>{t("bflow.review")}</label>
-            <p className="hint">{t("bflow.reviewHint")}</p>
-            <div className="review-list">
-              <div className="review-row">
-                <span className="k">{t("bk.providerLabel")}</span>
-                <span className="v">{provider.name}</span>
-              </div>
-              <div className="review-row">
-                <span className="k">{t("pm.service")}</span>
-                <span className="v">{t(form.service)}</span>
-              </div>
-              <div className="review-row">
-                <span className="k">{t("pm.appointment")}</span>
-                <span className="v">{t(form.date)} · {form.time}</span>
-              </div>
-              <div className="review-row">
-                <span className="k">{t("pm.location")}</span>
-                <span className="v">{form.location}</span>
-              </div>
-              <div className="review-row">
-                <span className="k">{t("bflow.extra")}</span>
-                <span className="v">{form.description.trim() || "—"}</span>
-              </div>
-            </div>
-            <div className="booking-notice">
-              <Info size={15} className="ico" />
-              <span>{t("bk.priceInfo")}</span>
-            </div>
-          </div>
-        ) : null}
+        {failMsg ? <div className="booking-fail"><AlertCircle size={16} /> {t(failMsg)}</div> : null}
+        {step === 0 ? <div className="booking-field"><label>{t("bflow.serviceType")}</label><p className="hint">{t("bflow.pickServiceHint")}</p><div className="service-chips">{provider.services.map((service) => <button className={"service-chip-opt" + (form.service === service ? " active" : "")} key={service} onClick={() => { update("service", service); setErrors((current) => ({ ...current, service: undefined })); }}>{t(service)}</button>)}</div>{errors.service ? <p className="err">{errors.service}</p> : null}</div> : null}
+        {step === 1 ? <div className="booking-field"><label>{t("bflow.desc")}</label><p className="hint">{t("bk.notesHint")}</p><textarea className="booking-native" rows={5} maxLength={500} placeholder={t("bflow.descExample")} value={form.description} onChange={(event) => update("description", event.target.value)} /><p className="hint counter">{form.description.length}/500</p></div> : null}
+        {step === 2 ? <div className="booking-field"><label>{t("bflow.schedule")}</label><p className="hint">{t("availability.chooseDateHint")}</p>{availabilityLoading ? <div className="slot-state"><Loader2 className="spin" size={18} /> {t("common.loading")}</div> : availabilityError ? <div className="slot-state error">{t("availability.loadSlotsError")}</div> : <TimeSlotPicker providerId={provider.id} availability={availability} value={form.serviceDate} onChange={(iso) => { update("serviceDate", iso); setErrors((current) => ({ ...current, serviceDate: undefined })); setFailMsg(""); }} />}{form.serviceDate ? <p className="hint" style={{ marginTop: 10 }}>{t("availability.dateLabel")}: {formatAppointment(form.serviceDate, lang)}</p> : null}{errors.serviceDate ? <p className="err">{errors.serviceDate}</p> : null}<div className="booking-field" style={{ marginTop: 18 }}><label>{t("bflow.locTitle")}</label><p className="hint">{t("bflow.locHint")}</p><input className="booking-native" value={form.location} placeholder={t("bflow.locExample")} onChange={(event) => { update("location", event.target.value); setErrors((current) => ({ ...current, location: undefined })); }} />{errors.location ? <p className="err">{errors.location}</p> : null}</div></div> : null}
+        {step === 3 ? <div className="booking-field"><label>{t("bflow.review")}</label><p className="hint">{t("bflow.reviewHint")}</p><div className="review-list"><div className="review-row"><span className="k">{t("bk.providerLabel")}</span><span className="v">{provider.name}</span></div><div className="review-row"><span className="k">{t("pm.service")}</span><span className="v">{t(form.service)}</span></div><div className="review-row"><span className="k">{t("availability.dateLabel")}</span><span className="v">{formatAppointment(form.serviceDate, lang)}</span></div><div className="review-row"><span className="k">{t("pm.location")}</span><span className="v">{form.location}</span></div><div className="review-row"><span className="k">{t("bflow.extra")}</span><span className="v">{form.description.trim() || "—"}</span></div></div><div className="booking-notice"><Info size={15} className="ico" /><span>{t("bk.priceInfo")}</span></div></div> : null}
       </div>
-
-      <div className="booking-actions">
-        <div className="inner">
-          <button className="secondary" onClick={goBack} disabled={submitting}>
-            {step > 0 ? t("onb.prev") : t("common.cancel")}
-          </button>
-          <button className="primary" onClick={next} disabled={submitting}>
-            {submitting ? (
-              <>
-                <Loader2 className="spin" size={16} /> {t("bk.submitting")}…
-              </>
-            ) : step < 3 ? (
-              <>
-                {t("bk.continue")} <ArrowLeft size={16} />
-              </>
-            ) : (
-              <>
-                {t("bk.submitRequest")} <ArrowLeft size={16} />
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+      <div className="booking-actions"><div className="inner"><button className="secondary" onClick={goBack} disabled={submitting}>{step > 0 ? t("onb.prev") : t("common.cancel")}</button><button className="primary" onClick={next} disabled={submitting}>{submitting ? <><Loader2 className="spin" size={16} /> {t("bk.submitting")}…</> : step < 3 ? <>{t("bk.continue")} <ArrowLeft size={16} /></> : <>{t("bk.submitRequest")} <ArrowLeft size={16} /></>}</button></div></div>
     </main>
   );
 }
