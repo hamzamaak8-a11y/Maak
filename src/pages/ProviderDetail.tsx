@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowLeft, ChevronLeft, Clock3, Loader2, MapPin, MessageCircle, ShieldCheck, Star } from "lucide-react";
+import { AlertCircle, ArrowLeft, ChevronLeft, Clock3, Loader2, MapPin, ShieldCheck, Star } from "lucide-react";
 import { isBookable, useProvider } from "../hooks/useProviders";
 import { useRouter } from "../router";
 import { Avatar } from "../components/atoms";
@@ -13,8 +13,6 @@ export default function ProviderDetail({ id }: { id: number }) {
   if (status === "error") return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><AlertCircle size={24} /><h3>{t("pdetail.error")}</h3><p>{t("common.retry")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
   if (!provider) return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><MapPin size={24} /><h3>{t("pdetail.notFound")}</h3></div></main>;
   if (!isBookable(provider)) return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><ShieldCheck size={24} /><h3>{t("pdetail.notBookable")}</h3><p>{t("pdetail.notBookableBody")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
-
-  const chatTarget = provider.provider_profile_id ? `/chat/provider/${provider.provider_profile_id}` : "/chat";
 
   return (
     <main className="screen pdetail">
@@ -36,7 +34,6 @@ export default function ProviderDetail({ id }: { id: number }) {
           </div>
           <div className="pdetail-desktop-cta">
             <button className="primary" onClick={() => navigate(`/provider/${provider.id}/booking`)}>{t("pd.bookNow")} <ArrowLeft size={16} /></button>
-            <button className="secondary" onClick={() => navigate(chatTarget)} aria-label={t("pd.contactProvider")}><MessageCircle size={16} /> {t("pd.contact")}</button>
           </div>
         </section>
         <section className="pdetail-content">
@@ -45,7 +42,7 @@ export default function ProviderDetail({ id }: { id: number }) {
           <div className="pdetail-section"><span className="section-kicker">{t("pdetail.location")}</span><h2>{t("steps.reviewRange")}</h2><ul className="pdetail-loc"><li><MapPin size={15} /> {provider.city}</li>{provider.distance ? <li><span className="muted-dot" /> {t("pd.approxDistance", { d: provider.distance })}</li> : null}</ul></div>
         </section>
       </div>
-      <div className="pdetail-cta" role="region" aria-label={t("pdetail.mainAction")}><div className="inner"><button className="secondary cta-chat" onClick={() => navigate(chatTarget)} aria-label={t("pd.contactProvider")}><MessageCircle size={18} /></button><button className="primary cta-book" onClick={() => navigate(`/provider/${provider.id}/booking`)}>{t("pd.bookNow")} <ArrowLeft size={16} /></button></div></div>
+      <div className="pdetail-cta" role="region" aria-label={t("pdetail.mainAction")}><div className="inner"><button className="primary cta-book" onClick={() => navigate(`/provider/${provider.id}/booking`)}>{t("pd.bookNow")} <ArrowLeft size={16} /></button></div></div>
     </main>
   );
 }
