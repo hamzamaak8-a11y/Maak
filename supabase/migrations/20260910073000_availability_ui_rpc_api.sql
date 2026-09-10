@@ -97,16 +97,28 @@ BEGIN
     RAISE EXCEPTION 'forbidden';
   END IF;
 
+  UPDATE public.provider_availability
+  SET is_available = false, updated_at = now()
+  WHERE provider_id = p_provider_id AND day_of_week = p_day_of_week;
+
+  IF NOT p_is_available THEN
+    SELECT * INTO v_row
+    FROM public.provider_availability
+    WHERE provider_id = p_provider_id AND day_of_week = p_day_of_week
+    ORDER BY updated_at DESC, created_at DESC
+    LIMIT 1;
+    IF v_row.id IS NULL THEN
+      INSERT INTO public.provider_availability(provider_id, day_of_week, start_time, end_time, is_available)
+      VALUES (p_provider_id, p_day_of_week, '00:00'::time, '00:00'::time, false)
+      RETURNING * INTO v_row;
+    END IF;
+    RETURN v_row;
+  END IF;
+
   INSERT INTO public.provider_availability(provider_id, day_of_week, start_time, end_time, is_available)
-  VALUES (
-    p_provider_id,
-    p_day_of_week,
-    COALESCE(p_start_time, '00:00'::time),
-    COALESCE(p_end_time, '00:00'::time),
-    p_is_available
-  )
+  VALUES (p_provider_id, p_day_of_week, p_start_time, p_end_time, true)
   ON CONFLICT (provider_id, day_of_week, start_time, end_time)
-  DO UPDATE SET is_available = EXCLUDED.is_available, updated_at = now()
+  DO UPDATE SET is_available = true, updated_at = now()
   RETURNING * INTO v_row;
 
   RETURN v_row;
