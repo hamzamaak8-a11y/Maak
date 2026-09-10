@@ -55,7 +55,7 @@ export async function loginAdmin(page: Page): Promise<void> {
   await login(page, "admin");
 }
 
-export async function createBookingAsCustomer(page: Page): Promise<void> {
+export async function createBookingAsCustomer(page: Page, locationText: string): Promise<void> {
   const state = getState();
   await loginCustomer(page);
   await page.goto(`/provider/${state.provider.listingId}/booking`);
@@ -74,7 +74,7 @@ export async function createBookingAsCustomer(page: Page): Promise<void> {
   await expect(availableSlot).toBeVisible();
   await availableSlot.click();
 
-  await page.locator('input.booking-native').fill("طنجة - E2E Test Location");
+  await page.locator("input.booking-native").fill(locationText);
   await continueButton.click();
   await expect(page.getByRole("heading", { name: /review|مراجعة|r[eé]capitulatif/i })).toBeVisible();
 
@@ -87,11 +87,11 @@ async function providerTab(page: Page, expression: RegExp): Promise<void> {
   await page.locator(".provider-side").getByRole("button", { name: expression }).first().click();
 }
 
-export async function acceptAndCompleteLatestBooking(page: Page): Promise<void> {
+export async function acceptAndCompleteLatestBooking(page: Page, locationText: string): Promise<void> {
   await loginProvider(page);
   await page.goto("/provider-mode");
 
-  const request = page.locator(".request-row").filter({ hasText: "طنجة - E2E Test Location" }).first();
+  const request = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(request).toBeVisible();
 
   const acceptButton = request.locator("button.primary").first();
@@ -100,14 +100,14 @@ export async function acceptAndCompleteLatestBooking(page: Page): Promise<void> 
   await expect(page.getByRole("status").first()).toBeVisible();
 
   await providerTab(page, /Accepted|Acceptées|مقبول|المقبولة/i);
-  const acceptedRequest = page.locator(".request-row").filter({ hasText: "طنجة - E2E Test Location" }).first();
+  const acceptedRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(acceptedRequest).toBeVisible();
   const startButton = acceptedRequest.getByRole("button", { name: /Start|Démarrer|بدء/i }).first();
   await expect(startButton).toBeVisible();
   await startButton.click();
 
   await providerTab(page, /In progress|En cours|قيد التنفيذ|جارية/i);
-  const activeRequest = page.locator(".request-row").filter({ hasText: "طنجة - E2E Test Location" }).first();
+  const activeRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(activeRequest).toBeVisible();
   const completeButton = activeRequest.getByRole("button", { name: /Complete|Terminer|إتمام|إكمال/i }).first();
   await expect(completeButton).toBeVisible();
