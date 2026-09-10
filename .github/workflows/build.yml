@@ -24,11 +24,14 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Resolve frontend dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
       - name: Install frontend dependencies
         run: npm ci
 
       - name: Syntax-check E2E seed tool
-        run: node --check scripts/seed-e2e.mjs
+        run: node --check scripts/seed-e2e.mjs && node --check scripts/seed-e2e-fixtures.mjs
 
       - name: Typecheck frontend
         run: npm run typecheck
