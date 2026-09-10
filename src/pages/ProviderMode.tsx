@@ -3,15 +3,7 @@ import { ArrowLeft, CalendarDays, Check, Loader2, ShieldAlert, X } from "lucide-
 import { Logo } from "../components/atoms";
 import { useToast } from "../context";
 import { useAuth } from "../auth";
-import {
-  BOOKING_STATUS_LABELS,
-  acceptBooking,
-  completeBooking,
-  getProviderBookings,
-  mapBookingError,
-  rejectBooking,
-  startBooking,
-} from "../lib/bookings";
+import { BOOKING_STATUS_LABELS, acceptBooking, completeBooking, getProviderBookings, mapBookingError, rejectBooking, setBookingPrice, startBooking } from "../lib/bookings";
 import { fetchProviderProfile } from "../lib/onboarding";
 import { getMyProviderListingId, getProviderAvailability, type ProviderAvailability } from "../lib/availability";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
@@ -21,311 +13,47 @@ import type { BookingRow, BookingStatus } from "../types";
 import { useLanguage } from "../i18n";
 import { useRouter } from "../router";
 
-type TabKey = "dashboard" | "profile" | "availability" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
+type TabKey = "dashboard"|"profile"|"availability"|"new"|"accepted"|"in_progress"|"completed"|"rejected";
+const TABS:{key:TabKey;label:string}[]=[{key:"dashboard",label:"providerDashboard.tab"},{key:"profile",label:"pm.tabProfile"},{key:"availability",label:"availability.manage"},{key:"new",label:"pm.tabNew"},{key:"accepted",label:"pm.tabAccepted"},{key:"in_progress",label:"pm.tabInProgress"},{key:"completed",label:"pm.tabCompleted"},{key:"rejected",label:"pm.tabRejected"}];
+type TranslateFunc=(key:string,vars?:Record<string,string|number>)=>string;
+function fmtDate(iso:string|null,t:TranslateFunc,lang:string){if(!iso)return t("common.unspecified");try{return new Intl.DateTimeFormat(lang==="fr"?"fr-FR":"ar-MA",{dateStyle:"medium",timeStyle:"short"}).format(new Date(iso));}catch{return iso;}}
+function pad2(n:number){return n<10?"0"+n:String(n);}
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "dashboard", label: "providerDashboard.tab" },
-  { key: "profile", label: "pm.tabProfile" },
-  { key: "availability", label: "availability.manage" },
-  { key: "new", label: "pm.tabNew" },
-  { key: "accepted", label: "pm.tabAccepted" },
-  { key: "in_progress", label: "pm.tabInProgress" },
-  { key: "completed", label: "pm.tabCompleted" },
-  { key: "rejected", label: "pm.tabRejected" },
-];
+export default function ProviderMode({switchRole}:{switchRole:()=>void}){
+  const{t,lang}=useLanguage(); const{showToast}=useToast(); const{profile,user}=useAuth(); const{navigate}=useRouter();
+  const[accessChecking,setAccessChecking]=useState(true); const[accessAllowed,setAccessAllowed]=useState(false); const[bookings,setBookings]=useState<BookingRow[]>([]); const[loading,setLoading]=useState(true); const[error,setError]=useState<string|null>(null); const[tab,setTab]=useState<TabKey>("dashboard"); const[openId,setOpenId]=useState<string|null>(null); const[rejectId,setRejectId]=useState<string|null>(null); const[rejectReason,setRejectReason]=useState(""); const[busy,setBusy]=useState<string|null>(null); const[providerListingId,setProviderListingId]=useState<number|null>(null); const[availability,setAvailability]=useState<ProviderAvailability[]>([]); const[availabilityLoading,setAvailabilityLoading]=useState(false); const[availabilityError,setAvailabilityError]=useState<string|null>(null);
+  const[priceEditorId,setPriceEditorId]=useState<string|null>(null); const[priceDraft,setPriceDraft]=useState(""); const[currencyDraft,setCurrencyDraft]=useState("USD");
 
-type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
+  useEffect(()=>{let active=true;(async()=>{if(!user||profile?.role!=="provider"||profile.account_status==="suspended"){navigate(user?"/account":"/login");if(active)setAccessChecking(false);return;}try{const provider=await fetchProviderProfile(user.id);if(!active)return;if(!provider||provider.verification_status!=="approved"){navigate("/account");return;}const listingId=await getMyProviderListingId();if(!active)return;setProviderListingId(listingId);setAccessAllowed(true);}catch{if(active)navigate("/account");}finally{if(active)setAccessChecking(false);}})();return()=>{active=false;};},[navigate,profile?.account_status,profile?.role,user]);
+  const load=useCallback(async()=>{setLoading(true);setError(null);try{setBookings(await getProviderBookings());}catch{setError(t("pm.loadFailBookings"));}finally{setLoading(false);}},[t]);
+  const loadAvailability=useCallback(async()=>{if(!providerListingId)return;setAvailabilityLoading(true);setAvailabilityError(null);try{setAvailability(await getProviderAvailability(providerListingId));}catch{setAvailabilityError("availability.loadSlotsError");}finally{setAvailabilityLoading(false);}},[providerListingId]);
+  useEffect(()=>{if(accessAllowed)void load();},[accessAllowed,load]); useEffect(()=>{if(accessAllowed&&providerListingId)void loadAvailability();},[accessAllowed,loadAvailability,providerListingId]);
+  const providerName=profile?.full_name??user?.email??t("bflow.provider");
+  const counts=useMemo<Record<TabKey,number>>(()=>({dashboard:0,profile:0,availability:0,new:bookings.filter(b=>b.status==="pending").length,accepted:bookings.filter(b=>b.status==="accepted").length,in_progress:bookings.filter(b=>b.status==="in_progress").length,completed:bookings.filter(b=>b.status==="completed").length,rejected:bookings.filter(b=>b.status==="rejected").length}),[bookings]);
+  const list=useMemo(()=>{if(tab==="dashboard"||tab==="profile"||tab==="availability")return[];const target:BookingStatus=tab==="new"?"pending":tab;return bookings.filter(b=>b.status===target);},[bookings,tab]);
+  const runAction=async(id:string,fn:()=>Promise<BookingRow>,okMsg:string)=>{setBusy(id);try{const row=await fn();setBookings(cur=>cur.map(b=>b.id===row.id?row:b));showToast(okMsg);}catch(err){showToast(t(mapBookingError(err)));}finally{setBusy(null);}};
+  const confirmReject=async()=>{if(!rejectId)return;const reason=rejectReason.trim();if(!reason){showToast(t("berr.reasonRequired"));return;}setBusy(rejectId);try{const row=await rejectBooking(rejectId,reason);setBookings(cur=>cur.map(b=>b.id===row.id?row:b));showToast(t("pm.requestRejected"));setRejectId(null);setRejectReason("");}catch(err){showToast(t(mapBookingError(err)));}finally{setBusy(null);}};
+  const openPriceEditor=(booking:BookingRow)=>{setPriceEditorId(booking.id);setPriceDraft(booking.price==null?"":String(booking.price));setCurrencyDraft(booking.currency||"USD");};
+  const savePrice=async(bookingId:string)=>{const value=Number(priceDraft);if(!Number.isFinite(value)||value<0){showToast(t("financial.invalidPrice"));return;}setBusy(bookingId);try{const row=await setBookingPrice(bookingId,value,currencyDraft);setBookings(cur=>cur.map(b=>b.id===row.id?row:b));showToast(t("financial.priceSaved"));setPriceEditorId(null);}catch(err){showToast(t(mapBookingError(err)));}finally{setBusy(null);}};
 
-function fmtDate(iso: string | null, t: TranslateFunc, lang: string): string {
-  if (!iso) return t("common.unspecified");
-  try {
-    const locale = lang === "fr" ? "fr-FR" : "ar-MA";
-    return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(iso));
-  } catch {
-    return iso;
-  }
-}
+  if(accessChecking)return <main className="screen onb-loading" aria-busy="true"><Loader2 className="auth-spin" size={26} aria-hidden="true"/></main>;
+  if(!accessAllowed)return <main className="screen"><div className="onb-status-card"><span className="onb-status-icon suspended"><ShieldAlert size={26}/></span><h1 className="onb-status-title">{t("acct.underReview")}</h1><p className="onb-status-body">{t("onb.underReviewBody")}</p></div></main>;
 
-function pad2(n: number): string {
-  return n < 10 ? "0" + n : String(n);
-}
-
-export default function ProviderMode({ switchRole }: { switchRole: () => void }) {
-  const { t, lang } = useLanguage();
-  const { showToast } = useToast();
-  const { profile, user } = useAuth();
-  const { navigate } = useRouter();
-  const [accessChecking, setAccessChecking] = useState(true);
-  const [accessAllowed, setAccessAllowed] = useState(false);
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<TabKey>("dashboard");
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [rejectId, setRejectId] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [providerListingId, setProviderListingId] = useState<number | null>(null);
-  const [availability, setAvailability] = useState<ProviderAvailability[]>([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      if (!user || profile?.role !== "provider" || profile.account_status === "suspended") {
-        navigate(user ? "/account" : "/login");
-        if (active) setAccessChecking(false);
-        return;
-      }
-      try {
-        const provider = await fetchProviderProfile(user.id);
-        if (!active) return;
-        if (!provider || provider.verification_status !== "approved") {
-          navigate("/account");
-          return;
-        }
-        const listingId = await getMyProviderListingId();
-        if (!active) return;
-        setProviderListingId(listingId);
-        setAccessAllowed(true);
-      } catch {
-        if (active) navigate("/account");
-      } finally {
-        if (active) setAccessChecking(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [navigate, profile?.account_status, profile?.role, user]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      setBookings(await getProviderBookings());
-    } catch {
-      setError(t("pm.loadFailBookings"));
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
-
-  const loadAvailability = useCallback(async () => {
-    if (!providerListingId) return;
-    setAvailabilityLoading(true);
-    setAvailabilityError(null);
-    try {
-      setAvailability(await getProviderAvailability(providerListingId));
-    } catch {
-      setAvailabilityError("availability.loadSlotsError");
-    } finally {
-      setAvailabilityLoading(false);
-    }
-  }, [providerListingId]);
-
-  useEffect(() => {
-    if (accessAllowed) void load();
-  }, [accessAllowed, load]);
-
-  useEffect(() => {
-    if (accessAllowed && providerListingId) void loadAvailability();
-  }, [accessAllowed, loadAvailability, providerListingId]);
-
-  const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
-  const counts = useMemo<Record<TabKey, number>>(() => ({
-    dashboard: 0,
-    profile: 0,
-    availability: 0,
-    new: bookings.filter((b) => b.status === "pending").length,
-    accepted: bookings.filter((b) => b.status === "accepted").length,
-    in_progress: bookings.filter((b) => b.status === "in_progress").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
-    rejected: bookings.filter((b) => b.status === "rejected").length,
-  }), [bookings]);
-
-  const list = useMemo(() => {
-    if (tab === "dashboard" || tab === "profile" || tab === "availability") return [];
-    const target: BookingStatus = tab === "new" ? "pending" : tab;
-    return bookings.filter((b) => b.status === target);
-  }, [bookings, tab]);
-
-  const runAction = async (id: string, fn: () => Promise<BookingRow>, okMsg: string) => {
-    setBusy(id);
-    try {
-      const row = await fn();
-      setBookings((cur) => cur.map((b) => (b.id === row.id ? row : b)));
-      showToast(okMsg);
-    } catch (err) {
-      showToast(t(mapBookingError(err)));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const confirmReject = async () => {
-    if (!rejectId) return;
-    const reason = rejectReason.trim();
-    if (!reason) {
-      showToast(t("berr.reasonRequired"));
-      return;
-    }
-    setBusy(rejectId);
-    try {
-      const row = await rejectBooking(rejectId, reason);
-      setBookings((cur) => cur.map((b) => (b.id === row.id ? row : b)));
-      showToast(t("pm.requestRejected"));
-      setRejectId(null);
-      setRejectReason("");
-    } catch (err) {
-      showToast(t(mapBookingError(err)));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  if (accessChecking) {
-    return (
-      <main className="screen onb-loading" aria-busy="true">
-        <Loader2 className="auth-spin" size={26} aria-hidden="true" />
-      </main>
-    );
-  }
-
-  if (!accessAllowed) {
-    return (
-      <main className="screen">
-        <div className="onb-status-card">
-          <span className="onb-status-icon suspended"><ShieldAlert size={26} /></span>
-          <h1 className="onb-status-title">{t("acct.underReview")}</h1>
-          <p className="onb-status-body">{t("onb.underReviewBody")}</p>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <div className="provider-layout">
-      <aside className="provider-side">
-        <Logo inverse />
-        <div className="provider-side-title"><span>{t("pm.workspace")}</span><b>{providerName}</b></div>
-        {TABS.map((tabItem) => (
-          <button
-            className={tab === tabItem.key ? "sel" : ""}
-            key={tabItem.key}
-            onClick={() => { setTab(tabItem.key); setOpenId(null); setRejectId(null); }}
-          >
-            {t(tabItem.label)}
-            {tabItem.key !== "dashboard" && tabItem.key !== "profile" && tabItem.key !== "availability" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
-          </button>
-        ))}
-        <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} aria-hidden="true" /></button>
-      </aside>
-
-      <main className="provider-main">
-        {tab === "dashboard" ? (
-          <ProviderDashboard providerName={providerName} />
-        ) : tab === "profile" ? (
-          <ProviderProfileEditor />
-        ) : tab === "availability" ? (
-          <>
-            <div className="admin-top">
-              <div><span className="section-kicker">{t("availability.kicker")}</span><h1>{t("availability.manage")}</h1></div>
-            </div>
-            {availabilityLoading ? (
-              <div className="empty-state"><Loader2 className="spin" size={20} /> <p>{t("common.loading")}</p></div>
-            ) : availabilityError ? (
-              <div className="empty-state"><p>{t(availabilityError)}</p><button className="ghost-button" onClick={() => void loadAvailability()}>{t("common.retryBtn")}</button></div>
-            ) : providerListingId ? (
-              <AvailabilityCalendar
-                providerId={providerListingId}
-                initialRows={availability}
-                onSaved={(row) => setAvailability((current) => {
-                  const without = current.filter((item) => item.id !== row.id && !(item.provider_id === row.provider_id && item.day_of_week === row.day_of_week && item.start_time === row.start_time && item.end_time === row.end_time));
-                  return [...without, row].sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time));
-                })}
-              />
-            ) : (
-              <div className="empty-state"><p>{t("availability.manageHint")}</p></div>
-            )}
-          </>
-        ) : (
-          <>
-            <div className="admin-top">
-              <div><span className="section-kicker">{t("pm.serviceRequests")}</span><h1>{t("pm.greeting", { name: providerName })}</h1></div>
-            </div>
-
-            <div className="metric-row">
-              <div className="metric"><small>{t("pm.tabNew")}</small><strong>{pad2(counts.new)}</strong><span>{t("pm.awaitingAcceptance")}</span></div>
-              <div className="metric"><small>{t("pm.inExecution")}</small><strong>{pad2(counts.in_progress)}</strong><span>{t("pm.servicesOngoing")}</span></div>
-              <div className="metric"><small>{t("pm.tabCompleted")}</small><strong>{pad2(counts.completed)}</strong><span>{t("pm.servicesDone")}</span></div>
-            </div>
-
-            <div className="section-heading dashboard-heading">
-              <div><span className="section-kicker">{t(TABS.find((tabItem) => tabItem.key === tab)?.label ?? "")}</span><h2>{t("pm.requestCount", { n: list.length })}</h2></div>
-              <button className="text-button" onClick={() => void load()}><ArrowLeft size={15} aria-hidden="true" /> {t("pm.refresh")}</button>
-            </div>
-
-            {loading ? (
-              <div className="empty-state"><p>{t("pm.loadingRequests")}</p></div>
-            ) : error ? (
-              <div className="empty-state"><p>{t(error)}</p><button className="ghost-button" onClick={() => void load()}>{t("common.retryBtn")}</button></div>
-            ) : list.length === 0 ? (
-              <div className="empty-state"><CalendarDays size={24} aria-hidden="true" /><h3>{t("pm.emptySection")}</h3></div>
-            ) : (
-              list.map((b) => (
-                <div className="request-row" key={b.id}>
-                  <div className="request-client">
-                    <span className="avatar">{(b.customer_name ?? t("pm.customerInitial")).slice(0, 1)}</span>
-                    <div>
-                      <span className="status">{t(BOOKING_STATUS_LABELS[b.status])}</span>
-                      <h3>{t(b.service_category)}</h3>
-                      <p>{b.customer_name ?? t("pm.customer")} · {fmtDate(b.service_date, t, lang)} · {b.location_text ?? t("common.unspecified")}</p>
-                    </div>
-                  </div>
-
-                  <div className="cta-row">
-                    {b.status === "pending" ? (
-                      <>
-                        <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => acceptBooking(b.id), t("pm.requestAccepted"))}><Check size={15} aria-hidden="true" /> {t("pm.acceptRequest")}</button>
-                        <button className="secondary" disabled={busy === b.id} onClick={() => { setRejectId(rejectId === b.id ? null : b.id); setRejectReason(""); }}><X size={15} aria-hidden="true" /> {t("pm.rejectRequest")}</button>
-                      </>
-                    ) : b.status === "accepted" ? (
-                      <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => startBooking(b.id), t("pm.serviceStarted"))}>{t("pm.startService")}</button>
-                    ) : b.status === "in_progress" ? (
-                      <button className="primary" disabled={busy === b.id} onClick={() => void runAction(b.id, () => completeBooking(b.id), t("pm.serviceCompleted"))}>{t("pm.completeService")}</button>
-                    ) : null}
-                    <button className="ghost-button" onClick={() => setOpenId(openId === b.id ? null : b.id)}>{openId === b.id ? t("common.hide") : t("common.details")}</button>
-                  </div>
-
-                  {rejectId === b.id ? (
-                    <div className="reject-form">
-                      <textarea className="booking-native" rows={3} placeholder={t("pm.rejectReasonPlaceholder")} value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} />
-                      <div className="cta-row" style={{ marginTop: 10 }}>
-                        <button className="primary" disabled={busy === b.id} onClick={() => void confirmReject()}>{t("pm.confirmReject")}</button>
-                        <button className="ghost-button" onClick={() => { setRejectId(null); setRejectReason(""); }}>{t("bk.backOut")}</button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {openId === b.id ? (
-                    <div className="request-detail">
-                      <div className="detail-row"><b>{t("pm.customerFull")}</b><span>{b.customer_name ?? "—"}</span></div>
-                      <div className="detail-row"><b>{t("bflow.service")}</b><span>{t(b.service_category)}</span></div>
-                      {b.service_description ? <div className="detail-row"><b>{t("pm.description")}</b><span>{b.service_description}</span></div> : null}
-                      <div className="detail-row"><b>{t("pm.appointment")}</b><span>{fmtDate(b.service_date, t, lang)}</span></div>
-                      <div className="detail-row"><b>{t("pdetail.location")}</b><span>{b.location_text ?? "—"}</span></div>
-                      {b.customer_note ? <div className="detail-row"><b>{t("pm.customerNote")}</b><span>{b.customer_note}</span></div> : null}
-                      {b.rejection_reason ? <div className="detail-row"><b>{t("bk.rejectionReason")}</b><span>{b.rejection_reason}</span></div> : null}
-                    </div>
-                  ) : null}
-                </div>
-              ))
-            )}
-          </>
-        )}
-      </main>
-    </div>
-  );
+  return <div className="provider-layout">
+    <aside className="provider-side"><Logo inverse/><div className="provider-side-title"><span>{t("pm.workspace")}</span><b>{providerName}</b></div>{TABS.map(tabItem=><button className={tab===tabItem.key?"sel":""} key={tabItem.key} onClick={()=>{setTab(tabItem.key);setOpenId(null);setRejectId(null);}}>{t(tabItem.label)}{tabItem.key!=="dashboard"&&tabItem.key!=="profile"&&tabItem.key!=="availability"&&counts[tabItem.key]>0?<span className="nav-count">{counts[tabItem.key]}</span>:null}</button>)}<button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} aria-hidden="true"/></button></aside>
+    <main className="provider-main">
+      {tab==="dashboard"?<ProviderDashboard providerName={providerName}/>:tab==="profile"?<ProviderProfileEditor/>:tab==="availability"?<><div className="admin-top"><div><span className="section-kicker">{t("availability.kicker")}</span><h1>{t("availability.manage")}</h1></div></div>{availabilityLoading?<div className="empty-state"><Loader2 className="spin" size={20}/><p>{t("common.loading")}</p></div>:availabilityError?<div className="empty-state"><p>{t(availabilityError)}</p><button className="ghost-button" onClick={()=>void loadAvailability()}>{t("common.retryBtn")}</button></div>:providerListingId?<AvailabilityCalendar providerId={providerListingId} initialRows={availability} onSaved={row=>setAvailability(current=>{const without=current.filter(item=>item.id!==row.id&&!(item.provider_id===row.provider_id&&item.day_of_week===row.day_of_week&&item.start_time===row.start_time&&item.end_time===row.end_time));return[...without,row].sort((a,b)=>a.day_of_week-b.day_of_week||a.start_time.localeCompare(b.start_time));})}/>:<div className="empty-state"><p>{t("availability.manageHint")}</p></div>}</>:<>
+        <div className="admin-top"><div><span className="section-kicker">{t("pm.serviceRequests")}</span><h1>{t("pm.greeting",{name:providerName})}</h1></div></div>
+        <div className="metric-row"><div className="metric"><small>{t("pm.tabNew")}</small><strong>{pad2(counts.new)}</strong><span>{t("pm.awaitingAcceptance")}</span></div><div className="metric"><small>{t("pm.inExecution")}</small><strong>{pad2(counts.in_progress)}</strong><span>{t("pm.servicesOngoing")}</span></div><div className="metric"><small>{t("pm.tabCompleted")}</small><strong>{pad2(counts.completed)}</strong><span>{t("pm.servicesDone")}</span></div></div>
+        <div className="section-heading dashboard-heading"><div><span className="section-kicker">{t(TABS.find(tabItem=>tabItem.key===tab)?.label??"")}</span><h2>{t("pm.requestCount",{n:list.length})}</h2></div><button className="text-button" onClick={()=>void load()}><ArrowLeft size={15} aria-hidden="true"/> {t("pm.refresh")}</button></div>
+        {loading?<div className="empty-state"><p>{t("pm.loadingRequests")}</p></div>:error?<div className="empty-state"><p>{t(error)}</p><button className="ghost-button" onClick={()=>void load()}>{t("common.retryBtn")}</button></div>:list.length===0?<div className="empty-state"><CalendarDays size={24} aria-hidden="true"/><h3>{t("pm.emptySection")}</h3></div>:list.map(b=><div className="request-row" key={b.id}>
+          <div className="request-client"><span className="avatar">{(b.customer_name??t("pm.customerInitial")).slice(0,1)}</span><div><span className="status">{t(BOOKING_STATUS_LABELS[b.status])}</span><h3>{t(b.service_category)}</h3><p>{b.customer_name??t("pm.customer")} · {fmtDate(b.service_date,t,lang)} · {b.location_text??t("common.unspecified")}</p></div></div>
+          <div className="cta-row">{b.status==="pending"?<><button className="primary" disabled={busy===b.id} onClick={()=>void runAction(b.id,()=>acceptBooking(b.id),t("pm.requestAccepted"))}><Check size={15} aria-hidden="true"/> {t("pm.acceptRequest")}</button><button className="secondary" disabled={busy===b.id} onClick={()=>{setRejectId(rejectId===b.id?null:b.id);setRejectReason("");}}><X size={15} aria-hidden="true"/> {t("pm.rejectRequest")}</button></>:b.status==="accepted"?<button className="primary" disabled={busy===b.id} onClick={()=>void runAction(b.id,()=>startBooking(b.id),t("pm.serviceStarted"))}>{t("pm.startService")}</button>:b.status==="in_progress"?<button className="primary" disabled={busy===b.id} onClick={()=>void runAction(b.id,()=>completeBooking(b.id),t("pm.serviceCompleted"))}>{t("pm.completeService")}</button>:null}<button className="ghost-button" onClick={()=>setOpenId(openId===b.id?null:b.id)}>{openId===b.id?t("common.hide"):t("common.details")}</button></div>
+          {b.status==="pending"?<div className="provider-price-editor"><div className="provider-price-display"><span>{t("financial.price")}</span><strong>{b.price==null?t("financial.pricePending"):`${b.price.toFixed(2)} ${b.currency}`}</strong></div><button className="ghost-button" onClick={()=>openPriceEditor(b)}>{t("financial.setPrice")}</button>{priceEditorId===b.id?<div className="provider-price-form"><input className="booking-native" type="number" min="0" step="0.01" value={priceDraft} onChange={e=>setPriceDraft(e.target.value)} placeholder={t("financial.pricePlaceholder")} aria-label={t("financial.price")}/><input className="booking-native" value={currencyDraft} maxLength={3} onChange={e=>setCurrencyDraft(e.target.value.toUpperCase())} placeholder="USD" aria-label={t("financial.currency")}/><button className="primary" disabled={busy===b.id} onClick={()=>void savePrice(b.id)}>{busy===b.id?<Loader2 className="spin" size={15}/>:null} {t("financial.savePrice")}</button></div>:null}</div>:null}
+          {rejectId===b.id?<div className="reject-form"><textarea className="booking-native" rows={3} placeholder={t("pm.rejectReasonPlaceholder")} value={rejectReason} onChange={e=>setRejectReason(e.target.value)}/><div className="cta-row" style={{marginTop:10}}><button className="primary" disabled={busy===b.id} onClick={()=>void confirmReject()}>{t("pm.confirmReject")}</button><button className="ghost-button" onClick={()=>{setRejectId(null);setRejectReason("");}}>{t("bk.backOut")}</button></div></div>:null}
+          {openId===b.id?<div className="request-detail"><div className="detail-row"><b>{t("pm.customerFull")}</b><span>{b.customer_name??"—"}</span></div><div className="detail-row"><b>{t("bflow.service")}</b><span>{t(b.service_category)}</span></div>{b.service_description?<div className="detail-row"><b>{t("pm.description")}</b><span>{b.service_description}</span></div>:null}<div className="detail-row"><b>{t("pm.appointment")}</b><span>{fmtDate(b.service_date,t,lang)}</span></div><div className="detail-row"><b>{t("pdetail.location")}</b><span>{b.location_text??"—"}</span></div>{b.customer_note?<div className="detail-row"><b>{t("pm.customerNote")}</b><span>{b.customer_note}</span></div>:null}{b.rejection_reason?<div className="detail-row"><b>{t("bk.rejectionReason")}</b><span>{b.rejection_reason}</span></div>:null}{b.price!=null?<div className="detail-row"><b>{t("financial.price")}</b><span>{b.price.toFixed(2)} {b.currency} · {b.payment_status}</span></div>:null}</div>:null}
+        </div>)}
+      </>}
+    </main>
+  </div>;
 }
