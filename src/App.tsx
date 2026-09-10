@@ -7,7 +7,6 @@ import { Router, matchPath, useRouter } from "./router";
 import { Header, MobileNav } from "./components/navigation";
 import { Logo } from "./components/atoms";
 import AdminCommandPalette from "./components/AdminCommandPalette";
-import AdminV2 from "./pages/AdminV2";
 import AdminModeration from "./pages/AdminModeration";
 import AdminLogin from "./pages/AdminLogin";
 import ProviderMode from "./pages/ProviderMode";
