@@ -55,7 +55,7 @@ export async function loginAdmin(page: Page): Promise<void> {
   await login(page, "admin");
 }
 
-export async function createBookingAsCustomer(page: Page, locationText: string): Promise<void> {
+export async function createBookingAsCustomer(page: Page, locationText: string, dayOffset = 1): Promise<void> {
   const state = getState();
   await loginCustomer(page);
   await page.goto(`/provider/${state.provider.listingId}/booking`);
@@ -67,9 +67,9 @@ export async function createBookingAsCustomer(page: Page, locationText: string):
   await expect(page.locator("textarea.booking-native")).toBeVisible();
   await continueButton.click();
 
-  // Tomorrow is deliberately used so the fixed 09:00 slot is always in the future.
-  await expect(page.getByRole("tab").nth(1)).toBeVisible();
-  await page.getByRole("tab").nth(1).click();
+  // Fixed one-hour slots are used by the V1 availability model. Scenarios use different future days for isolation.
+  await expect(page.getByRole("tab").nth(dayOffset)).toBeVisible();
+  await page.getByRole("tab").nth(dayOffset).click();
   const availableSlot = page.locator("button.slot-option:not([disabled])").first();
   await expect(availableSlot).toBeVisible();
   await availableSlot.click();
