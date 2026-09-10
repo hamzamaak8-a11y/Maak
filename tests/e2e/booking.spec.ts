@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { createBookingAsCustomer, getState, loginProvider } from "./helpers";
 
+const locationText = "طنجة - E2E Booking Test";
+
 test("customer selects an available slot, submits a booking, and provider accepts it", async ({ page, browser }) => {
   const state = getState();
 
-  await createBookingAsCustomer(page);
+  await createBookingAsCustomer(page, locationText);
   await expect(page.locator(".booking-success")).toContainText(/pending|معلّق|قيد الانتظار|en attente/i);
 
   const providerContext = await browser.newContext();
@@ -12,8 +14,8 @@ test("customer selects an available slot, submits a booking, and provider accept
   try {
     await loginProvider(providerPage);
     await providerPage.goto("/provider-mode");
-    await expect(providerPage.locator(".request-row").filter({ hasText: "طنجة - E2E Test Location" }).first()).toBeVisible();
-    const request = providerPage.locator(".request-row").filter({ hasText: "طنجة - E2E Test Location" }).first();
+    const request = providerPage.locator(".request-row").filter({ hasText: locationText }).first();
+    await expect(request).toBeVisible();
     const acceptButton = request.locator("button.primary").first();
     await expect(acceptButton).toBeVisible();
     await acceptButton.click();
@@ -24,7 +26,7 @@ test("customer selects an available slot, submits a booking, and provider accept
   }
 
   await page.goto("/bookings");
-  const booking = page.locator(".booking-card").filter({ hasText: "طنجة - E2E Test Location" }).first();
+  const booking = page.locator(".booking-card").filter({ hasText: locationText }).first();
   await expect(booking).toBeVisible();
   await expect(booking).toContainText(/accepted|مقبول|تم القبول|acceptée/i);
   expect(state.provider.listingId).toBeGreaterThan(0);
