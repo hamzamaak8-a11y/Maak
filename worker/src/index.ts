@@ -1,6 +1,9 @@
 import type { Env } from "./types";
 import { findProvider, listProviders } from "./supabase";
 
+const PROVIDERS_CACHE_SECONDS = 300;
+const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
+
 function cors(env: Env, requestOrigin: string | null): Record<string, string> {
   const allowed = env.MAAK_ALLOW_ORIGIN?.trim();
   const headers: Record<string, string> = {
@@ -15,10 +18,14 @@ function cors(env: Env, requestOrigin: string | null): Record<string, string> {
   return headers;
 }
 
-function json(env: Env, requestOrigin: string | null, status: number, body: unknown): Response {
+function json(env: Env, requestOrigin: string | null, status: number, body: unknown, extraHeaders?: Record<string, string>): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...cors(env, requestOrigin) },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...cors(env, requestOrigin),
+      ...extraHeaders,
+    },
   });
 }
 
@@ -26,8 +33,18 @@ function safeError(operation: string, error: unknown): void {
   console.error(`[maak-worker] ${operation} failed`, error);
 }
 
+function cacheResponse(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", PROVIDER_CACHE_CONTROL);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
-  async fetch(req: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     const requestOrigin = req.headers.get("Origin");
     const corsHeaders = cors(env, requestOrigin);
@@ -46,8 +63,17 @@ export default {
     const parts = url.pathname.split("/").filter(Boolean);
 
     if (parts[0] === "api" && parts[1] === "providers" && parts.length === 2 && req.method === "GET") {
+      const cache = caches.default;
+      const cacheKey = new Request(url.toString(), req);
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+
       try {
-        return json(env, requestOrigin, 200, await listProviders(env));
+        const response = cacheResponse(json(env, requestOrigin, 200, await listProviders(env), {
+          "Cache-Control": PROVIDER_CACHE_CONTROL,
+        }));
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        return response;
       } catch (error) {
         safeError("list providers", error);
         return json(env, requestOrigin, 503, { error: "service_unavailable" });
@@ -59,10 +85,19 @@ export default {
       if (!Number.isInteger(id) || id <= 0) {
         return json(env, requestOrigin, 400, { error: "invalid_id" });
       }
+      const cache = caches.default;
+      const cacheKey = new Request(url.toString(), req);
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+
       try {
         const provider = await findProvider(env, id);
         if (!provider) return json(env, requestOrigin, 404, { error: "not_found" });
-        return json(env, requestOrigin, 200, provider);
+        const response = cacheResponse(json(env, requestOrigin, 200, provider, {
+          "Cache-Control": PROVIDER_CACHE_CONTROL,
+        }));
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        return response;
       } catch (error) {
         safeError("get provider", error);
         return json(env, requestOrigin, 503, { error: "service_unavailable" });
