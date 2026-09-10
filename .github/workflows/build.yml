@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install frontend dependencies
@@ -36,9 +36,11 @@ jobs:
       - name: Verify production artifacts
         run: npm run qa:smoke
 
-      - name: Refresh Worker lockfile
+      - name: Refresh Worker lockfile and audit fixes
         working-directory: worker
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only --ignore-scripts
 
       - name: Commit refreshed Worker lockfile
         run: |
@@ -54,6 +56,10 @@ jobs:
 
       - name: Install Worker dependencies
         run: npm ci --prefix worker
+
+      - name: Audit Worker dependencies
+        working-directory: worker
+        run: npm audit --audit-level=moderate
 
       - name: Typecheck Worker
         run: npm run typecheck --prefix worker
