@@ -13,15 +13,18 @@ import {
   startBooking,
 } from "../lib/bookings";
 import { fetchProviderProfile } from "../lib/onboarding";
+import { getMyProviderListingId, getProviderAvailability, type ProviderAvailability } from "../lib/availability";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
+import AvailabilityCalendar from "../components/availability/AvailabilityCalendar";
 import type { BookingRow, BookingStatus } from "../types";
 import { useLanguage } from "../i18n";
 import { useRouter } from "../router";
 
-type TabKey = "profile" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
+type TabKey = "profile" | "availability" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "profile", label: "pm.tabProfile" },
+  { key: "availability", label: "availability.manage" },
   { key: "new", label: "pm.tabNew" },
   { key: "accepted", label: "pm.tabAccepted" },
   { key: "in_progress", label: "pm.tabInProgress" },
@@ -60,6 +63,10 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [providerListingId, setProviderListingId] = useState<number | null>(null);
+  const [availability, setAvailability] = useState<ProviderAvailability[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -76,6 +83,9 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
           navigate("/account");
           return;
         }
+        const listingId = await getMyProviderListingId();
+        if (!active) return;
+        setProviderListingId(listingId);
         setAccessAllowed(true);
       } catch {
         if (active) navigate("/account");
@@ -100,13 +110,31 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
     }
   }, [t]);
 
+  const loadAvailability = useCallback(async () => {
+    if (!providerListingId) return;
+    setAvailabilityLoading(true);
+    setAvailabilityError(null);
+    try {
+      setAvailability(await getProviderAvailability(providerListingId));
+    } catch {
+      setAvailabilityError("availability.loadSlotsError");
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }, [providerListingId]);
+
   useEffect(() => {
     if (accessAllowed) void load();
   }, [accessAllowed, load]);
 
+  useEffect(() => {
+    if (accessAllowed && providerListingId) void loadAvailability();
+  }, [accessAllowed, loadAvailability, providerListingId]);
+
   const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
   const counts = useMemo<Record<TabKey, number>>(() => ({
     profile: 0,
+    availability: 0,
     new: bookings.filter((b) => b.status === "pending").length,
     accepted: bookings.filter((b) => b.status === "accepted").length,
     in_progress: bookings.filter((b) => b.status === "in_progress").length,
@@ -115,7 +143,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   }), [bookings]);
 
   const list = useMemo(() => {
-    if (tab === "profile") return [];
+    if (tab === "profile" || tab === "availability") return [];
     const target: BookingStatus = tab === "new" ? "pending" : tab;
     return bookings.filter((b) => b.status === target);
   }, [bookings, tab]);
@@ -186,7 +214,7 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
             onClick={() => { setTab(tabItem.key); setOpenId(null); setRejectId(null); }}
           >
             {t(tabItem.label)}
-            {tabItem.key !== "profile" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
+            {tabItem.key !== "profile" && tabItem.key !== "availability" && counts[tabItem.key] > 0 ? <span className="nav-count">{counts[tabItem.key]}</span> : null}
           </button>
         ))}
         <button className="switch-role" onClick={switchRole}>{t("pm.backToCustomer")} <ArrowLeft size={14} aria-hidden="true" /></button>
@@ -195,6 +223,28 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
       <main className="provider-main">
         {tab === "profile" ? (
           <ProviderProfileEditor />
+        ) : tab === "availability" ? (
+          <>
+            <div className="admin-top">
+              <div><span className="section-kicker">{t("availability.kicker")}</span><h1>{t("availability.manage")}</h1></div>
+            </div>
+            {availabilityLoading ? (
+              <div className="empty-state"><Loader2 className="spin" size={20} /> <p>{t("common.loading")}</p></div>
+            ) : availabilityError ? (
+              <div className="empty-state"><p>{t(availabilityError)}</p><button className="ghost-button" onClick={() => void loadAvailability()}>{t("common.retryBtn")}</button></div>
+            ) : providerListingId ? (
+              <AvailabilityCalendar
+                providerId={providerListingId}
+                initialRows={availability}
+                onSaved={(row) => setAvailability((current) => {
+                  const without = current.filter((item) => item.id !== row.id && !(item.provider_id === row.provider_id && item.day_of_week === row.day_of_week && item.start_time === row.start_time && item.end_time === row.end_time));
+                  return [...without, row].sort((a, b) => a.day_of_week - b.day_of_week || a.start_time.localeCompare(b.start_time));
+                })}
+              />
+            ) : (
+              <div className="empty-state"><p>{t("availability.manageHint")}</p></div>
+            )}
+          </>
         ) : (
           <>
             <div className="admin-top">
