@@ -33,6 +33,22 @@ function msg(e: unknown, fallback: string): Error {
   return enriched;
 }
 
+export type AdminDashboardStats = {
+  total_customers: number;
+  total_providers: number;
+  approved_providers: number;
+  total_bookings: number;
+  bookings_by_status: Record<string, number>;
+  providers_by_status: Record<string, number>;
+  published_listings: number;
+};
+
+export async function fetchAdminStats(): Promise<AdminDashboardStats> {
+  const { data, error } = await supabase.rpc("get_admin_dashboard_stats");
+  if (error) throw msg(error, "adm.loadStatsFail");
+  return data as AdminDashboardStats;
+}
+
 export async function countByStatus(status: VerificationStatus): Promise<number> {
   const { count, error } = await supabase.from("provider_profiles").select("id", { count: "exact", head: true }).eq("verification_status", status);
   if (error) throw msg(error, "adm.loadStatsFail");
