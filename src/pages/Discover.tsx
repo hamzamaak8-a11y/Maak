@@ -1,8 +1,12 @@
 import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
-import { CategoryChip, ProviderRow, ProviderSkeleton, SearchBox, StateCard } from "../components/atoms";
-import { FilterBar } from "../components/filters";
-import { categoryCountLabel, countByCategory, filterProviders, getCategories } from "../services";
+import { CategoryChip, ProviderRow, ProviderSkeleton, StateCard } from "../components/atoms";
+import SearchBar from "../components/search/SearchBar";
+import CategoryFilter from "../components/search/CategoryFilter";
+import RatingFilter from "../components/search/RatingFilter";
+import PriceFilter, { type PriceRange } from "../components/search/PriceFilter";
+import AvailabilityFilter, { type AvailabilityFilterValue } from "../components/search/AvailabilityFilter";
+import { categoryCountLabel, countByCategory, filterMarketplaceProviders, getCategories } from "../services";
 import { useProviders } from "../hooks/useProviders";
 import type { Category } from "../types";
 import { useRouter } from "../router";
@@ -20,41 +24,44 @@ const providerCountLabel = (n: number, t: TranslateFunc): string => {
 export default function Discover() {
   const { t } = useLanguage();
   const { navigate } = useRouter();
-  const initialQuery = useMemo(
-    () => new URLSearchParams(window.location.search).get("q") || "",
-    [],
-  );
-  const [filter, setFilter] = useState(initialQuery);
+  const initialQuery = useMemo(() => new URLSearchParams(window.location.search).get("q") || "", []);
+  const [query, setQuery] = useState(initialQuery);
+  const [category, setCategory] = useState("");
   const [city, setCity] = useState("");
+  const [minRating, setMinRating] = useState<number | null>(null);
+  const [priceRange, setPriceRange] = useState<PriceRange>("");
+  const [availability, setAvailability] = useState<AvailabilityFilterValue>("");
   const { providers, status, refetch } = useProviders();
 
   const categories = useMemo(
     () => getCategories().map((c) => ({ ...c, count: t(categoryCountLabel(providers, c.name), { n: countByCategory(providers, c.name) }) })),
-    [providers],
+    [providers, t],
   );
   const chips: Category[] = useMemo(
     () => [
       { name: t("filters.all"), icon: Sparkles, count: providerCountLabel(providers.length, t) },
       ...categories,
     ],
-    [categories, providers.length],
+    [categories, providers.length, t],
   );
   const cities = useMemo(
-    () => Array.from(new Set(providers.map((p) => p.city).filter(Boolean) as string[])),
+    () => Array.from(new Set(providers.map((p) => p.city).filter(Boolean) as string[])).sort((a, b) => a.localeCompare(b)),
     [providers],
   );
 
-  // Only real, data-backed filters: free-text/category match and city.
-  const results = useMemo(() => {
-    let list = filterProviders(providers, filter);
-    if (city) list = list.filter((p) => p.city === city);
-    return list;
-  }, [providers, filter, city]);
+  const results = useMemo(
+    () => filterMarketplaceProviders(providers, { query, category, city, minRating, priceRange, availability }),
+    [providers, query, category, city, minRating, priceRange, availability],
+  );
 
-  const hasActiveFilters = Boolean(filter) || Boolean(city);
+  const hasActiveFilters = Boolean(query.trim() || category || city || minRating != null || priceRange || availability);
   const clearAll = () => {
-    setFilter("");
+    setQuery("");
+    setCategory("");
     setCity("");
+    setMinRating(null);
+    setPriceRange("");
+    setAvailability("");
   };
 
   const marketplaceEmpty = providers.length === 0 && !hasActiveFilters;
@@ -63,47 +70,55 @@ export default function Discover() {
     <main className="screen discover">
       <div className="page-title">
         <h1>{t("discover.title")}</h1>
-        {providers.length > 0 ? (
-          <span className="count-badge">{providerCountLabel(providers.length, t)}</span>
-        ) : null}
+        {providers.length > 0 ? <span className="count-badge">{providerCountLabel(providers.length, t)}</span> : null}
       </div>
 
-      <SearchBox value={filter} onChange={setFilter} onSubmit={() => undefined} />
+      <SearchBar value={query} onChange={setQuery} />
 
       <section id="discover-categories" className="content-section discover-categories">
-        <div className="section-heading">
-          <h2>{t("home.categoriesRail")}</h2>
-        </div>
+        <div className="section-heading"><h2>{t("home.categoriesRail")}</h2></div>
         <div className="category-rail" aria-label={t("home.categoriesRail")}>
-          {chips.map((category) => {
-            const isActive = category.name === t("filters.all") ? !filter : filter === category.name;
+          {chips.map((item) => {
+            const isAll = item.name === t("filters.all");
+            const isActive = isAll ? !category : category === item.name;
             return (
               <CategoryChip
-                key={category.name}
-                category={category}
+                key={item.name}
+                category={item}
                 active={isActive}
-                onClick={() =>
-                  category.name === t("filters.all")
-                    ? setFilter("")
-                    : setFilter(filter === category.name ? "" : category.name)
-                }
+                onClick={() => {
+                  if (isAll) setCategory("");
+                  else setCategory(category === item.name ? "" : item.name);
+                }}
               />
             );
           })}
         </div>
       </section>
 
-      <FilterBar
-        cities={cities}
-        city={city}
-        onCity={setCity}
-        onClear={clearAll}
-        hasActive={hasActiveFilters}
-      />
+      <section className="market-filter-panel" aria-label={t("search.filters")}>
+        <div className="market-filter-row">
+          <CategoryFilter value={category} onChange={setCategory} />
+          <RatingFilter value={minRating} onChange={setMinRating} />
+          <PriceFilter value={priceRange} onChange={setPriceRange} />
+          <AvailabilityFilter value={availability} onChange={setAvailability} />
+          <label className="market-filter-select">
+            <span className="sr-only">{t("common.city")}</span>
+            <select value={city} onChange={(event) => setCity(event.target.value)} aria-label={t("common.city")}>
+              <option value="">{t("filters.allCities")}</option>
+              {cities.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          {hasActiveFilters ? <button className="filter-clear" onClick={clearAll}>{t("discover.clearFilters")}</button> : null}
+        </div>
+      </section>
 
       <section className="content-section providers-section">
         <div className="section-heading">
-          <h2>{filter ? t("discover.resultsFor", { query: t(filter) }) : t("discover.allProviders")}</h2>
+          <div>
+            <span className="section-kicker">{hasActiveFilters ? t("search.filteredResults") : t("discover.allProviders")}</span>
+            <h2>{hasActiveFilters ? t("discover.resultsCount", { n: results.length }) : t("discover.allProviders")}</h2>
+          </div>
           <span className="results-count">{providerCountLabel(results.length, t)}</span>
         </div>
         <div className="discover-results">
@@ -114,25 +129,13 @@ export default function Discover() {
           ) : results.length === 0 ? (
             <StateCard
               variant="empty"
-              emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : t("discover.noResults")}
-              emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("discover.noResultsBody")}
+              emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : t("search.noMatches")}
+              emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("search.noMatchesBody")}
               actionLabel={marketplaceEmpty ? t("home.explore") : hasActiveFilters ? t("discover.clearFilters") : undefined}
-              onAction={
-                marketplaceEmpty
-                  ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" })
-                  : hasActiveFilters
-                    ? clearAll
-                    : undefined
-              }
+              onAction={marketplaceEmpty ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" }) : hasActiveFilters ? clearAll : undefined}
             />
           ) : (
-            results.map((provider) => (
-              <ProviderRow
-                key={provider.id}
-                provider={provider}
-                onClick={() => navigate("/provider/" + provider.id)}
-              />
-            ))
+            results.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)
           )}
         </div>
       </section>
