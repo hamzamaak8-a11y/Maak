@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -110,7 +109,7 @@ async function ensureE2EUser({ email, password, role, fullName, city }) {
       email,
       password,
       email_confirm: true,
-      app_metadata: { ...user?.app_metadata, [E2E_MARKER]: true, maak_e2e_role: role },
+      app_metadata: { [E2E_MARKER]: true, maak_e2e_role: role },
       user_metadata: { full_name: fullName, city, maak_e2e_role: role },
     });
     user = created.data.user;
