@@ -11,6 +11,7 @@ import { useProviders } from "../hooks/useProviders";
 import type { Category } from "../types";
 import { useRouter } from "../router";
 import { useLanguage } from "../i18n";
+import "../components/search/search.css";
 
 type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -73,7 +74,7 @@ export default function Discover() {
         {providers.length > 0 ? <span className="count-badge">{providerCountLabel(providers.length, t)}</span> : null}
       </div>
 
-      <SearchBar value={query} onChange={setQuery} />
+      <SearchBar value={query} onChange={setQuery} onClear={clearAll} />
 
       <section id="discover-categories" className="content-section discover-categories">
         <div className="section-heading"><h2>{t("home.categoriesRail")}</h2></div>
@@ -86,10 +87,7 @@ export default function Discover() {
                 key={item.name}
                 category={item}
                 active={isActive}
-                onClick={() => {
-                  if (isAll) setCategory("");
-                  else setCategory(category === item.name ? "" : item.name);
-                }}
+                onClick={() => setCategory(isAll ? "" : category === item.name ? "" : item.name)}
               />
             );
           })}
