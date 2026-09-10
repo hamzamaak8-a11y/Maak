@@ -7,7 +7,7 @@ const reviewComment = "[maak_e2e_test] مراجعة تلقائية للحجز ا
 test("customer rates a completed booking and the review appears on the provider page", async ({ page, browser }) => {
   const state = getState();
 
-  await createBookingAsCustomer(page, locationText);
+  await createBookingAsCustomer(page, locationText, 2);
 
   const providerContext = await browser.newContext();
   const providerPage = await providerContext.newPage();
