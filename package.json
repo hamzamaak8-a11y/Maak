@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5000",
-    "build": "tsc && vite build && mkdir -p dist/admin dist/admin/login && cp dist/index.html dist/admin/index.html && cp dist/index.html dist/admin/login/index.html",
+    "build": "tsc && vite build && mkdir -p dist/admin dist/admin/login && cp dist/index.html dist/admin/index.html && cp dist/index.html dist/admin/login/index.html && cp -R dist/assets dist/admin/assets && cp -R dist/assets dist/admin/login/assets && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/ && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/login/",
     "typecheck": "tsc --noEmit",
     "qa:smoke": "node scripts/smoke.mjs"
   },
@@ -20,6 +20,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.6.3",
+    "@vitejs/plugin-react": "^4.3.4",
     "vite": "^6.0.5"
   }
 }
