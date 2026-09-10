@@ -13,6 +13,7 @@ export const searchAr: Record<string, string> = {
   "search.availableToday": "متاح اليوم",
   "search.availableWeek": "متاح هذا الأسبوع",
   "search.filteredResults": "نتائج البحث والفلترة",
+  "discover.resultsCount": "{n} نتيجة",
   "search.noMatches": "لا توجد نتائج مطابقة",
   "search.noMatchesBody": "جرّب تغيير الكلمات أو تخفيف أحد الفلاتر لرؤية المزيد من مقدمي الخدمات.",
 };
@@ -32,6 +33,7 @@ export const searchFr: Record<string, string> = {
   "search.availableToday": "Disponible aujourd’hui",
   "search.availableWeek": "Disponible cette semaine",
   "search.filteredResults": "Résultats filtrés",
+  "discover.resultsCount": "{n} résultat(s)",
   "search.noMatches": "Aucun résultat correspondant",
   "search.noMatchesBody": "Essayez de modifier votre recherche ou de retirer un filtre pour élargir les résultats.",
 };
