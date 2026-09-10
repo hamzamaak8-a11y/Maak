@@ -80,3 +80,25 @@ export type Notification = {
   created_at: string;
   metadata: Record<string, unknown> | null;
 };
+
+export type UpcomingProviderBooking = {
+  id: string;
+  customer_name: string;
+  service_category: string;
+  service_description: string;
+  service_date: string;
+  location_text: string | null;
+  status: Extract<BookingStatus, "pending" | "accepted">;
+  created_at: string;
+};
+
+export type ProviderRecentActivityItem = Notification;
+
+export type ProviderDashboardStats = {
+  total_completed_bookings: number;
+  total_earnings: number | null;
+  average_rating: number;
+  total_reviews: number;
+  upcoming_bookings: UpcomingProviderBooking[];
+  recent_activity: ProviderRecentActivityItem[];
+};
