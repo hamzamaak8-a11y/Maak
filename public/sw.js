@@ -1,12 +1,12 @@
-const CACHE_NAME = "maak-shell-v14";
+const CACHE_NAME = "maak-shell-v15";
 const APP_ROOT = new URL("./", self.location).href;
 const INDEX_URL = new URL("./index.html", self.location).href;
 const MANIFEST_URL = new URL("./manifest.webmanifest", self.location).href;
 const NOT_FOUND_URL = new URL("./404.html", self.location).href;
-const ICON_192_URL = new URL("./icon-192.png", self.location).href;
+const ICON_URL = new URL("./maak-icon.svg", self.location).href;
 const ICON_512_URL = new URL("./icon-512.png", self.location).href;
 const ASSETS_PREFIX = new URL("./assets/", self.location).pathname;
-const APP_SHELL = [APP_ROOT, INDEX_URL, MANIFEST_URL, NOT_FOUND_URL, ICON_192_URL, ICON_512_URL];
+const APP_SHELL = [APP_ROOT, INDEX_URL, MANIFEST_URL, NOT_FOUND_URL, ICON_URL, ICON_512_URL];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
