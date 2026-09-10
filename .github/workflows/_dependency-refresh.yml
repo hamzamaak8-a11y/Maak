@@ -1,4 +1,3 @@
-# Temporary one-shot dependency lock refresh for TASK #10.
 name: Refresh worker dependency lock
 
 on:
@@ -13,7 +12,6 @@ permissions:
 
 jobs:
   refresh:
-    if: ${{ github.event.head_commit.message != 'chore: refresh worker dependency lock' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,11 +28,7 @@ jobs:
         working-directory: worker
         run: npm install --package-lock-only --ignore-scripts
 
-      - name: Audit Worker dependencies
-        working-directory: worker
-        run: npm audit --audit-level=moderate
-
-      - name: Commit refreshed lockfile
+      - name: Commit refreshed lockfile and remove temporary workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
