@@ -12,13 +12,17 @@
     </style>
     <script>
       (function () {
-        var BASE = "/Maak/";
         var loc = window.location;
-        if (loc.pathname.indexOf(BASE) !== 0 || loc.pathname === BASE) { return; }
+        var segments = loc.pathname.split("/").filter(Boolean);
+        var isGithubPages = loc.hostname.endsWith(".github.io");
+        var base = isGithubPages && segments.length > 0 ? "/" + segments[0] + "/" : "/";
+        var baseWithoutTrailing = base.slice(0, -1);
+        if (base !== "/" && (loc.pathname === base || loc.pathname.indexOf(base) !== 0)) { return; }
+        if (base === "/" && loc.pathname === "/") { return; }
         try {
           sessionStorage.setItem("maak:deep-link", loc.pathname + loc.search + loc.hash);
         } catch (e) {}
-        loc.replace(BASE);
+        loc.replace(baseWithoutTrailing ? baseWithoutTrailing + "/" : "/");
       })();
     </script>
   </head>
