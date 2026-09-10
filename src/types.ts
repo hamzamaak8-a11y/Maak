@@ -56,7 +56,7 @@ export type ProviderDocument = {
 export type Review = {
   id: string;
   booking_id: string;
-  customer_id: string;
+  customer_id: string | null;
   provider_id: string;
   rating: number;
   comment: string | null;
