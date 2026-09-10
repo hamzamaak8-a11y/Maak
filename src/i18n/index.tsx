@@ -1,14 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ar, catLabels as catAr, svcLabels as svcAr, docLabels as docAr } from "./ar";
 import { fr, catLabels as catFr, svcLabels as svcFr, docLabels as docFr } from "./fr";
-import { chatAr, chatFr } from "./chat";
 import { adminAr, adminFr } from "./admin";
 import { bookingErrorAr, bookingErrorFr } from "./booking-errors";
 
 export type Lang = "ar" | "fr";
 export type Dir = "rtl" | "ltr";
 const STORAGE_KEY = "maak:lang:v2";
-const DICTS: Record<Lang, Record<string,string>> = { ar: { ...ar, ...chatAr, ...adminAr, ...bookingErrorAr }, fr: { ...fr, ...chatFr, ...adminFr, ...bookingErrorFr } };
+const DICTS: Record<Lang, Record<string,string>> = { ar: { ...ar, ...adminAr, ...bookingErrorAr }, fr: { ...fr, ...adminFr, ...bookingErrorFr } };
 const CAT: Record<Lang, Record<string,string>> = { ar: catAr, fr: catFr };
 const SVC: Record<Lang, Record<string,string>> = { ar: svcAr, fr: svcFr };
 const DOC: Record<Lang, Record<string,string>> = { ar: docAr, fr: docFr };
