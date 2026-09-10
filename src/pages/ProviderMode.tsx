@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, Check, MessageCircle, X } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, Loader2, MessageCircle, ShieldAlert, X } from "lucide-react";
 import { Logo } from "../components/atoms";
 import { useToast } from "../context";
 import { useAuth } from "../auth";
@@ -12,11 +12,13 @@ import {
   rejectBooking,
   startBooking,
 } from "../lib/bookings";
+import { fetchProviderProfile } from "../lib/onboarding";
 import { listConversations } from "../lib/chat";
 import ProviderProfileEditor from "../components/ProviderProfileEditor";
 import Chat from "./Chat";
 import type { BookingRow, BookingStatus } from "../types";
 import { useLanguage } from "../i18n";
+import { useRouter } from "../router";
 
 type TabKey = "profile" | "messages" | "new" | "accepted" | "in_progress" | "completed" | "rejected";
 
@@ -50,6 +52,9 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   const { t, lang } = useLanguage();
   const { showToast } = useToast();
   const { profile, user } = useAuth();
+  const { navigate } = useRouter();
+  const [accessChecking, setAccessChecking] = useState(true);
+  const [accessAllowed, setAccessAllowed] = useState(false);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [messageCount, setMessageCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +64,33 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!user || profile?.role !== "provider" || profile.account_status === "suspended") {
+        navigate(user ? "/account" : "/login");
+        if (active) setAccessChecking(false);
+        return;
+      }
+      try {
+        const provider = await fetchProviderProfile(user.id);
+        if (!active) return;
+        if (!provider || provider.verification_status !== "approved") {
+          navigate("/account");
+          return;
+        }
+        setAccessAllowed(true);
+      } catch {
+        if (active) navigate("/account");
+      } finally {
+        if (active) setAccessChecking(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [navigate, profile?.account_status, profile?.role, user]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,15 +104,18 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
     }
   }, [t]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    if (accessAllowed) void load();
+  }, [accessAllowed, load]);
 
   useEffect(() => {
+    if (!accessAllowed) return;
     let active = true;
     void listConversations()
       .then((rows) => { if (active) setMessageCount(rows.length); })
       .catch(() => { if (active) setMessageCount(null); });
     return () => { active = false; };
-  }, []);
+  }, [accessAllowed]);
 
   const providerName = profile?.full_name ?? user?.email ?? t("bflow.provider");
   const counts = useMemo<Record<TabKey, number>>(() => ({
@@ -132,6 +167,26 @@ export default function ProviderMode({ switchRole }: { switchRole: () => void })
       setBusy(null);
     }
   };
+
+  if (accessChecking) {
+    return (
+      <main className="screen onb-loading" aria-busy="true">
+        <Loader2 className="auth-spin" size={26} aria-hidden="true" />
+      </main>
+    );
+  }
+
+  if (!accessAllowed) {
+    return (
+      <main className="screen">
+        <div className="onb-status-card">
+          <span className="onb-status-icon suspended"><ShieldAlert size={26} /></span>
+          <h1 className="onb-status-title">{t("acct.underReview")}</h1>
+          <p className="onb-status-body">{t("onb.underReviewBody")}</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <div className="provider-layout">
