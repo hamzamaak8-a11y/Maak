@@ -52,3 +52,20 @@ export type ProviderDocument = {
   id: string; provider_id: string; document_type: string; storage_path: string;
   status: "pending" | "approved" | "rejected"; created_at: string;
 };
+
+export type Review = {
+  id: string;
+  booking_id: string;
+  customer_id: string;
+  provider_id: string;
+  rating: number;
+  comment: string | null;
+  is_hidden: boolean;
+  created_at: string;
+};
+
+export type ProviderReviewsSummary = {
+  average_rating: number;
+  total_count: number;
+  reviews: Review[];
+};
