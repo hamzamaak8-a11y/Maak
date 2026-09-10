@@ -27,6 +27,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Syntax-check E2E seed tool
+        run: node --check scripts/seed-e2e.mjs
+
       - name: Typecheck frontend
         run: npm run typecheck
 
