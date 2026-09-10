@@ -3,11 +3,11 @@ import { ar, catLabels as catAr, svcLabels as svcAr, docLabels as docAr } from "
 import { fr, catLabels as catFr, svcLabels as svcFr, docLabels as docFr } from "./fr";
 import { adminAr, adminFr } from "./admin";
 import { bookingErrorAr, bookingErrorFr } from "./booking-errors";
-
+import { chatAr, chatFr } from "./chat";
 export type Lang = "ar" | "fr";
 export type Dir = "rtl" | "ltr";
 const STORAGE_KEY = "maak:lang:v2";
-const DICTS: Record<Lang, Record<string,string>> = { ar: { ...ar, ...adminAr, ...bookingErrorAr }, fr: { ...fr, ...adminFr, ...bookingErrorFr } };
+const DICTS: Record<Lang, Record<string,string>> = { ar: { ...ar, ...adminAr, ...bookingErrorAr, ...chatAr }, fr: { ...fr, ...adminFr, ...bookingErrorFr, ...chatFr } };
 const CAT: Record<Lang, Record<string,string>> = { ar: catAr, fr: catFr };
 const SVC: Record<Lang, Record<string,string>> = { ar: svcAr, fr: svcFr };
 const DOC: Record<Lang, Record<string,string>> = { ar: docAr, fr: docFr };
