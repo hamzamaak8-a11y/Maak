@@ -1,8 +1,9 @@
 import { supabase } from "./supabaseClient";
-import type { BookingRow, Profile, Review } from "../types";
+import { fetchProviders } from "../services";
+import type { BookingRow, Profile, Provider, Review } from "../types";
 
 export type CustomerBooking = BookingRow & {
-  provider: { id: string; name: string | null; avatar_url: string | null } | null;
+  provider: { id: string; name: string | null; avatar_url: string | null; listingId: number | null } | null;
 };
 
 export type CustomerReview = Review & {
@@ -45,18 +46,9 @@ export async function updateCustomerProfile(data: CustomerProfileUpdate): Promis
   return updated as Profile;
 }
 
-async function getProviderProfiles(providerIds: string[]): Promise<Map<string, { id: string; name: string | null; avatar_url: string | null }>> {
-  const result = new Map<string, { id: string; name: string | null; avatar_url: string | null }>();
-  if (!providerIds.length) return result;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, full_name, avatar_url")
-    .in("id", providerIds);
-  if (error) throw error;
-  for (const row of (data ?? []) as Array<{ id: string; full_name: string | null; avatar_url: string | null }>) {
-    result.set(row.id, { id: row.id, name: row.full_name, avatar_url: row.avatar_url });
-  }
-  return result;
+async function getPublicProviderMap(): Promise<Map<number, Provider>> {
+  const providers = await fetchProviders();
+  return new Map(providers.map((provider) => [provider.id, provider]));
 }
 
 export async function getCustomerBookings(): Promise<CustomerBooking[]> {
@@ -68,8 +60,16 @@ export async function getCustomerBookings(): Promise<CustomerBooking[]> {
   if (error) throw error;
 
   const bookings = (data ?? []) as BookingRow[];
-  const providerMap = await getProviderProfiles(Array.from(new Set(bookings.map((booking) => booking.provider_id))));
-  return bookings.map((booking) => ({ ...booking, provider: providerMap.get(booking.provider_id) ?? null }));
+  const providerMap = await getPublicProviderMap();
+  return bookings.map((booking) => {
+    const listing = booking.provider_listing_id == null ? undefined : providerMap.get(booking.provider_listing_id);
+    return {
+      ...booking,
+      provider: listing?.provider_profile_id === booking.provider_id
+        ? { id: booking.provider_id, name: listing.name || null, avatar_url: listing.image || null, listingId: listing.id }
+        : null,
+    };
+  });
 }
 
 export async function getCustomerReviews(): Promise<CustomerReview[]> {
@@ -86,9 +86,9 @@ export async function getCustomerReviews(): Promise<CustomerReview[]> {
   if (error) throw error;
 
   const reviews = (data ?? []) as Review[];
-  const providerMap = await getProviderProfiles(Array.from(new Set(reviews.map((review) => review.provider_id))));
-  return reviews.map((review) => ({
-    ...review,
-    provider: providerMap.get(review.provider_id) ? { id: review.provider_id, name: providerMap.get(review.provider_id)?.name ?? null } : null,
-  }));
+  const providerMap = await getPublicProviderMap();
+  return reviews.map((review) => {
+    const provider = Array.from(providerMap.values()).find((candidate) => candidate.provider_profile_id === review.provider_id);
+    return { ...review, provider: provider ? { id: review.provider_id, name: provider.name || null } : null };
+  });
 }
