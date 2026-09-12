@@ -3,6 +3,7 @@ import { Clock3, Edit3, Loader2, Plus, Trash2 } from "lucide-react";
 import { useToast } from "../../context";
 import { useLanguage } from "../../i18n";
 import { addService, deleteService, getServices, updateService, type ProviderService, type ProviderServiceInput } from "../../lib/provider";
+import "../../styles/provider-services.css";
 
 const emptyForm: ProviderServiceInput = { name: "", description: "", price: null, currency: "USD", duration_minutes: null, is_active: true };
 
