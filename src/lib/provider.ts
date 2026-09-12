@@ -32,12 +32,35 @@ export type ProviderServiceInput = {
   is_active?: boolean;
 };
 
+export type ProviderSubscriptionPlan = "basic" | "premium" | "featured";
+export type ProviderSubscriptionStatus = "active" | "cancelled" | "expired";
+
+export type ProviderSubscription = {
+  id: string;
+  provider_id: string;
+  plan_id: ProviderSubscriptionPlan;
+  status: ProviderSubscriptionStatus;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+};
+
 function mapServiceError(error: unknown): Error {
   const raw = error && typeof error === "object" && "message" in error ? String((error as { message?: unknown }).message ?? "") : String(error ?? "");
   if (/not_authenticated|JWT/i.test(raw)) return new Error("providerServices.notAuthenticated");
   if (/forbidden/i.test(raw)) return new Error("providerServices.forbidden");
   if (/not_found/i.test(raw)) return new Error("providerServices.notFound");
   return new Error(raw || "providerServices.saveFail");
+}
+
+function mapSubscriptionError(error: unknown, fallback: string): Error {
+  const raw = error && typeof error === "object" && "message" in error ? String((error as { message?: unknown }).message ?? "") : String(error ?? "");
+  if (/not_authenticated|JWT/i.test(raw)) return new Error("providerSubscription.notAuthenticated");
+  if (/forbidden/i.test(raw)) return new Error("providerSubscription.forbidden");
+  if (/invalid_plan/i.test(raw)) return new Error("providerSubscription.invalidPlan");
+  if (/not_found/i.test(raw)) return new Error("providerSubscription.notFound");
+  return new Error(raw || fallback);
 }
 
 function normalizeServiceInput(data: ProviderServiceInput): ProviderServiceInput {
@@ -90,6 +113,24 @@ export async function getServices(): Promise<ProviderService[]> {
   const { data, error } = await supabase.rpc("get_provider_services");
   if (error) throw mapServiceError(error);
   return (data ?? []) as ProviderService[];
+}
+
+export async function subscribe(planId: ProviderSubscriptionPlan): Promise<ProviderSubscription> {
+  const { data, error } = await supabase.rpc("subscribe_provider", { p_plan_id: planId });
+  if (error) throw mapSubscriptionError(error, "providerSubscription.subscribeFail");
+  return data as ProviderSubscription;
+}
+
+export async function cancelSubscription(): Promise<ProviderSubscription> {
+  const { data, error } = await supabase.rpc("cancel_subscription");
+  if (error) throw mapSubscriptionError(error, "providerSubscription.cancelFail");
+  return data as ProviderSubscription;
+}
+
+export async function getSubscription(): Promise<ProviderSubscription | null> {
+  const { data, error } = await supabase.rpc("get_provider_subscription");
+  if (error) throw mapSubscriptionError(error, "providerSubscription.loadFail");
+  return Array.isArray(data) ? ((data[0] ?? null) as ProviderSubscription | null) : ((data ?? null) as ProviderSubscription | null);
 }
 
 export function mapProviderDashboardError(error: unknown): Error {
