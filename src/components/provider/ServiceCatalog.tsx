@@ -1,4 +1,5 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Clock3, Edit3, Loader2, Plus, Trash2 } from "lucide-react";
 import { useToast } from "../../context";
 import { useLanguage } from "../../i18n";
