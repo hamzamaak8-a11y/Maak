@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
 export type Provider = {
-  id:number; name:string; job:string; city:string; distance:string|null; price:string|null; rating:string|null; reviews:number; image:string|null; available:boolean|null; services:string[]; experience:string|null; intro:string|null; provider_profile_id:string|null; listing_kind:"seed"|"real"|null; published_at:string|null;
+  id:number; name:string; job:string; city:string; distance:string|null; price:string|null; rating:string|null; reviews:number; image:string|null; available:boolean|null; services:string[]; experience:string|null; intro:string|null; provider_profile_id:string|null; listing_kind:"seed"|"real"|null; published_at:string|null; is_featured:boolean;
 };
 export type Category = { name:string; icon:LucideIcon; count:string };
 export type BookingStatus = "pending"|"accepted"|"rejected"|"cancelled"|"in_progress"|"completed";
