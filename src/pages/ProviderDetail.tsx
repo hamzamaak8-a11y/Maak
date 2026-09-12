@@ -12,7 +12,9 @@ import ReviewList from "../components/reviews/ReviewList";
 import ProviderHeader from "../components/provider/ProviderHeader";
 import ProviderServices from "../components/provider/ProviderServices";
 import ProviderAvailability from "../components/provider/ProviderAvailability";
+import ProviderPortfolio from "../components/provider/ProviderPortfolio";
 import "../components/provider/provider-public.css";
+import "../styles/provider-portfolio.css";
 
 export default function ProviderDetail({ id }: { id: number }) {
   const { t } = useLanguage();
@@ -84,6 +86,7 @@ export default function ProviderDetail({ id }: { id: number }) {
           {provider.intro ? <section className="public-provider-section"><span className="section-kicker">{t("pd.aboutTitle")}</span><h2>{provider.name}</h2><p className="public-provider-about">{provider.intro}</p></section> : null}
           <ProviderServices provider={provider} />
           <ProviderAvailability provider={provider} />
+          <ProviderPortfolio providerId={provider.id} />
           {provider.provider_profile_id ? <section className="public-provider-section"><div className="public-provider-review-title"><div><span className="section-kicker">{t("pd.reviewsTitle")}</span><h2>{t("pd.reviewsTitle")}</h2></div><span className="public-provider-review-summary">{reviewCount > 0 ? `${rating.toFixed(1)} / 5` : t("pd.noRating")}</span></div><ReviewList providerId={provider.provider_profile_id} /></section> : null}
           <section className="public-provider-cta-panel">
             <div className="public-provider-cta-copy"><strong>{t("pd.bookCta")}</strong><span>{provider.city} · {provider.job}</span></div>
