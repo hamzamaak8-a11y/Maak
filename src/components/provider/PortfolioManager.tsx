@@ -1,5 +1,6 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { useAuth } from "../../auth";
 import { useToast } from "../../context";
 import { useLanguage } from "../../i18n";
 import { deletePortfolioImage, getPortfolioImages, uploadPortfolioImage, type PortfolioImage } from "../../lib/storage";
@@ -9,30 +10,27 @@ const ACCEPT = "image/jpeg,image/png,image/webp";
 export default function PortfolioManager() {
   const { t } = useLanguage();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [images, setImages] = useState<PortfolioImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await import("../../auth").then((module) => module.useAuth ? { data: null } : { data: null });
-      void data;
-      // The provider profile UUID is resolved from the authenticated session below.
-      const { supabase } = await import("../../lib/supabaseClient");
-      const { data: authData, error } = await supabase.auth.getUser();
-      if (error || !authData.user) throw new Error("portfolio.loadFail");
-      setImages(await getPortfolioImages(authData.user.id));
-    } catch (error) {
-      showToast(t(error instanceof Error ? error.message : "portfolio.loadFail"));
-    } finally {
+  useEffect(() => {
+    let active = true;
+    if (!user) {
+      setImages([]);
       setLoading(false);
+      return () => { active = false; };
     }
-  }, [showToast, t]);
-
-  useEffect(() => { void load(); }, [load]);
+    setLoading(true);
+    void getPortfolioImages(user.id)
+      .then((data) => { if (active) setImages(data); })
+      .catch((error) => { if (active) showToast(t(error instanceof Error ? error.message : "portfolio.loadFail")); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [showToast, t, user]);
 
   async function onUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
