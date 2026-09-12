@@ -13,6 +13,24 @@ const PUBLISHED_FILTER = "listing_kind=eq.real&published_at=not.is.null&provider
 const PORTFOLIO_BUCKET = "provider-portfolio";
 const PORTFOLIO_URL_TTL_SECONDS = 3600;
 
+async function featuredProviderIds(env: Env): Promise<Set<string>> {
+  const url = new URL(env.SUPABASE_URL + "/rest/v1/provider_subscriptions");
+  url.searchParams.set("select", "provider_id");
+  url.searchParams.set("plan_id", "eq.featured");
+  url.searchParams.set("status", "eq.active");
+  url.searchParams.set("end_date", "gt.now()");
+  const res = await fetch(url, { headers: headers(env) });
+  if (!res.ok) {
+    throw new Error("supabase featured lookup failed: " + res.status + " " + (await res.text()));
+  }
+  const rows = (await res.json()) as Array<{ provider_id?: string }>;
+  return new Set(rows.map((row) => row.provider_id).filter((id): id is string => typeof id === "string" && id.length > 0));
+}
+
+function withFeatured(provider: Provider, featuredIds: Set<string>): Provider {
+  return { ...provider, is_featured: provider.provider_profile_id ? featuredIds.has(provider.provider_profile_id) : false };
+}
+
 export async function listProviders(env: Env): Promise<Provider[]> {
   const res = await fetch(env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, {
     headers: headers(env),
@@ -20,7 +38,9 @@ export async function listProviders(env: Env): Promise<Provider[]> {
   if (!res.ok) {
     throw new Error("supabase list failed: " + res.status + " " + (await res.text()));
   }
-  return (await res.json()) as Provider[];
+  const providers = (await res.json()) as Provider[];
+  const featuredIds = await featuredProviderIds(env);
+  return providers.map((provider) => withFeatured(provider, featuredIds));
 }
 
 export async function findProvider(env: Env, id: number): Promise<Provider | null> {
@@ -31,7 +51,9 @@ export async function findProvider(env: Env, id: number): Promise<Provider | nul
     throw new Error("supabase get failed: " + res.status);
   }
   const arr = (await res.json()) as Provider[];
-  return arr.length > 0 ? arr[0] : null;
+  if (arr.length === 0) return null;
+  const featuredIds = await featuredProviderIds(env);
+  return withFeatured(arr[0], featuredIds);
 }
 
 async function signPortfolioObject(env: Env, path: string): Promise<string> {
