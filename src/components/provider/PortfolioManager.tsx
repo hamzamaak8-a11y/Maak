@@ -1,4 +1,5 @@
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 import { ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { useAuth } from "../../auth";
 import { useToast } from "../../context";
