@@ -1,8 +1,9 @@
 import type { Env } from "./types";
-import { findProvider, listProviders } from "./supabase";
+import { findProvider, getProviderPortfolio, listProviders } from "./supabase";
 
 const PROVIDERS_CACHE_SECONDS = 300;
 const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
+const PORTFOLIO_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
 
 function cors(env: Env, requestOrigin: string | null): Record<string, string> {
   const allowed = env.MAAK_ALLOW_ORIGIN?.trim();
@@ -76,6 +77,35 @@ export default {
         return response;
       } catch (error) {
         safeError("list providers", error);
+        return json(env, requestOrigin, 503, { error: "service_unavailable" });
+      }
+    }
+
+    if (parts[0] === "api" && parts[1] === "providers" && parts.length === 4 && parts[3] === "portfolio" && req.method === "GET") {
+      const id = Number(parts[2]);
+      if (!Number.isInteger(id) || id <= 0) return json(env, requestOrigin, 400, { error: "invalid_id" });
+
+      const cache = caches.default;
+      const cacheKey = new Request(url.toString(), req);
+      const cached = await cache.match(cacheKey);
+      if (cached) return cached;
+
+      try {
+        const provider = await findProvider(env, id);
+        if (!provider) return json(env, requestOrigin, 404, { error: "not_found" });
+        const portfolio = await getProviderPortfolio(env, id);
+        const response = new Response(JSON.stringify(portfolio), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            ...cors(env, requestOrigin),
+            "Cache-Control": PORTFOLIO_CACHE_CONTROL,
+          },
+        });
+        ctx.waitUntil(cache.put(cacheKey, response.clone()));
+        return response;
+      } catch (error) {
+        safeError("get provider portfolio", error);
         return json(env, requestOrigin, 503, { error: "service_unavailable" });
       }
     }
