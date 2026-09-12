@@ -44,7 +44,7 @@ function extensionForPortfolio(file: File): string {
 
 function validatePortfolioImage(file: File): void {
   if (!file) throw new Error("portfolio.required");
-  if (file.size === 0) throw new Error("portfolio.empty");
+  if (file.size === 0) throw new Error("portfolio.emptyFile");
   if (file.size > MAX_PORTFOLIO_IMAGE_BYTES) throw new Error("portfolio.tooLarge");
   if (!ALLOWED_PORTFOLIO_IMAGE_MIME.has(file.type)) throw new Error("portfolio.invalidType");
 }
@@ -179,13 +179,14 @@ async function getPrivatePortfolioImages(providerId: string): Promise<PortfolioI
   const byPath = new Map((signedRows ?? []).filter((row) => row.signedUrl).map((row) => [row.path ?? "", row.signedUrl]));
   return files.map((row) => {
     const path = `${providerId}/${row.name}`;
+    const metadata = row.metadata as { mimetype?: string; size?: number } | null;
     return {
       id: path,
       path,
       url: byPath.get(path) ?? "",
       created_at: row.created_at ?? null,
-      content_type: row.metadata?.mimetype ?? null,
-      size: typeof row.metadata?.size === "number" ? row.metadata.size : null,
+      content_type: metadata?.mimetype ?? null,
+      size: typeof metadata?.size === "number" ? metadata.size : null,
     };
   }).filter((row) => row.url);
 }
