@@ -17,6 +17,15 @@ export type Provider = {
   published_at: string | null;
 };
 
+export type ProviderPortfolioImage = {
+  id: string;
+  path: string;
+  url: string;
+  created_at: string | null;
+  content_type: string | null;
+  size: number | null;
+};
+
 export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
