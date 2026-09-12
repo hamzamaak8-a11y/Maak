@@ -80,6 +80,10 @@ function matchesPriceRange(price: number | null, range: MarketplacePriceRange): 
   return price > 500;
 }
 
+function prioritizeFeatured(providers: Provider[]): Provider[] {
+  return [...providers].sort((a, b) => Number(b.is_featured) - Number(a.is_featured));
+}
+
 export function filterMarketplaceProviders(providers: Provider[], filters: MarketplaceFilters): Provider[] {
   let result = filterProviders(providers, filters.query);
 
@@ -106,7 +110,7 @@ export function filterMarketplaceProviders(providers: Provider[], filters: Marke
     result = result.filter((provider) => provider.available === true);
   }
 
-  return result;
+  return prioritizeFeatured(result);
 }
 
 const CATEGORY_ROOTS: Record<string, string[]> = {
