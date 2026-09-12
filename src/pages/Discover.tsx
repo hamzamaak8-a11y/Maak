@@ -54,6 +54,8 @@ export default function Discover() {
     () => filterMarketplaceProviders(providers, { query, category, city, minRating, priceRange, availability }),
     [providers, query, category, city, minRating, priceRange, availability],
   );
+  const featuredProviders = useMemo(() => results.filter((provider) => provider.is_featured), [results]);
+  const otherProviders = useMemo(() => results.filter((provider) => !provider.is_featured), [results]);
 
   const hasActiveFilters = Boolean(query.trim() || category || city || minRating != null || priceRange || availability);
   const clearAll = () => {
@@ -111,32 +113,49 @@ export default function Discover() {
         </div>
       </section>
 
-      <section className="content-section providers-section">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">{hasActiveFilters ? t("search.filteredResults") : t("discover.allProviders")}</span>
-            <h2>{hasActiveFilters ? t("discover.resultsCount", { n: results.length }) : t("discover.allProviders")}</h2>
+      {status === "loading" ? <section className="content-section providers-section"><ProviderSkeleton rows={4} /></section> : null}
+      {status === "error" ? <section className="content-section providers-section"><StateCard variant="error" actionLabel={t("common.retry")} onAction={refetch} /></section> : null}
+
+      {status === "success" && featuredProviders.length > 0 ? (
+        <section className="content-section featured-section" aria-labelledby="featured-heading">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">{t("featured.badge")}</span>
+              <h2 id="featured-heading">{t("featured.title")}</h2>
+              <p className="featured-subtitle">{t("featured.subtitle")}</p>
+            </div>
+            <span className="results-count">{providerCountLabel(featuredProviders.length, t)}</span>
           </div>
-          <span className="results-count">{providerCountLabel(results.length, t)}</span>
-        </div>
-        <div className="discover-results">
-          {status === "loading" ? (
-            <ProviderSkeleton rows={4} />
-          ) : status === "error" ? (
-            <StateCard variant="error" actionLabel={t("common.retry")} onAction={refetch} />
-          ) : results.length === 0 ? (
-            <StateCard
-              variant="empty"
-              emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : t("search.noMatches")}
-              emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("search.noMatchesBody")}
-              actionLabel={marketplaceEmpty ? t("home.explore") : hasActiveFilters ? t("discover.clearFilters") : undefined}
-              onAction={marketplaceEmpty ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" }) : hasActiveFilters ? clearAll : undefined}
-            />
-          ) : (
-            results.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)
-          )}
-        </div>
-      </section>
+          <div className="discover-results featured-results">
+            {featuredProviders.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)}
+          </div>
+        </section>
+      ) : null}
+
+      {status === "success" ? (
+        <section className="content-section providers-section">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">{hasActiveFilters ? t("search.filteredResults") : t("discover.allProviders")}</span>
+              <h2>{t("featured.otherProviders")}</h2>
+            </div>
+            <span className="results-count">{providerCountLabel(otherProviders.length, t)}</span>
+          </div>
+          <div className="discover-results">
+            {otherProviders.length === 0 ? (
+              <StateCard
+                variant="empty"
+                emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : featuredProviders.length > 0 ? t("featured.empty") : t("search.noMatches")}
+                emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("search.noMatchesBody")}
+                actionLabel={marketplaceEmpty ? t("home.explore") : hasActiveFilters ? t("discover.clearFilters") : undefined}
+                onAction={marketplaceEmpty ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" }) : hasActiveFilters ? clearAll : undefined}
+              />
+            ) : (
+              otherProviders.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)
+            )}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }
