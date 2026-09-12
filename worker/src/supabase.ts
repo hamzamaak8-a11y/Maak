@@ -18,7 +18,7 @@ async function featuredProviderIds(env: Env): Promise<Set<string>> {
   url.searchParams.set("select", "provider_id");
   url.searchParams.set("plan_id", "eq.featured");
   url.searchParams.set("status", "eq.active");
-  url.searchParams.set("end_date", "gt.now()");
+  url.searchParams.set("end_date", `gt.${new Date().toISOString()}`);
   const res = await fetch(url, { headers: headers(env) });
   if (!res.ok) {
     throw new Error("supabase featured lookup failed: " + res.status + " " + (await res.text()));
