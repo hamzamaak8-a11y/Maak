@@ -1,21 +1,13 @@
 import { useState } from "react";
 import { Check, FileText, Loader2, Trash2, Upload } from "lucide-react";
 import { useLanguage } from "../../i18n";
-
-import {
-  DOC_TYPES,
-  deleteDocument,
-  uploadDocument,
-  type DocType,
-  type ProviderDocumentRow,
-} from "../../lib/onboarding";
+import { DOC_TYPES, type DocType, type ProviderDocumentRow } from "../../lib/onboarding";
+import { deleteDocument, uploadDocument } from "../../lib/storage";
 
 export default function DocumentsStep({
-  userId,
   documents,
   onDocumentsChange,
 }: {
-  userId: string;
   documents: ProviderDocumentRow[];
   onDocumentsChange: (docs: ProviderDocumentRow[]) => void;
 }) {
@@ -29,8 +21,8 @@ export default function DocumentsStep({
     setBusy(docType);
     try {
       const existing = documents.find((d) => d.document_type === docType);
-      if (existing) await deleteDocument(existing);
-      const created = await uploadDocument(userId, docType, file);
+      if (existing) await deleteDocument(existing.id);
+      const created = await uploadDocument(file, docType);
       onDocumentsChange(documents.filter((d) => d.document_type !== docType).concat(created));
     } catch (e) {
       setError(e instanceof Error ? e.message : t("steps.uploadFail"));
@@ -43,7 +35,7 @@ export default function DocumentsStep({
     setError(null);
     setBusy(doc.document_type);
     try {
-      await deleteDocument(doc);
+      await deleteDocument(doc.id);
       onDocumentsChange(documents.filter((d) => d.id !== doc.id));
     } catch {
       setError(t("steps.deleteFail"));
