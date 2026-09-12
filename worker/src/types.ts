@@ -15,6 +15,7 @@ export type Provider = {
   provider_profile_id: string | null;
   listing_kind: "seed" | "real" | null;
   published_at: string | null;
+  is_featured: boolean;
 };
 
 export type ProviderPortfolioImage = {
