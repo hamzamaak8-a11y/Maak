@@ -5,6 +5,7 @@ import { useRouter } from "../router";
 import { useToast } from "../context";
 import * as onb from "../lib/onboarding";
 import type { DocType, OnboardingPersonal, OnboardingProfessional, ProviderDocumentRow, ProviderProfileRow } from "../lib/onboarding";
+import { getDocuments } from "../lib/storage";
 import { submitProviderOnboarding } from "../lib/onboarding-submit";
 import Progress from "../components/onboarding/Progress";
 import PersonalStep from "../components/onboarding/PersonalStep";
@@ -62,7 +63,7 @@ export default function Onboarding() {
           price_from: prof.price_from == null ? "" : String(prof.price_from),
           service_radius_km: prof.service_radius_km == null ? "" : String(prof.service_radius_km),
         });
-        const docs = await onb.listDocuments(user.id);
+        const docs = await getDocuments();
         if (!active) return;
         setDocuments(docs);
       } catch (e) {
@@ -189,7 +190,7 @@ export default function Onboarding() {
       {isRejected ? <div className="onb-banner">{t("onb.rejectedBanner")}{provider?.rejection_reason ? <span className="onb-banner-reason">{t("onb.reasonPrefix")} {provider.rejection_reason}</span> : null}</div> : null}
       {step === 1 ? <PersonalStep value={personal} onChange={setPersonal} /> : null}
       {step === 2 ? <ProfessionalStep value={professional} onChange={setProfessional} /> : null}
-      {step === 3 ? <DocumentsStep userId={user.id} documents={documents} onDocumentsChange={setDocuments} /> : null}
+      {step === 3 ? <DocumentsStep documents={documents} onDocumentsChange={setDocuments} /> : null}
       {step === 4 ? <ReviewStep personal={personal} professional={professional} documents={documents} /> : null}
       <div className="onb-nav">
         {step > 1 ? <button className="secondary" type="button" onClick={prev}>{t("common.previous")}</button> : null}
