@@ -561,3 +561,162 @@
   border-color: var(--maak-ui-accent);
   box-shadow: var(--maak-ui-shadow-focus);
 }
+
+/* Phase 2 — customer shell and navigation presentation. */
+.app:not(.provider-app) .topbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--maak-ui-border);
+  box-shadow: 0 1px 0 rgba(18, 18, 20, 0.02);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.app:not(.provider-app) .header-inner {
+  min-height: 68px;
+  width: min(var(--maak-content-max), 100%);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--maak-ui-space-3);
+  padding-inline: var(--maak-ui-space-3);
+}
+
+.app:not(.provider-app) .desktop-nav {
+  justify-content: center;
+  gap: var(--maak-ui-space-1);
+  min-width: 0;
+}
+
+.app:not(.provider-app) .desktop-nav button {
+  min-height: 42px;
+  padding-inline: var(--maak-ui-space-2);
+  border-radius: var(--maak-ui-radius-md);
+  color: var(--maak-ui-ink-secondary);
+  font-weight: 600;
+}
+
+.app:not(.provider-app) .desktop-nav button:hover {
+  color: var(--maak-ui-ink);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .desktop-nav button.selected {
+  color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent-soft);
+  border-color: var(--maak-ui-border);
+}
+
+.app:not(.provider-app) .profile-line {
+  gap: var(--maak-ui-space-2);
+  align-items: center;
+}
+
+.app:not(.provider-app) .profile-line .notification-slot {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app:not(.provider-app) .profile-line .lang-toggle-btn,
+.app:not(.provider-app) .profile-line .icon-btn,
+.app:not(.provider-app) .profile-line .auth-login-btn {
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-md);
+  background: var(--maak-ui-surface);
+  color: var(--maak-ui-ink);
+  box-shadow: none;
+}
+
+.app:not(.provider-app) .profile-line .lang-toggle-btn:hover,
+.app:not(.provider-app) .profile-line .icon-btn:hover,
+.app:not(.provider-app) .profile-line .auth-login-btn:hover {
+  color: var(--maak-ui-accent);
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .mobile-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--maak-ui-space-1);
+  align-items: stretch;
+  padding: var(--maak-ui-space-2);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-2xl);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 44px rgba(18, 18, 20, 0.10);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.app:not(.provider-app) .mobile-nav button {
+  min-width: 0;
+  min-height: 52px;
+  padding-block: var(--maak-ui-space-2);
+  padding-inline: var(--maak-ui-space-1);
+  gap: 4px;
+  border: 1px solid transparent;
+  border-radius: var(--maak-ui-radius-lg);
+  color: var(--maak-ui-ink-secondary);
+  background: transparent;
+}
+
+.app:not(.provider-app) .mobile-nav button:hover {
+  color: var(--maak-ui-ink);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .mobile-nav button.active {
+  color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent-soft);
+  border-color: transparent;
+}
+
+.app:not(.provider-app) .mobile-nav button.active::before {
+  background: var(--maak-ui-accent);
+}
+
+@media (min-width: 768px) {
+  .app:not(.provider-app) .header-inner { padding-inline: var(--maak-ui-space-3); }
+}
+
+@media (max-width: 767px) {
+  .app:not(.provider-app) .topbar { min-height: 64px; }
+
+  .app:not(.provider-app) .header-inner {
+    min-height: 64px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--maak-ui-space-2);
+    padding-inline: var(--maak-ui-space-2);
+  }
+
+  .app:not(.provider-app) .desktop-nav { display: none; }
+
+  .app:not(.provider-app) .profile-line { justify-content: flex-end; }
+  .app:not(.provider-app) .profile-line .desktop-only { display: none; }
+
+  .app:not(.provider-app) .profile-line .notification-slot,
+  .app:not(.provider-app) .profile-line .lang-toggle-btn,
+  .app:not(.provider-app) .profile-line .icon-btn,
+  .app:not(.provider-app) .profile-line .auth-login-btn { min-width: 40px; min-height: 40px; }
+
+  .app:not(.provider-app) .mobile-nav { margin-inline: 8px; }
+}
+
+@media (max-width: 430px) {
+  .app:not(.provider-app) .header-inner { padding-inline: var(--maak-ui-space-1); }
+  .app:not(.provider-app) .mobile-nav { margin-inline: 4px; padding: 6px; }
+  .app:not(.provider-app) .mobile-nav button { min-height: 50px; font-size: 11px; }
+}
+
+@media (max-width: 360px) {
+  .app:not(.provider-app) .profile-line { gap: 4px; }
+  .app:not(.provider-app) .profile-line .lang-toggle-btn span { display: none; }
+  .app:not(.provider-app) .mobile-nav button span { font-size: 10px; }
+}
+
+html[dir="rtl"] .app:not(.provider-app) .header-inner,
+html[dir="rtl"] .app:not(.provider-app) .mobile-nav { direction: rtl; }
+html[dir="ltr"] .app:not(.provider-app) .header-inner,
+html[dir="ltr"] .app:not(.provider-app) .mobile-nav { direction: ltr; }

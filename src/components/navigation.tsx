@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react";
 import { ClipboardList, Globe, Home, LogOut, MessageCircle, Search, UserRound } from "lucide-react";
 import { useRouter } from "../router";
 import { useToast } from "../context";
@@ -5,5 +6,129 @@ import { useAuth } from "../auth";
 import { useLanguage } from "../i18n";
 import { Logo } from "./atoms";
 import NotificationBell from "./notifications/NotificationBell";
-export function Header({ path }: { path: string }) { const{navigate}=useRouter();const{showToast}=useToast();const{user,loading,signOut,profile}=useAuth();const{t,lang,toggleLang}=useLanguage();async function handleSignOut(){await signOut();showToast(t("nav.loggedOut"));navigate("/");}const initial=(profile?.full_name||user?.email||"?").charAt(0).toUpperCase();const isSelected=(route:string)=>path===route;const items=[["home",t("nav.home"),Home,"/"],["discover",t("nav.discover"),Search,"/discover"],["bookings",t("nav.bookings"),ClipboardList,"/bookings"],["chat",t("nav.chat"),MessageCircle,"/chat"],["account",t("nav.account"),UserRound,"/account"]] as const;return <header className="topbar"><div className="header-inner"><Logo/><nav className="desktop-nav" aria-label={t("nav.primary")}>{items.map(([id,label,Icon,to])=><button key={id} className={isSelected(to)?"selected":""} onClick={()=>navigate(to)} aria-current={isSelected(to)?"page":undefined}><Icon size={16} strokeWidth={2.2} aria-hidden="true"/><span>{label}</span></button>)}</nav><div className="profile-line"><div className="notification-slot"><NotificationBell/></div><button className="lang-toggle-btn" onClick={toggleLang} aria-label={t("lang.label")} title={lang==="ar"?"Passer en Français":"التحويل إلى العربية"}><Globe size={14} aria-hidden="true"/><span>{lang==="ar"?"FR":"عربي"}</span></button>{loading?<span className="user-pill" aria-busy="true"/>:user?<><button className="icon-btn desktop-only" aria-label={t("nav.logout")} title={t("nav.logout")} onClick={handleSignOut}><LogOut size={18} aria-hidden="true"/></button><button className="icon-btn" aria-label={t("nav.account")} onClick={()=>navigate("/account")}><span className="avatar">{initial}</span></button></>:<button className="auth-login-btn" onClick={()=>navigate("/login")}>{t("nav.login")}</button>}</div></div></header>;}
-export function MobileNav({ path }: { path: string }) { const{navigate}=useRouter();const{t}=useLanguage();const items=[["home",t("nav.home"),Home,"/"],["discover",t("nav.discover"),Search,"/discover"],["bookings",t("nav.bookings"),ClipboardList,"/bookings"],["chat",t("nav.chat"),MessageCircle,"/chat"],["account",t("nav.account"),UserRound,"/account"]] as const;return <nav className="mobile-nav" aria-label={t("nav.primary")}>{items.map(([id,label,Icon,to])=><button key={id} className={path===to?"active":""} onClick={()=>navigate(to)} aria-current={path===to?"page":undefined}><Icon size={19} strokeWidth={2.2} aria-hidden="true"/><span>{label}</span>{id==="bookings"&&<i aria-hidden="true"/>}</button>)}</nav>;}
+
+type NavigationItem = readonly [string, string, LucideIcon, string];
+
+const isRouteSelected = (path: string, route: string) =>
+  route === "/" ? path === "/" : path === route || path.startsWith(`${route}/`);
+
+export function Header({ path }: { path: string }) {
+  const { navigate } = useRouter();
+  const { showToast } = useToast();
+  const { user, loading, signOut, profile } = useAuth();
+  const { t, lang, toggleLang } = useLanguage();
+
+  async function handleSignOut() {
+    await signOut();
+    showToast(t("nav.loggedOut"));
+    navigate("/");
+  }
+
+  const initial = (profile?.full_name || user?.email || "?").charAt(0).toUpperCase();
+  const items: NavigationItem[] = [
+    ["home", t("nav.home"), Home, "/"],
+    ["discover", t("nav.discover"), Search, "/discover"],
+    ["bookings", t("nav.bookings"), ClipboardList, "/bookings"],
+    ["chat", t("nav.chat"), MessageCircle, "/chat"],
+    ["account", t("nav.account"), UserRound, "/account"],
+  ];
+
+  return (
+    <header className="topbar">
+      <div className="header-inner">
+        <Logo />
+        <nav className="desktop-nav" aria-label={t("nav.primary")}>
+          {items.map(([id, label, Icon, to]) => {
+            const selected = isRouteSelected(path, to);
+            return (
+              <button
+                key={id}
+                type="button"
+                className={selected ? "selected" : ""}
+                onClick={() => navigate(to)}
+                aria-current={selected ? "page" : undefined}
+              >
+                <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="profile-line">
+          <div className="notification-slot">
+            <NotificationBell />
+          </div>
+          <button
+            type="button"
+            className="lang-toggle-btn"
+            onClick={toggleLang}
+            aria-label={t("lang.label")}
+            title={lang === "ar" ? "Passer en Français" : "التحويل إلى العربية"}
+          >
+            <Globe size={14} aria-hidden="true" />
+            <span>{lang === "ar" ? "FR" : "عربي"}</span>
+          </button>
+          {loading ? (
+            <span className="user-pill" aria-busy="true" />
+          ) : user ? (
+            <>
+              <button
+                type="button"
+                className="icon-btn desktop-only"
+                aria-label={t("nav.logout")}
+                title={t("nav.logout")}
+                onClick={handleSignOut}
+              >
+                <LogOut size={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label={t("nav.account")}
+                onClick={() => navigate("/account")}
+              >
+                <span className="avatar">{initial}</span>
+              </button>
+            </>
+          ) : (
+            <button type="button" className="auth-login-btn" onClick={() => navigate("/login")}>
+              {t("nav.login")}
+            </button>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export function MobileNav({ path }: { path: string }) {
+  const { navigate } = useRouter();
+  const { t } = useLanguage();
+  const items: NavigationItem[] = [
+    ["home", t("nav.home"), Home, "/"],
+    ["discover", t("nav.discover"), Search, "/discover"],
+    ["bookings", t("nav.bookings"), ClipboardList, "/bookings"],
+    ["chat", t("nav.chat"), MessageCircle, "/chat"],
+    ["account", t("nav.account"), UserRound, "/account"],
+  ];
+
+  return (
+    <nav className="mobile-nav" aria-label={t("nav.primary")}>
+      {items.map(([id, label, Icon, to]) => {
+        const selected = isRouteSelected(path, to);
+        return (
+          <button
+            key={id}
+            type="button"
+            className={selected ? "active" : ""}
+            onClick={() => navigate(to)}
+            aria-current={selected ? "page" : undefined}
+          >
+            <Icon size={19} strokeWidth={2.2} aria-hidden="true" />
+            <span>{label}</span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
