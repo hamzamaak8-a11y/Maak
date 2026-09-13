@@ -72,14 +72,20 @@ export default function Discover() {
   return (
     <main className="screen discover">
       <div className="page-title">
-        <h1>{t("discover.title")}</h1>
+        <div>
+          <h1>{t("discover.title")}</h1>
+        </div>
         {providers.length > 0 ? <span className="count-badge">{providerCountLabel(providers.length, t)}</span> : null}
       </div>
 
-      <SearchBar value={query} onChange={setQuery} onClear={clearAll} />
+      <div className="discover-search-shell">
+        <SearchBar value={query} onChange={setQuery} onClear={clearAll} />
+      </div>
 
-      <section id="discover-categories" className="content-section discover-categories">
-        <div className="section-heading"><h2>{t("home.categoriesRail")}</h2></div>
+      <section id="discover-categories" className="content-section discover-categories" aria-labelledby="discover-categories-heading">
+        <div className="section-heading">
+          <h2 id="discover-categories-heading">{t("home.categoriesRail")}</h2>
+        </div>
         <div className="category-rail" aria-label={t("home.categoriesRail")}>
           {chips.map((item) => {
             const isAll = item.name === t("filters.all");
@@ -96,7 +102,7 @@ export default function Discover() {
         </div>
       </section>
 
-      <section className="market-filter-panel" aria-label={t("search.filters")}>
+      <section className="market-filter-panel discover-filterbar" aria-label={t("search.filters")}>
         <div className="market-filter-row">
           <CategoryFilter value={category} onChange={setCategory} />
           <RatingFilter value={minRating} onChange={setMinRating} />
@@ -109,7 +115,11 @@ export default function Discover() {
               {cities.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
-          {hasActiveFilters ? <button className="filter-clear" onClick={clearAll}>{t("discover.clearFilters")}</button> : null}
+          {hasActiveFilters ? (
+            <button className="filter-clear" type="button" onClick={clearAll}>
+              {t("discover.clearFilters")}
+            </button>
+          ) : null}
         </div>
       </section>
 
@@ -133,11 +143,11 @@ export default function Discover() {
       ) : null}
 
       {status === "success" ? (
-        <section className="content-section providers-section">
+        <section className="content-section providers-section" aria-labelledby="discover-results-heading">
           <div className="section-heading">
             <div>
               <span className="section-kicker">{hasActiveFilters ? t("search.filteredResults") : t("discover.allProviders")}</span>
-              <h2>{t("featured.otherProviders")}</h2>
+              <h2 id="discover-results-heading">{t("featured.otherProviders")}</h2>
             </div>
             <span className="results-count">{providerCountLabel(otherProviders.length, t)}</span>
           </div>

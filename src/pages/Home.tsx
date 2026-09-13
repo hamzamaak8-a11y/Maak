@@ -34,31 +34,35 @@ export default function Home() {
 
   return (
     <main className="home">
-      <div className="home-bar">
-        <button
-          className="home-loc"
-          onClick={() => showToast(t("home.locationUnavailable"))}
-        >
-          <MapPin size={16} />
-          <span>{city || t("home.locate")}</span>
-        </button>
-      </div>
-
       <section className="home-intro" aria-labelledby="home-prompt">
+        <div className="home-bar">
+          <button
+            className="home-loc"
+            type="button"
+            onClick={() => showToast(t("home.locationUnavailable"))}
+          >
+            <MapPin size={16} aria-hidden="true" />
+            <span>{city || t("home.locate")}</span>
+          </button>
+        </div>
+
         <div className="home-intro-copy">
           <p className="home-greet">{name ? t("home.greetName", { name }) : t("home.greet")}</p>
           <h1 id="home-prompt" className="home-prompt">{t("home.prompt")}</h1>
           <p className="home-sub">{t("home.sub")}</p>
         </div>
+
         <SearchBox value={query} onChange={setQuery} onSubmit={() => goDiscover(query)} />
       </section>
 
       <TrustStrip />
 
-      <section className="home-section">
+      <section className="home-section" aria-labelledby="home-services-heading">
         <div className="home-section-head">
-          <h2>{t("home.services")}</h2>
-          <button className="text-button" onClick={() => goDiscover("")}>
+          <div>
+            <h2 id="home-services-heading">{t("home.services")}</h2>
+          </div>
+          <button className="text-button" type="button" onClick={() => goDiscover("")}>
             {t("home.explore")}
           </button>
         </div>
@@ -80,10 +84,12 @@ export default function Home() {
         ) : null}
       </section>
 
-      <section className="home-section">
+      <section className="home-section" aria-labelledby="home-providers-heading">
         <div className="home-section-head">
-          <h2>{t("home.providers")}</h2>
-          <button className="text-button" onClick={() => goDiscover("")}>
+          <div>
+            <h2 id="home-providers-heading">{t("home.providers")}</h2>
+          </div>
+          <button className="text-button" type="button" onClick={() => goDiscover("")}>
             {t("home.viewAll")}
           </button>
         </div>
@@ -109,7 +115,7 @@ export default function Home() {
               />
             ))}
             {providers.length > featured.length ? (
-              <button className="ghost-button home-more" onClick={() => goDiscover("")}>
+              <button className="ghost-button home-more" type="button" onClick={() => goDiscover("")}>
                 {t("home.viewAllProviders")}
               </button>
             ) : null}
