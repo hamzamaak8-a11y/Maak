@@ -434,3 +434,130 @@
   .app:not(.provider-app) .auth-btn:hover,
   .app:not(.provider-app) .search-submit:hover { transform: none; }
 }
+
+/* Phase 1 semantic adapter: existing customer presentation now consumes the canonical Maak UI tokens. */
+.app:not(.provider-app) {
+  --zip-paper: var(--maak-ui-bg);
+  --zip-paper-soft: var(--maak-ui-surface-soft);
+  --zip-paper-deep: var(--maak-ui-bg-secondary);
+  --zip-ink: var(--maak-ui-ink);
+  --zip-ink-soft: var(--maak-ui-ink-secondary);
+  --zip-line: var(--maak-ui-border);
+  --zip-teal: var(--maak-ui-accent);
+  --zip-teal-strong: var(--maak-ui-action-dark);
+  --zip-teal-soft: var(--maak-ui-accent-soft);
+  --zip-clay: var(--maak-ui-accent);
+  --zip-gold: var(--maak-ui-warning);
+  --zip-shadow: var(--maak-ui-shadow-soft);
+  --zip-shadow-pop: var(--maak-ui-shadow-card);
+  --zip-radius: var(--maak-ui-radius-xl);
+  --zip-radius-sm: var(--maak-ui-radius-md);
+
+  --bg: var(--maak-ui-bg);
+  --bg-2: var(--maak-ui-bg-secondary);
+  --bg-subtle: var(--maak-ui-surface-soft);
+  --surface: var(--maak-ui-surface);
+  --surface-2: var(--maak-ui-surface-soft);
+  --surface-3: var(--maak-ui-bg-secondary);
+  --surface-hover: var(--maak-ui-surface-soft);
+  --hair: var(--maak-ui-border);
+  --hair-2: var(--maak-ui-border);
+  --border: var(--maak-ui-border);
+  --border-focus: var(--maak-ui-accent);
+  --line: var(--maak-ui-border);
+  --text: var(--maak-ui-ink);
+  --text-soft: var(--maak-ui-ink-secondary);
+  --text-mute: var(--maak-ui-ink-muted);
+  --ink: var(--maak-ui-ink);
+  --ink-soft: var(--maak-ui-ink-secondary);
+  --muted: var(--maak-ui-ink-muted);
+  --gold: var(--maak-ui-accent);
+  --gold-bright: var(--maak-ui-accent);
+  --gold-deep: var(--maak-ui-action-dark);
+  --gold-soft: var(--maak-ui-accent-soft);
+  --gold-glow: rgba(255, 77, 18, 0.16);
+  --primary: var(--maak-ui-accent);
+  --primary-hover: var(--maak-ui-accent);
+  --primary-active: var(--maak-ui-action-dark);
+  --primary-light: var(--maak-ui-accent-soft);
+  --orange: var(--maak-ui-accent);
+  --orange-soft: var(--maak-ui-accent-soft);
+  --green: var(--maak-ui-success);
+  --green-soft: rgba(14, 159, 110, 0.10);
+  --teal: var(--maak-ui-indigo);
+  --teal-soft: rgba(79, 70, 229, 0.08);
+  --red: var(--maak-ui-danger);
+  --red-soft: rgba(224, 36, 36, 0.08);
+  --navy: var(--maak-ui-action-dark);
+  --navy-light: var(--maak-ui-surface-soft);
+  --shadow-xs: 0 2px 8px rgba(18, 18, 20, 0.05);
+  --shadow-sm: var(--maak-ui-shadow-soft);
+  --shadow: var(--maak-ui-shadow-card);
+  --shadow-lg: 0 28px 64px rgba(18, 18, 20, 0.10);
+  --shadow-primary: var(--maak-ui-shadow-focus);
+  --maak-line: var(--maak-ui-border);
+  --maak-line-strong: var(--maak-ui-border);
+  --maak-shadow-card: var(--maak-ui-shadow-card);
+  background: var(--maak-ui-bg);
+  color: var(--maak-ui-ink);
+}
+
+.app:not(.provider-app) .app-main {
+  background:
+    radial-gradient(circle at 50% -120px, rgba(255, 77, 18, 0.08), transparent 340px),
+    var(--maak-ui-bg);
+}
+
+.app:not(.provider-app) .topbar,
+.app:not(.provider-app) .mobile-nav {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: var(--maak-ui-border);
+}
+
+.app:not(.provider-app) .desktop-nav button:hover,
+.app:not(.provider-app) .profile-line .lang-toggle-btn:hover,
+.app:not(.provider-app) .profile-line .icon-btn:hover,
+.app:not(.provider-app) .profile-line .auth-login-btn:hover {
+  color: var(--maak-ui-accent);
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .desktop-nav button.selected,
+.app:not(.provider-app) .count-badge,
+.app:not(.provider-app) .mobile-nav button.active {
+  color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent-soft);
+  border-color: var(--maak-ui-border);
+}
+
+.app:not(.provider-app) .home-intro,
+.app:not(.provider-app) .auth-card,
+.app:not(.provider-app) .state-card {
+  border-color: var(--maak-ui-border);
+  box-shadow: var(--maak-ui-shadow-card);
+}
+
+.app:not(.provider-app) .primary,
+.app:not(.provider-app) .auth-btn,
+.app:not(.provider-app) .search-submit,
+.app:not(.provider-app) .category-chip:hover .chip-icon,
+.app:not(.provider-app) .category-chip.active .chip-icon,
+.app:not(.provider-app) .provider-row:hover .provider-cta {
+  background: var(--maak-ui-accent);
+}
+
+.app:not(.provider-app) .primary:hover,
+.app:not(.provider-app) .auth-btn:hover,
+.app:not(.provider-app) .search-submit:hover {
+  background: var(--maak-ui-action-dark);
+}
+
+.app:not(.provider-app) .field:focus,
+.app:not(.provider-app) .auth-input:focus,
+.app:not(.provider-app) .search-box:focus-within,
+.app:not(.provider-app) .filter-field:focus-within,
+.app:not(.provider-app) .filter-select:focus {
+  border-color: var(--maak-ui-accent);
+  box-shadow: var(--maak-ui-shadow-focus);
+}
