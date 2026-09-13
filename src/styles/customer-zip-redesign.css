@@ -720,3 +720,407 @@ html[dir="rtl"] .app:not(.provider-app) .header-inner,
 html[dir="rtl"] .app:not(.provider-app) .mobile-nav { direction: rtl; }
 html[dir="ltr"] .app:not(.provider-app) .header-inner,
 html[dir="ltr"] .app:not(.provider-app) .mobile-nav { direction: ltr; }
+
+/* Phase 4A — customer BookingFlow presentation. */
+.app:not(.provider-app) .booking {
+  max-width: 980px;
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  color: var(--maak-ui-ink);
+}
+
+.app:not(.provider-app) .booking-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--maak-ui-space-2);
+  min-height: 44px;
+  margin-bottom: var(--maak-ui-space-3);
+  padding: var(--maak-ui-space-2) var(--maak-ui-space-3);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-pill);
+  background: var(--maak-ui-surface-soft);
+  color: var(--maak-ui-ink-secondary);
+  box-shadow: var(--maak-ui-shadow-soft);
+}
+
+.app:not(.provider-app) .booking-back:hover {
+  color: var(--maak-ui-accent);
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-surface);
+}
+
+.app:not(.provider-app) .booking-head {
+  padding: var(--maak-ui-space-5);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-2xl);
+  background: var(--maak-ui-surface);
+  box-shadow: var(--maak-ui-shadow-card);
+}
+
+.app:not(.provider-app) .booking-head .section-kicker,
+.app:not(.provider-app) .booking-field > label {
+  color: var(--maak-ui-accent);
+  font-weight: 800;
+}
+
+.app:not(.provider-app) .booking-head h1 {
+  margin: var(--maak-ui-space-2) 0 var(--maak-ui-space-3);
+  color: var(--maak-ui-ink);
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.app:not(.provider-app) .booking-provider {
+  display: flex;
+  align-items: center;
+  gap: var(--maak-ui-space-3);
+  padding-top: var(--maak-ui-space-2);
+}
+
+.app:not(.provider-app) .booking-provider .bp-name {
+  color: var(--maak-ui-ink);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.app:not(.provider-app) .booking-provider .bp-job,
+.app:not(.provider-app) .booking-provider .bp-city {
+  color: var(--maak-ui-ink-secondary);
+}
+
+.app:not(.provider-app) .booking-provider .bp-city {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--maak-ui-space-1);
+  margin-top: var(--maak-ui-space-1);
+  font-size: 12px;
+}
+
+.app:not(.provider-app) .booking-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--maak-ui-space-2);
+  margin-block: var(--maak-ui-space-4);
+  padding: var(--maak-ui-space-2);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-xl);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .booking-step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--maak-ui-space-2);
+  min-height: 48px;
+  padding-inline: var(--maak-ui-space-2);
+  border-radius: var(--maak-ui-radius-md);
+  color: var(--maak-ui-ink-muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.app:not(.provider-app) .booking-step .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: var(--maak-ui-radius-pill);
+  background: var(--maak-ui-bg-secondary);
+  color: var(--maak-ui-ink-secondary);
+}
+
+.app:not(.provider-app) .booking-step.on {
+  background: var(--maak-ui-surface);
+  color: var(--maak-ui-ink);
+  box-shadow: var(--maak-ui-shadow-soft);
+}
+
+.app:not(.provider-app) .booking-step.on .num,
+.app:not(.provider-app) .booking-step.done .num {
+  background: var(--maak-ui-accent);
+  color: var(--maak-ui-surface);
+}
+
+.app:not(.provider-app) .booking-step.done {
+  color: var(--maak-ui-ink-secondary);
+}
+
+.app:not(.provider-app) .booking-body {
+  display: grid;
+  gap: var(--maak-ui-space-4);
+  padding: var(--maak-ui-space-5);
+  border-radius: var(--maak-ui-radius-2xl);
+  background: var(--maak-ui-surface);
+  box-shadow: var(--maak-ui-shadow-card);
+}
+
+.app:not(.provider-app) .booking-field {
+  display: grid;
+  gap: var(--maak-ui-space-2);
+}
+
+.app:not(.provider-app) .booking-field > label {
+  font-size: 15px;
+}
+
+.app:not(.provider-app) .booking-field .hint {
+  margin: 0;
+  color: var(--maak-ui-ink-secondary);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.app:not(.provider-app) .service-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--maak-ui-space-2);
+}
+
+.app:not(.provider-app) .service-chip-opt {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-pill);
+  background: var(--maak-ui-surface-soft);
+  color: var(--maak-ui-ink-secondary);
+  font-weight: 750;
+}
+
+.app:not(.provider-app) .service-chip-opt:hover {
+  border-color: var(--maak-ui-accent);
+  color: var(--maak-ui-action-dark);
+}
+
+.app:not(.provider-app) .service-chip-opt.active {
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent-soft);
+  color: var(--maak-ui-action-dark);
+  box-shadow: var(--maak-ui-shadow-soft);
+}
+
+.app:not(.provider-app) .booking-native {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 15px;
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-md);
+  background: var(--maak-ui-surface-soft);
+  color: var(--maak-ui-ink);
+  outline: none;
+  resize: vertical;
+}
+
+.app:not(.provider-app) .booking-native:focus {
+  border-color: var(--maak-ui-accent);
+  box-shadow: var(--maak-ui-shadow-focus);
+  background: var(--maak-ui-surface);
+}
+
+.app:not(.provider-app) .booking-native[aria-invalid="true"] {
+  border-color: var(--maak-ui-danger);
+}
+
+.app:not(.provider-app) .counter {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.app:not(.provider-app) .booking-location-field {
+  margin-top: var(--maak-ui-space-3);
+  padding-top: var(--maak-ui-space-4);
+  border-top: 1px solid var(--maak-ui-border);
+}
+
+.app:not(.provider-app) .booking-selected-time {
+  padding: var(--maak-ui-space-2) var(--maak-ui-space-3);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-md);
+  background: var(--maak-ui-surface-soft);
+}
+
+.app:not(.provider-app) .err {
+  margin: 0;
+  color: var(--maak-ui-danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app:not(.provider-app) .booking-fail,
+.app:not(.provider-app) .booking-notice,
+.app:not(.provider-app) .slot-state {
+  display: flex;
+  align-items: center;
+  gap: var(--maak-ui-space-2);
+  padding: var(--maak-ui-space-3);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-lg);
+  background: var(--maak-ui-surface-soft);
+  color: var(--maak-ui-ink-secondary);
+}
+
+.app:not(.provider-app) .booking-fail,
+.app:not(.provider-app) .slot-state.error {
+  border-color: var(--maak-ui-danger);
+  color: var(--maak-ui-danger);
+}
+
+.app:not(.provider-app) .booking-notice .ico {
+  color: var(--maak-ui-warning);
+}
+
+.app:not(.provider-app) .booking .slot-picker,
+.app:not(.provider-app) .booking .slot-days {
+  border-color: var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-xl);
+  background: var(--maak-ui-surface-soft);
+  box-shadow: var(--maak-ui-shadow-soft);
+}
+
+.app:not(.provider-app) .booking .slot-option {
+  min-height: 44px;
+  border-radius: var(--maak-ui-radius-md);
+  border-color: var(--maak-ui-border);
+  background: var(--maak-ui-surface);
+  color: var(--maak-ui-ink-secondary);
+}
+
+.app:not(.provider-app) .booking .slot-option:hover:not(:disabled) {
+  border-color: var(--maak-ui-accent);
+  color: var(--maak-ui-ink);
+}
+
+.app:not(.provider-app) .booking .slot-option[aria-selected="true"],
+.app:not(.provider-app) .booking .slot-option.selected {
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent-soft);
+  color: var(--maak-ui-action-dark);
+}
+
+.app:not(.provider-app) .booking .slot-option:disabled,
+.app:not(.provider-app) .booking .slot-option[aria-disabled="true"] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.app:not(.provider-app) .booking-steps + .booking-body {
+  min-width: 0;
+}
+
+.app:not(.provider-app) .booking-success {
+  display: grid;
+  gap: var(--maak-ui-space-3);
+  padding: var(--maak-ui-space-6);
+  border: 1px solid var(--maak-ui-border);
+  border-radius: var(--maak-ui-radius-2xl);
+  background: var(--maak-ui-surface);
+  box-shadow: var(--maak-ui-shadow-card);
+}
+
+.app:not(.provider-app) .booking-success .ok {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--maak-ui-radius-pill);
+  background: var(--maak-ui-accent-soft);
+  color: var(--maak-ui-success);
+}
+
+.app:not(.provider-app) .booking-success h1 {
+  margin: 0;
+  color: var(--maak-ui-ink);
+  font-size: clamp(28px, 4vw, 40px);
+  letter-spacing: -.035em;
+}
+
+.app:not(.provider-app) .booking-success > p {
+  margin: 0;
+  color: var(--maak-ui-ink-secondary);
+  line-height: 1.7;
+}
+
+.app:not(.provider-app) .booking-actions {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 40;
+  padding: var(--maak-ui-space-2) var(--maak-ui-space-3) calc(var(--maak-ui-space-2) + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--maak-ui-border);
+  background: var(--maak-ui-surface);
+  box-shadow: var(--maak-ui-shadow-card);
+}
+
+.app:not(.provider-app) .booking-actions .inner {
+  width: min(980px, 100%);
+  margin-inline: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--maak-ui-space-2);
+}
+
+.app:not(.provider-app) .booking-actions button {
+  min-height: 48px;
+  min-width: 132px;
+  border-radius: var(--maak-ui-radius-md);
+  font-weight: 850;
+}
+
+.app:not(.provider-app) .booking-actions .secondary {
+  border-color: var(--maak-ui-border);
+  background: var(--maak-ui-surface-soft);
+  color: var(--maak-ui-action-dark);
+}
+
+.app:not(.provider-app) .booking-actions .primary {
+  border-color: var(--maak-ui-accent);
+  background: var(--maak-ui-accent);
+  color: var(--maak-ui-surface);
+}
+
+.app:not(.provider-app) .booking-actions .primary:hover {
+  border-color: var(--maak-ui-action-dark);
+  background: var(--maak-ui-action-dark);
+}
+
+.app:not(.provider-app) .booking button:focus-visible,
+.app:not(.provider-app) .booking input:focus-visible,
+.app:not(.provider-app) .booking textarea:focus-visible {
+  outline: 3px solid var(--maak-ui-accent-soft);
+  outline-offset: 3px;
+}
+
+html[dir="rtl"] .app:not(.provider-app) .booking,
+html[dir="rtl"] .app:not(.provider-app) .booking-actions,
+html[dir="rtl"] .app:not(.provider-app) .booking-steps { direction: rtl; }
+html[dir="ltr"] .app:not(.provider-app) .booking,
+html[dir="ltr"] .app:not(.provider-app) .booking-actions,
+html[dir="ltr"] .app:not(.provider-app) .booking-steps { direction: ltr; }
+
+[dir="rtl"] .app:not(.provider-app) .booking-back svg,
+[dir="rtl"] .app:not(.provider-app) .booking-actions .primary svg { transform: rotate(180deg); }
+
+@media (max-width: 767px) {
+  .app:not(.provider-app) .booking { padding-bottom: calc(126px + env(safe-area-inset-bottom)); }
+  .app:not(.provider-app) .booking-head,
+  .app:not(.provider-app) .booking-body,
+  .app:not(.provider-app) .booking-success { padding: var(--maak-ui-space-4); }
+  .app:not(.provider-app) .booking-steps { grid-template-columns: repeat(4, minmax(86px, 1fr)); overflow-x: auto; }
+  .app:not(.provider-app) .booking-step { min-width: 86px; }
+  .app:not(.provider-app) .booking-actions .inner { flex-direction: column-reverse; }
+  .app:not(.provider-app) .booking-actions button { width: 100%; }
+  .app:not(.provider-app) .booking .slot-picker,
+  .app:not(.provider-app) .booking .slot-days { box-shadow: none; }
+}
+
+@media (max-width: 430px) {
+  .app:not(.provider-app) .booking-head h1 { font-size: 28px; }
+  .app:not(.provider-app) .booking-steps { margin-inline: calc(var(--maak-ui-space-2) * -1); padding-inline: var(--maak-ui-space-2); border-inline: 0; border-radius: 0; }
+  .app:not(.provider-app) .booking-provider { align-items: flex-start; }
+  .app:not(.provider-app) .service-chips { gap: var(--maak-ui-space-1); }
+  .app:not(.provider-app) .service-chip-opt { flex: 0 1 auto; }
+}
