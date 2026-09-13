@@ -53,52 +53,52 @@ export default function ProviderDetail({ id }: { id: number }) {
 
   const goToBooking = (current: Provider) => navigate(`/provider/${current.id}/booking`);
 
-  if (status === "loading") return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-loading"><Loader2 className="spin" size={24} /><p>{t("pdetail.loading")}</p></div></main>;
-  if (status === "error") return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><AlertCircle size={24} /><h3>{t("pdetail.error")}</h3><p>{t("common.retry")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
-  if (!provider) return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><MapPin size={24} /><h3>{t("pdetail.notFound")}</h3></div></main>;
-  if (!isBookable(provider)) return <main className="screen pdetail"><button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button><div className="pdetail-error"><ShieldCheck size={24} /><h3>{t("pdetail.notBookable")}</h3><p>{t("pdetail.notBookableBody")}</p><button className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
+  if (status === "loading") return <main className="screen pdetail" aria-busy="true"><button type="button" className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} aria-hidden="true" /> {t("common.backToDiscover")}</button><div className="pdetail-loading"><Loader2 className="spin" size={24} aria-hidden="true" /><p>{t("pdetail.loading")}</p></div></main>;
+  if (status === "error") return <main className="screen pdetail"><button type="button" className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} aria-hidden="true" /> {t("common.backToDiscover")}</button><div className="pdetail-error"><AlertCircle size={24} aria-hidden="true" /><h3>{t("pdetail.error")}</h3><p>{t("common.retry")}</p><button type="button" className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
+  if (!provider) return <main className="screen pdetail"><button type="button" className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} aria-hidden="true" /> {t("common.backToDiscover")}</button><div className="pdetail-error"><MapPin size={24} aria-hidden="true" /><h3>{t("pdetail.notFound")}</h3></div></main>;
+  if (!isBookable(provider)) return <main className="screen pdetail"><button type="button" className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} aria-hidden="true" /> {t("common.backToDiscover")}</button><div className="pdetail-error"><ShieldCheck size={24} aria-hidden="true" /><h3>{t("pdetail.notBookable")}</h3><p>{t("pdetail.notBookableBody")}</p><button type="button" className="ghost-button" onClick={() => navigate("/discover")}>{t("pdetail.back")}</button></div></main>;
 
   const rating = publicDetails?.rating ?? (provider.rating ? Number(provider.rating) : 0);
   const reviewCount = publicDetails?.reviewCount ?? provider.reviews;
 
   return (
-    <main className="screen pdetail">
-      <button className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} /> {t("common.backToDiscover")}</button>
+    <main className="screen pdetail" aria-labelledby="public-provider-name">
+      <button type="button" className="pdetail-back" onClick={() => navigate("/discover")}><ChevronLeft size={16} aria-hidden="true" /> {t("common.backToDiscover")}</button>
 
       <div className="pdetail-grid">
         <aside className="pdetail-identity">
           <ProviderHeader provider={provider} rating={rating} reviewCount={reviewCount} />
-          <div className="public-provider-hero-actions">
-            <button className="secondary" onClick={() => void openChat()} disabled={openingChat}><MessageCircle size={16} />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
-            <button className="primary" onClick={() => goToBooking(provider)}><ArrowLeft size={16} />{t("pd.bookCta")}</button>
+          <div className="pdetail-action-group public-provider-hero-actions">
+            <button type="button" className="secondary" onClick={() => void openChat()} disabled={openingChat} aria-busy={openingChat}><MessageCircle size={16} aria-hidden="true" />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
+            <button type="button" className="primary" onClick={() => goToBooking(provider)}><ArrowLeft size={16} aria-hidden="true" />{t("pd.bookCta")}</button>
           </div>
-          <div className="pdetail-desktop-cta">
-            <button className="secondary" onClick={() => void openChat()} disabled={openingChat}><MessageCircle size={16} />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
-            <button className="primary" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} /></button>
+          <div className="pdetail-action-group pdetail-desktop-cta">
+            <button type="button" className="secondary" onClick={() => void openChat()} disabled={openingChat} aria-busy={openingChat}><MessageCircle size={16} aria-hidden="true" />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
+            <button type="button" className="primary" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} aria-hidden="true" /></button>
           </div>
-          <div className="pdetail-section" style={{ marginTop: 16 }}>
+          <div className="pdetail-section pdetail-price-card">
             <span className="section-kicker">{t("pd.estimatedPrice")}</span>
             <div className="public-provider-price"><b>{provider.price ?? t("price.onContact")}</b></div>
           </div>
         </aside>
 
         <section className="pdetail-content">
-          {provider.intro ? <section className="public-provider-section"><span className="section-kicker">{t("pd.aboutTitle")}</span><h2>{provider.name}</h2><p className="public-provider-about">{provider.intro}</p></section> : null}
+          {provider.intro ? <section className="public-provider-section pdetail-about" aria-labelledby="pdetail-about-title"><span className="section-kicker">{t("pd.aboutTitle")}</span><h2 id="pdetail-about-title">{provider.name}</h2><p className="public-provider-about">{provider.intro}</p></section> : null}
           <ProviderServices provider={provider} />
           <ProviderAvailability provider={provider} />
           <ProviderPortfolio providerId={provider.id} />
-          {provider.provider_profile_id ? <section className="public-provider-section"><div className="public-provider-review-title"><div><span className="section-kicker">{t("pd.reviewsTitle")}</span><h2>{t("pd.reviewsTitle")}</h2></div><span className="public-provider-review-summary">{reviewCount > 0 ? `${rating.toFixed(1)} / 5` : t("pd.noRating")}</span></div><ReviewList providerId={provider.provider_profile_id} /></section> : null}
-          <section className="public-provider-cta-panel">
+          {provider.provider_profile_id ? <section className="public-provider-section" aria-labelledby="pdetail-reviews-title"><div className="public-provider-review-title"><div><span className="section-kicker">{t("pd.reviewsTitle")}</span><h2 id="pdetail-reviews-title">{t("pd.reviewsTitle")}</h2></div><span className="public-provider-review-summary">{reviewCount > 0 ? `${rating.toFixed(1)} / 5` : t("pd.noRating")}</span></div><ReviewList providerId={provider.provider_profile_id} /></section> : null}
+          <section className="public-provider-cta-panel" aria-label={t("pd.bookCta")}>
             <div className="public-provider-cta-copy"><strong>{t("pd.bookCta")}</strong><span>{provider.city} · {provider.job}</span></div>
-            <div className="public-provider-cta-actions">
-              <button className="secondary" onClick={() => void openChat()} disabled={openingChat}><MessageCircle size={16} />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
-              <button className="primary" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} /></button>
+            <div className="pdetail-action-group public-provider-cta-actions">
+              <button type="button" className="secondary" onClick={() => void openChat()} disabled={openingChat} aria-busy={openingChat}><MessageCircle size={16} aria-hidden="true" />{openingChat ? t("common.loading") : t("pd.messageCta")}</button>
+              <button type="button" className="primary" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} aria-hidden="true" /></button>
             </div>
           </section>
         </section>
       </div>
 
-      <div className="pdetail-cta" role="region" aria-label={t("pd.bookCta")}><div className="inner"><button className="primary cta-book" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} /></button></div></div>
+      <div className="pdetail-cta" role="region" aria-label={t("pd.bookCta")}><div className="inner"><button type="button" className="primary cta-book" onClick={() => goToBooking(provider)}>{t("pd.bookCta")} <ArrowLeft size={16} aria-hidden="true" /></button></div></div>
     </main>
   );
 }
