@@ -1,1 +1,76 @@
 .maak-splash{min-height:100dvh;display:grid;place-items:center;align-content:center;gap:16px;background:radial-gradient(circle at 50% 30%,rgba(214,172,98,.20),transparent 28%),#f7f3eb;color:#b98220}.maak-splash .brand-lockup{height:74px;max-width:220px}.maak-splash .spin{animation:maak-shell-spin .8s linear infinite}@keyframes maak-shell-spin{to{transform:rotate(360deg)}}@media(max-width:760px){.ap-mobile-menu{display:none!important}.admin-pro-top{padding-inline-start:0}}@media(prefers-reduced-motion:reduce){.maak-splash .spin{animation:none}}
+
+/* P0 visual/runtime recovery: restore a real desktop customer workspace.
+   The earlier responsive layer intentionally constrains .app to phone width;
+   that rule is valid for mobile, but it is wrong at desktop breakpoints. */
+@media (min-width:900px){
+  .app:not(.provider-app){
+    width:100%!important;
+    max-width:none!important;
+    margin-inline:0!important;
+    min-height:100dvh;
+    background:var(--w-paper,#f3f3f1);
+    box-shadow:none!important;
+    position:relative;
+    overflow-x:clip;
+  }
+  .app:not(.provider-app) .shell{
+    width:min(1280px,100%)!important;
+    max-width:1280px!important;
+    margin-inline:auto!important;
+    padding-inline:22px!important;
+    padding-bottom:calc(104px + env(safe-area-inset-bottom));
+  }
+  .app:not(.provider-app) .topbar{margin-inline:0!important}
+  .app:not(.provider-app) .header-inner{width:100%;max-width:1280px;margin-inline:auto}
+  .app:not(.provider-app) .desktop-nav{display:flex!important}
+  .app:not(.provider-app) .profile-line{display:flex!important}
+  .app:not(.provider-app) .app-main{min-height:calc(100dvh - 70px);padding-bottom:0}
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home{
+    width:min(1180px,100%)!important;
+    max-width:1180px!important;
+    margin-inline:auto!important;
+    padding-inline:0!important;
+  }
+  .app:not(.provider-app) .mobile-nav{display:none!important}
+}
+
+/* Auth direction must follow the active language, not a global RTL default. */
+html[dir="ltr"] .auth-main{direction:ltr!important}
+html[dir="rtl"] .auth-main{direction:rtl!important}
+.auth-main,.auth-card,.auth-form,.auth-field{min-width:0}
+.auth-main .auth-card{width:min(100%,520px)!important;max-width:520px!important;margin-inline:auto!important}
+
+/* Recorded desktop defects: prevent heading clipping and flex/grid collapse. */
+@media (min-width:900px){
+  .app:not(.provider-app) .home-intro,
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .page-title,
+  .app:not(.provider-app) .section-heading{min-width:0}
+  .app:not(.provider-app) .home-prompt{max-width:min(760px,100%);overflow-wrap:normal;word-break:normal}
+  .app:not(.provider-app) .provider-row,
+  .app:not(.provider-app) .provider-info,
+  .app:not(.provider-app) .provider-action{min-width:0}
+}
+
+/* Customer fixed bottom navigation is mobile-only; keep all five tracks contained. */
+@media (max-width:899px){
+  .app:not(.provider-app) .mobile-nav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    left:12px!important;
+    right:12px!important;
+    inset-inline:12px!important;
+    width:auto!important;
+    max-width:none!important;
+    transform:none!important;
+    padding:6px!important;
+  }
+  .app:not(.provider-app) .mobile-nav button{min-width:0!important;width:100%;overflow:hidden;text-overflow:ellipsis}
+  .app:not(.provider-app) .mobile-nav button span{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+
+/* Official admin brand assets already live under src/assets/brand. */
+.m2-brand-row::before{background-image:url("../assets/brand/maak-lockup-dark.webp")}
+@media (max-width:899px){.m2-brand-row::before{max-width:132px}}
