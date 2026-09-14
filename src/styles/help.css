@@ -18,3 +18,23 @@
 .help-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:18px;padding:15px 17px;border:1px solid rgba(14,19,19,.08);border-radius:14px;background:#faf9f7;color:#596363;font-size:13px}.help-footer button{display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:#0c6658;font-weight:800;cursor:pointer}
 @media(max-width:900px){.help-content{grid-template-columns:1fr}.help-hero{grid-template-columns:1fr}.help-hero-card{display:none}}
 @media(max-width:620px){.help-page{width:min(100% - 20px,1180px);padding-top:18px}.help-hero,.help-section,.help-support{padding:20px;border-radius:18px}.help-form-grid{grid-template-columns:1fr}.help-footer{align-items:flex-start;flex-direction:column}.help-hero h1{font-size:38px}}
+
+/* Phase 9 — customer surface consistency sweep. */
+.help-page{max-width:1180px;padding:var(--maak-ui-space-5) var(--maak-ui-space-2) calc(120px + env(safe-area-inset-bottom));color:var(--maak-ui-ink);}
+.help-hero{gap:var(--maak-ui-space-5);padding:var(--maak-ui-space-6);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-3xl);background:var(--maak-ui-surface);box-shadow:var(--maak-ui-shadow-card);}
+.help-kicker{color:var(--maak-ui-accent);}
+.help-hero h1,.help-section-head h2{color:var(--maak-ui-ink);}
+.help-hero p,.help-section-head p{color:var(--maak-ui-ink-secondary);}
+.help-hero-card{padding:var(--maak-ui-space-5);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-2xl);background:var(--maak-ui-surface-soft);color:var(--maak-ui-accent);}
+.help-hero-card strong{color:var(--maak-ui-ink);}.help-hero-card span{color:var(--maak-ui-ink-secondary);}
+.help-content{gap:var(--maak-ui-space-4);margin-top:var(--maak-ui-space-4);}
+.help-section,.help-support{padding:var(--maak-ui-space-5);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-2xl);background:var(--maak-ui-surface);box-shadow:var(--maak-ui-shadow-card);}
+.help-faq-item{border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-lg);background:var(--maak-ui-surface-soft);}.help-faq-item.open{border-color:var(--maak-ui-accent);background:var(--maak-ui-surface);}
+.help-faq-trigger{min-height:52px;padding-inline:var(--maak-ui-space-3);color:var(--maak-ui-ink);}.help-faq-trigger svg{color:var(--maak-ui-accent);}.help-faq-answer{padding-inline:var(--maak-ui-space-3);}.help-faq-answer p{color:var(--maak-ui-ink-secondary);}
+.help-support-form input,.help-support-form textarea{min-height:46px;border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-md);background:var(--maak-ui-surface-soft);color:var(--maak-ui-ink);}.help-support-form input:focus,.help-support-form textarea:focus{border-color:var(--maak-ui-accent);background:var(--maak-ui-surface);box-shadow:var(--maak-ui-shadow-focus);}
+.help-form-status.success{background:var(--maak-ui-accent-soft);color:var(--maak-ui-success);}.help-form-status.error{background:var(--maak-ui-accent-soft);color:var(--maak-ui-danger);}
+.help-footer{margin-top:var(--maak-ui-space-3);padding:var(--maak-ui-space-3) var(--maak-ui-space-4);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-lg);background:var(--maak-ui-surface-soft);color:var(--maak-ui-ink-secondary);}.help-footer button{min-height:44px;color:var(--maak-ui-accent);}
+.help-page :is(button,a,input,textarea):focus-visible{outline:3px solid var(--maak-ui-accent-soft);outline-offset:3px;}
+@media(max-width:900px){.help-page{padding-inline:var(--maak-ui-space-2);}.help-content{gap:var(--maak-ui-space-3);}}
+@media(max-width:620px){.help-page{width:100%;padding-top:var(--maak-ui-space-3);padding-inline:var(--maak-ui-space-2);padding-bottom:calc(128px + env(safe-area-inset-bottom));}.help-hero,.help-section,.help-support{padding:var(--maak-ui-space-4);border-radius:var(--maak-ui-radius-xl);}.help-hero h1{font-size:38px;}.help-hero-actions{flex-direction:column;}.help-hero-btn{width:100%;}.help-footer{align-items:flex-start;}}
+html[dir="rtl"] .help-page,html[dir="rtl"] .help-content,html[dir="rtl"] .help-hero{direction:rtl;}html[dir="ltr"] .help-page,html[dir="ltr"] .help-content,html[dir="ltr"] .help-hero{direction:ltr;}
