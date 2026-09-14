@@ -2,6 +2,9 @@ name: E2E Maak
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -10,15 +13,10 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     env:
-      VITE_SUPABASE_URL: ${{ secrets.MAAK_E2E_SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.MAAK_E2E_SUPABASE_SERVICE_ROLE_KEY }}
       MAAK_E2E_BASE_URL: http://127.0.0.1:4173
-      MAAK_E2E_PROVIDER_EMAIL: ${{ secrets.MAAK_E2E_PROVIDER_EMAIL }}
-      MAAK_E2E_PROVIDER_PASSWORD: ${{ secrets.MAAK_E2E_PROVIDER_PASSWORD }}
-      MAAK_E2E_CUSTOMER_EMAIL: ${{ secrets.MAAK_E2E_CUSTOMER_EMAIL }}
-      MAAK_E2E_CUSTOMER_PASSWORD: ${{ secrets.MAAK_E2E_CUSTOMER_PASSWORD }}
-      MAAK_E2E_ADMIN_EMAIL: ${{ secrets.MAAK_E2E_ADMIN_EMAIL }}
-      MAAK_E2E_ADMIN_PASSWORD: ${{ secrets.MAAK_E2E_ADMIN_PASSWORD }}
+      MAAK_E2E_PROVIDER_EMAIL: e2e-provider@maak.test
+      MAAK_E2E_CUSTOMER_EMAIL: e2e-customer@maak.test
+      MAAK_E2E_ADMIN_EMAIL: e2e-admin@maak.test
       MAAK_E2E_STATE_FILE: test-results/e2e-state.json
     steps:
       - name: Checkout repository
@@ -36,14 +34,53 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Generate ephemeral local-only E2E credentials
+        shell: bash
+        run: |
+          {
+            echo "MAAK_E2E_PROVIDER_PASSWORD=$(openssl rand -hex 16)A9!"
+            echo "MAAK_E2E_CUSTOMER_PASSWORD=$(openssl rand -hex 16)B7!"
+            echo "MAAK_E2E_ADMIN_PASSWORD=$(openssl rand -hex 16)C5!"
+          } >> "$GITHUB_ENV"
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start isolated local Supabase
+        run: supabase start -x studio,imgproxy
+
+      - name: Export isolated Supabase connection settings
+        shell: bash
+        run: |
+          supabase status -o env > "$RUNNER_TEMP/supabase.env"
+          source "$RUNNER_TEMP/supabase.env"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+
+      - name: Verify local migrations
+        run: |
+          supabase migration list
+          supabase status
+
+      - name: Seed isolated E2E fixtures
+        run: |
+          node scripts/seed-e2e.mjs
+          node scripts/seed-e2e-fixtures.mjs
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E suite
         run: npm run test:e2e
 
-      - name: Upload Playwright report on failure
-        if: failure()
+      - name: Upload Playwright report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maak-playwright-report
@@ -52,8 +89,12 @@ jobs:
             test-results/
           if-no-files-found: ignore
 
-      - name: Cleanup E2E fixtures
+      - name: Cleanup isolated E2E fixtures
         if: always()
         run: |
           node scripts/seed-e2e-fixtures.mjs --cleanup || true
           node scripts/seed-e2e.mjs --cleanup || true
+
+      - name: Stop isolated Supabase
+        if: always()
+        run: supabase stop --no-backup || true
