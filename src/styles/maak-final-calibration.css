@@ -26,7 +26,7 @@ button, input, textarea, select { font: inherit; }
   padding: 32px 20px calc(32px + env(safe-area-inset-bottom)) !important;
   margin: 0 !important;
   text-align: center;
-  direction: inherit;
+  direction: rtl;
 }
 .auth-card {
   position: relative !important;
@@ -39,7 +39,6 @@ button, input, textarea, select { font: inherit; }
   rotate: none !important;
   translate: none !important;
   box-sizing: border-box;
-  min-width: 0;
 }
 .auth-brand,
 .auth-card .auth-brand,
@@ -49,12 +48,10 @@ button, input, textarea, select { font: inherit; }
 .auth-card .auth-brand img {
   display: block !important;
   object-fit: contain;
-  max-width: 100%;
 }
 .auth-form,
-.auth-field { width: 100%; box-sizing: border-box; min-width: 0; }
-.auth-input, .auth-btn { box-sizing: border-box; min-width: 0; }
-.auth-main > *, .auth-card > * { min-width: 0; }
+.auth-field { width: 100%; box-sizing: border-box; }
+.auth-input, .auth-btn { box-sizing: border-box; }
 
 /* Keep the supplied lockup visually dominant without stretching it. */
 .brand-lockup {
@@ -66,7 +63,7 @@ button, input, textarea, select { font: inherit; }
   margin-inline: auto !important;
 }
 
-/* Shared Maak proportions. */
+/* Shared Maak proportions across the product. */
 .app-main { min-width: 0; }
 .screen, .home { width: min(1180px, calc(100% - 44px)); margin-inline: auto; box-sizing: border-box; }
 .primary, .auth-btn, .ap-primary { min-height: 48px; }
@@ -80,9 +77,8 @@ button, input, textarea, select { font: inherit; }
 .desktop-nav button { white-space: nowrap; }
 
 /* Home: scale the hero like the supplied artwork rather than a generic SaaS dashboard. */
-.home-intro { min-height: 330px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
-.home-intro > * { min-width: 0; }
-.home-prompt { max-width: 760px; word-break: normal; overflow-wrap: break-word; }
+.home-intro { min-height: 330px; display: flex; flex-direction: column; justify-content: center; }
+.home-prompt { max-width: 760px; }
 .home-intro .search-box { width: min(100%, 760px); }
 .category-rail, .service-rail { overflow-x: auto; scrollbar-width: none; }
 .category-rail::-webkit-scrollbar, .service-rail::-webkit-scrollbar { display: none; }
@@ -105,7 +101,46 @@ button, input, textarea, select { font: inherit; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* P0 desktop recovery: customer must use the real viewport, with deliberate inner max-widths. */
+@media (max-width: 899px) {
+  .screen, .home { width: min(100%, calc(100% - 24px)); }
+  .auth-main {
+    padding: 20px 12px calc(20px + env(safe-area-inset-bottom)) !important;
+  }
+  .auth-card {
+    width: min(100%, 560px) !important;
+    max-width: 560px !important;
+    padding-inline: 22px !important;
+  }
+  .brand-lockup { height: 64px !important; max-width: 205px !important; }
+  .home-intro { min-height: 0; }
+}
+
+@media (max-width: 560px) {
+  .screen, .home { width: calc(100% - 18px); }
+  .auth-main { padding-inline: 9px !important; }
+  .auth-card {
+    width: 100% !important;
+    max-width: 500px !important;
+    border-radius: 22px !important;
+    padding: 24px 17px 22px !important;
+  }
+  .brand-lockup { height: 58px !important; max-width: 185px !important; }
+  .auth-main::before, .auth-main::after { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card { animation: none !important; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* P0 visual recovery: the customer application uses the full desktop viewport;
+   only inner content containers are constrained. Direction comes from i18n. */
+.auth-main { direction: inherit; }
+.auth-card, .auth-form, .auth-field, .auth-main > * { min-width: 0; }
+.auth-input, .auth-btn { min-width: 0; max-width: 100%; }
+.home-intro, .home-prompt { min-width: 0; }
+.home-prompt { word-break: normal; overflow-wrap: break-word; }
+
 @media (min-width: 900px) {
   .app:not(.provider-app) {
     width: 100%;
@@ -118,6 +153,7 @@ button, input, textarea, select { font: inherit; }
   .app:not(.provider-app) .shell {
     width: 100%;
     padding-inline: 22px;
+    min-width: 0;
   }
   .app:not(.provider-app) .header-inner {
     width: min(1240px, 100%);
@@ -137,10 +173,9 @@ button, input, textarea, select { font: inherit; }
   }
 }
 
-/* Customer mobile navigation: five equal tracks, no escaping labels or controls. */
 @media (max-width: 899px) {
   .app:not(.provider-app) .screen,
-  .app:not(.provider-app) .home { width: min(100%, calc(100% - 24px)); min-width: 0; }
+  .app:not(.provider-app) .home { min-width: 0; }
   .app:not(.provider-app) .mobile-nav {
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -158,24 +193,4 @@ button, input, textarea, select { font: inherit; }
     min-height: 44px;
     overflow: hidden;
   }
-  .app:not(.provider-app) .home-prompt { max-width: 100%; word-break: normal; overflow-wrap: break-word; }
-  .auth-main { min-width: 0; }
-}
-
-@media (max-width: 560px) {
-  .screen, .home { width: calc(100% - 18px); }
-  .auth-main { padding-inline: 9px !important; }
-  .auth-card {
-    width: 100% !important;
-    max-width: 500px !important;
-    border-radius: 22px !important;
-    padding: 24px 17px 22px !important;
-  }
-  .brand-lockup { height: 58px !important; max-width: 185px !important; }
-  .auth-main::before, .auth-main::after { display: none !important; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-card { animation: none !important; }
-  * { scroll-behavior: auto !important; }
 }
