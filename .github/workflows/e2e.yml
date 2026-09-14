@@ -37,10 +37,16 @@ jobs:
       - name: Generate ephemeral local-only E2E credentials
         shell: bash
         run: |
+          provider_password="$(openssl rand -hex 16)A9!"
+          customer_password="$(openssl rand -hex 16)B7!"
+          admin_password="$(openssl rand -hex 16)C5!"
+          echo "::add-mask::$provider_password"
+          echo "::add-mask::$customer_password"
+          echo "::add-mask::$admin_password"
           {
-            echo "MAAK_E2E_PROVIDER_PASSWORD=$(openssl rand -hex 16)A9!"
-            echo "MAAK_E2E_CUSTOMER_PASSWORD=$(openssl rand -hex 16)B7!"
-            echo "MAAK_E2E_ADMIN_PASSWORD=$(openssl rand -hex 16)C5!"
+            echo "MAAK_E2E_PROVIDER_PASSWORD=$provider_password"
+            echo "MAAK_E2E_CUSTOMER_PASSWORD=$customer_password"
+            echo "MAAK_E2E_ADMIN_PASSWORD=$admin_password"
           } >> "$GITHUB_ENV"
 
       - name: Install Supabase CLI
@@ -94,6 +100,18 @@ jobs:
           node scripts/seed-e2e.mjs
           node scripts/seed-e2e-fixtures.mjs
 
+      - name: Start frontend for Chromium
+        shell: bash
+        run: |
+          npm run dev -- --host 127.0.0.1 --port 4173 > "$RUNNER_TEMP/maak-vite.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/maak-vite.pid"
+          for _ in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/maak-vite.log"
+          exit 1
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
@@ -124,6 +142,7 @@ jobs:
           path: |
             playwright-report/
             test-results/
+            ${{ runner.temp }}/maak-vite.log
             ${{ runner.temp }}/maak-vite-negative.log
           if-no-files-found: ignore
 
@@ -132,6 +151,13 @@ jobs:
         run: |
           node scripts/seed-e2e-fixtures.mjs --cleanup || true
           node scripts/seed-e2e.mjs --cleanup || true
+
+      - name: Stop frontend
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/maak-vite.pid" ]; then kill "$(cat "$RUNNER_TEMP/maak-vite.pid")" 2>/dev/null || true; fi
+          pkill -f "vite.*--port 4173" 2>/dev/null || true
 
       - name: Stop isolated Supabase
         if: always()
