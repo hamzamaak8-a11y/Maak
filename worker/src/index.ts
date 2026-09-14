@@ -1,9 +1,9 @@
 import type { Env } from "./types";
 import { findProvider, getProviderPortfolio, listProviders } from "./supabase";
 
-const PROVIDERS_CACHE_SECONDS = 300;
 const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
 const PORTFOLIO_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
+const UPSTREAM_TIMEOUT_MS = 10_000;
 
 function cors(env: Env, requestOrigin: string | null): Record<string, string> {
   const allowed = env.MAAK_ALLOW_ORIGIN?.trim();
@@ -44,6 +44,15 @@ function cacheResponse(response: Response): Response {
   });
 }
 
+async function withTimeout<T>(operation: () => Promise<T>): Promise<T> {
+  return Promise.race([
+    operation(),
+    new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("upstream_timeout")), UPSTREAM_TIMEOUT_MS);
+    }),
+  ]);
+}
+
 export default {
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
@@ -70,7 +79,7 @@ export default {
       if (cached) return cached;
 
       try {
-        const response = cacheResponse(json(env, requestOrigin, 200, await listProviders(env), {
+        const response = cacheResponse(json(env, requestOrigin, 200, await withTimeout(() => listProviders(env)), {
           "Cache-Control": PROVIDER_CACHE_CONTROL,
         }));
         ctx.waitUntil(cache.put(cacheKey, response.clone()));
@@ -91,9 +100,9 @@ export default {
       if (cached) return cached;
 
       try {
-        const provider = await findProvider(env, id);
+        const provider = await withTimeout(() => findProvider(env, id));
         if (!provider) return json(env, requestOrigin, 404, { error: "not_found" });
-        const portfolio = await getProviderPortfolio(env, id);
+        const portfolio = await withTimeout(() => getProviderPortfolio(env, id));
         const response = new Response(JSON.stringify(portfolio), {
           status: 200,
           headers: {
@@ -121,7 +130,7 @@ export default {
       if (cached) return cached;
 
       try {
-        const provider = await findProvider(env, id);
+        const provider = await withTimeout(() => findProvider(env, id));
         if (!provider) return json(env, requestOrigin, 404, { error: "not_found" });
         const response = cacheResponse(json(env, requestOrigin, 200, provider, {
           "Cache-Control": PROVIDER_CACHE_CONTROL,
