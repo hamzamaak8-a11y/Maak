@@ -39,15 +39,26 @@ Worker configuration/secrets are names only and remain server-side:
 ## Production deployment sequence
 
 1. Review and merge only after the release PR passes Build and isolated E2E gates.
-2. Apply all Supabase migrations to the intended production project before enabling application behavior that depends on them.
-3. Configure the GitHub Pages frontend secret names above in the appropriate GitHub environment.
-4. Keep `VITE_INCLUDE_SEED=false` for production.
-5. Deploy through the existing GitHub Pages workflow. Do not run ad-hoc production builds with local credentials.
-6. Perform the final public/browser smoke checks after deployment.
+2. **Migration reconciliation is a mandatory pre-deployment gate.** The repository migration ledger must be proven equivalent to the intended production baseline before any production migration command is run.
+3. Until that reconciliation is explicitly approved by the Project Manager, **do not run `supabase db push` against production and do not run `supabase migration repair` against production**.
+4. Do not modify `supabase_migrations.schema_migrations` manually as a workaround.
+5. Configure the GitHub Pages frontend secret names above in the appropriate GitHub environment.
+6. Keep `VITE_INCLUDE_SEED=false` for production.
+7. Deploy through the existing GitHub Pages workflow. Do not run ad-hoc production builds with local credentials.
+8. Perform the final public/browser smoke checks after deployment.
 
 ## Database migrations
 
-Migrations under `supabase/migrations/` are the source of truth. Apply the complete pending migration set in order using the project's approved Supabase migration mechanism. Never skip a security migration required by the release.
+Migrations under `supabase/migrations/` are the source of truth **only after the production baseline and migration ledger have been reconciled**.
+
+Before the one-time reconciliation is approved:
+
+- Use read-only catalog and `supabase_migrations.schema_migrations` queries to determine what is already deployed.
+- Prove semantic equivalence before classifying a repository migration as already deployed under a different identity.
+- Identify genuinely new release migrations separately from historical migrations that already exist in production.
+- Keep production credentials and production database connections out of CI browser/E2E tests.
+
+After the reconciliation is approved, apply only the resulting canonical migration path in order using the project's approved Supabase migration mechanism. Never skip a security migration required by the release.
 
 ## Final E2E gate
 
