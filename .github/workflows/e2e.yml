@@ -92,8 +92,8 @@ jobs:
 
       - name: Apply repository migrations
         run: |
-          supabase migration up
-          supabase migration list
+          supabase migration up --local
+          supabase migration list --local
 
       - name: Verify local migration state
         run: supabase status
