@@ -26,7 +26,7 @@ button, input, textarea, select { font: inherit; }
   padding: 32px 20px calc(32px + env(safe-area-inset-bottom)) !important;
   margin: 0 !important;
   text-align: center;
-  direction: rtl;
+  direction: inherit;
 }
 .auth-card {
   position: relative !important;
@@ -39,6 +39,7 @@ button, input, textarea, select { font: inherit; }
   rotate: none !important;
   translate: none !important;
   box-sizing: border-box;
+  min-width: 0;
 }
 .auth-brand,
 .auth-card .auth-brand,
@@ -48,10 +49,12 @@ button, input, textarea, select { font: inherit; }
 .auth-card .auth-brand img {
   display: block !important;
   object-fit: contain;
+  max-width: 100%;
 }
 .auth-form,
-.auth-field { width: 100%; box-sizing: border-box; }
-.auth-input, .auth-btn { box-sizing: border-box; }
+.auth-field { width: 100%; box-sizing: border-box; min-width: 0; }
+.auth-input, .auth-btn { box-sizing: border-box; min-width: 0; }
+.auth-main > *, .auth-card > * { min-width: 0; }
 
 /* Keep the supplied lockup visually dominant without stretching it. */
 .brand-lockup {
@@ -63,7 +66,7 @@ button, input, textarea, select { font: inherit; }
   margin-inline: auto !important;
 }
 
-/* Shared Maak proportions across the product. */
+/* Shared Maak proportions. */
 .app-main { min-width: 0; }
 .screen, .home { width: min(1180px, calc(100% - 44px)); margin-inline: auto; box-sizing: border-box; }
 .primary, .auth-btn, .ap-primary { min-height: 48px; }
@@ -77,8 +80,9 @@ button, input, textarea, select { font: inherit; }
 .desktop-nav button { white-space: nowrap; }
 
 /* Home: scale the hero like the supplied artwork rather than a generic SaaS dashboard. */
-.home-intro { min-height: 330px; display: flex; flex-direction: column; justify-content: center; }
-.home-prompt { max-width: 760px; }
+.home-intro { min-height: 330px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.home-intro > * { min-width: 0; }
+.home-prompt { max-width: 760px; word-break: normal; overflow-wrap: break-word; }
 .home-intro .search-box { width: min(100%, 760px); }
 .category-rail, .service-rail { overflow-x: auto; scrollbar-width: none; }
 .category-rail::-webkit-scrollbar, .service-rail::-webkit-scrollbar { display: none; }
@@ -101,18 +105,61 @@ button, input, textarea, select { font: inherit; }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* P0 desktop recovery: customer must use the real viewport, with deliberate inner max-widths. */
+@media (min-width: 900px) {
+  .app:not(.provider-app) {
+    width: 100%;
+    min-height: 100dvh;
+    margin-inline: 0;
+    background: var(--w-paper, #f3f3f1);
+    box-shadow: none;
+    overflow-x: clip;
+  }
+  .app:not(.provider-app) .shell {
+    width: 100%;
+    padding-inline: 22px;
+  }
+  .app:not(.provider-app) .header-inner {
+    width: min(1240px, 100%);
+    margin-inline: auto;
+  }
+  .app:not(.provider-app) .desktop-nav,
+  .app:not(.provider-app) .profile-line {
+    display: flex !important;
+  }
+  .app:not(.provider-app) .mobile-nav {
+    display: none !important;
+  }
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home {
+    width: min(1180px, calc(100% - 44px));
+    margin-inline: auto;
+  }
+}
+
+/* Customer mobile navigation: five equal tracks, no escaping labels or controls. */
 @media (max-width: 899px) {
-  .screen, .home { width: min(100%, calc(100% - 24px)); }
-  .auth-main {
-    padding: 20px 12px calc(20px + env(safe-area-inset-bottom)) !important;
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home { width: min(100%, calc(100% - 24px)); min-width: 0; }
+  .app:not(.provider-app) .mobile-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    inset-inline: 8px !important;
+    width: auto !important;
+    min-width: 0;
+    box-sizing: border-box;
+    transform: none !important;
   }
-  .auth-card {
-    width: min(100%, 560px) !important;
-    max-width: 560px !important;
-    padding-inline: 22px !important;
+  .app:not(.provider-app) .mobile-nav > * { min-width: 0; max-width: 100%; }
+  .app:not(.provider-app) .mobile-nav button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    overflow: hidden;
   }
-  .brand-lockup { height: 64px !important; max-width: 205px !important; }
-  .home-intro { min-height: 0; }
+  .app:not(.provider-app) .home-prompt { max-width: 100%; word-break: normal; overflow-wrap: break-word; }
+  .auth-main { min-width: 0; }
 }
 
 @media (max-width: 560px) {
