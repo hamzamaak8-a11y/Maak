@@ -1,13 +1,14 @@
 import { AlertCircle, Briefcase, ChevronLeft, Clock3, Loader2, MapPin, Search, ShieldCheck, Star, ThumbsUp, X } from "lucide-react";
 import type { Category, Provider } from "../types";
 
-import maakLockup from "../assets/brand/maak-lockup.svg";
-import maakSymbol from "../assets/brand/maak-symbol.svg";
+import maakLockupLight from "../assets/brand/maak-lockup-light.webp";
+import maakLockupDark from "../assets/brand/maak-lockup-dark.webp";
+import maakSymbol from "../assets/brand/maak-icon.webp";
 import { useLanguage } from "../i18n";
 import FeaturedBadge from "./provider/FeaturedBadge";
 
 export function Logo({ inverse = false, size = "lg", variant = "mark" }: { inverse?: boolean; size?: "sm" | "md" | "lg"; variant?: "mark" | "lockup" }) {
-  const src = variant === "lockup" ? maakLockup : maakSymbol;
+  const src = variant === "lockup" ? (inverse ? maakLockupDark : maakLockupLight) : maakSymbol;
   const cls = "brand brand-" + size + (variant === "lockup" ? " brand-lockup" : "") + (inverse ? " inverse" : "");
   return <img className={cls} src={src} alt="maak" />;
 }
@@ -17,11 +18,7 @@ export function Avatar({ name, src }: { name: string; src?: string | null }) {
   return src ? <img className="avatar-img" src={src} alt={name} /> : <span className="avatar-init" aria-hidden={true}>{initial}</span>;
 }
 
-export function Rating({ value, reviews }: { value: string | null; reviews?: number | null }) {
-  const hasRating = value != null && value !== "" && Number(value) > 0;
-  if (!hasRating) return null;
-  return <span className="rating"><Star size={13} fill="currentColor" />{value}{reviews && reviews > 0 ? <small>({reviews})</small> : null}</span>;
-}
+export function Rating({ value, reviews }: { value: string | null; reviews?: number | null }) { const hasRating = value != null && value !== "" && Number(value) > 0; if (!hasRating) return null; return <span className="rating"><Star size={13} fill="currentColor" />{value}{reviews && reviews > 0 ? <small>({reviews})</small> : null}</span>; }
 
 export function SearchBox({ value, onChange, onSubmit, placeholder }: { value: string; onChange: (value: string) => void; onSubmit?: () => void; placeholder?: string }) { const { t } = useLanguage(); return <div className="search-box"><Search size={18} /><input value={value} onChange={(event) => onChange(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && onSubmit) onSubmit(); }} placeholder={placeholder ?? t("discover.searchPlaceholder")} aria-label={t("discover.searchLabel")} />{value ? <button className="clear-search" onClick={() => onChange("")} aria-label={t("discover.clearSearch")}><X size={15} /></button> : null}<button className="search-submit" onClick={onSubmit} aria-label={t("discover.search")}><Search size={17} /></button></div>; }
 
