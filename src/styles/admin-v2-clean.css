@@ -7,25 +7,13 @@
   display: none;
 }
 
-.m2-card-head {
-  align-items: center;
-}
-
+.m2-card-head { align-items: center; }
 .m2-placeholder h1,
-.m2-placeholder h2 {
-  margin-top: 0;
-}
+.m2-placeholder h2 { margin-top: 0; }
+.m2-notice { margin-bottom: 10px; }
 
-.m2-notice {
-  margin-bottom: 10px;
-}
-
-/* P0 brand recovery: replace the legacy sidebar placeholder with the supplied
-   official lockup in expanded mode and icon in collapsed mode. */
 .m2-brand-row > .m2-brand-mark,
-.m2-brand-row > div:nth-child(2) {
-  display: none !important;
-}
+.m2-brand-row > div:nth-child(2) { display: none !important; }
 .m2-brand-row::before {
   content: "";
   display: block;
@@ -40,7 +28,4 @@
   height: 42px;
   background-image: url("../assets/brand/maak-icon.webp");
 }
-.m2-brand-row {
-  min-width: 0;
-  align-items: center;
-}
+.m2-brand-row { min-width: 0; align-items: center; }
