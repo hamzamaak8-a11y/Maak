@@ -1,0 +1,42 @@
+name: Native EAS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Build platform
+        required: true
+        default: android
+        type: choice
+        options:
+          - android
+          - ios
+          - all
+      profile:
+        description: EAS profile
+        required: true
+        default: preview
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+          cache: npm
+          cache-dependency-path: mobile/package.json
+      - run: npm install --no-audit --no-fund
+      - name: Build with EAS
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas-cli@latest build --non-interactive --profile "${{ inputs.profile }}" --platform "${{ inputs.platform }}"

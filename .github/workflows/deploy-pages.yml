@@ -18,6 +18,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VITE_BASE: ./
+      VITE_API_URL: ${{ secrets.MAAK_VITE_API_URL }}
+      VITE_SUPABASE_URL: ${{ secrets.MAAK_VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.MAAK_VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_INCLUDE_SEED: "false"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

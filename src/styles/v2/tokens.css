@@ -1,0 +1,203 @@
+/* ==========================================================================
+   Maak Product Identity v2 — Design Tokens
+   --------------------------------------------------------------------------
+   Scope: consumer application shell (`.app`), which wraps CustomerShell and
+   ProviderMode. Admin surfaces are rendered OUTSIDE `.app` and intentionally
+   keep the legacy identity — do not move these tokens to `:root`.
+
+   Identity: warm, trustworthy, human. Deep pine green action color on warm
+   alabaster surfaces; restrained gold reserved for "featured" meaning.
+   ========================================================================== */
+
+.app {
+  /* ---- Background hierarchy -------------------------------------------- */
+  --mk-bg: #f5f3ee;
+  --mk-bg-strong: #edeae1;
+  --mk-surface: #ffffff;
+  --mk-surface-soft: #faf9f5;
+  --mk-surface-sunken: #f0ede5;
+  --mk-overlay: rgba(17, 24, 21, 0.48);
+
+  /* ---- Ink (text) hierarchy -------------------------------------------- */
+  --mk-ink: #1a2420;
+  --mk-ink-2: #45524c;
+  --mk-ink-3: #717d77;
+  --mk-ink-4: #9aa49e;
+  --mk-ink-inverse: #f7f6f1;
+
+  /* ---- Lines ------------------------------------------------------------ */
+  --mk-line: #e5e1d5;
+  --mk-line-strong: #d7d2c3;
+  --mk-line-focus: #0e6b55;
+
+  /* ---- Brand ------------------------------------------------------------ */
+  --mk-brand: #0e6b55;
+  --mk-brand-strong: #0a5744;
+  --mk-brand-deep: #083f32;
+  --mk-brand-tint: #e2efe9;
+  --mk-brand-tint-strong: #cfe6dc;
+  --mk-brand-ring: rgba(14, 107, 85, 0.22);
+  --mk-on-brand: #f4faf7;
+
+  /* ---- Restrained gold (featured / premium only) ------------------------ */
+  --mk-gold: #9c7514;
+  --mk-gold-strong: #7c5c0e;
+  --mk-gold-tint: #f6eed9;
+  --mk-gold-line: #e3d3a4;
+
+  /* ---- Semantic ---------------------------------------------------------- */
+  --mk-ok: #1c7a4b;
+  --mk-ok-tint: #e2f1e7;
+  --mk-warn: #935f07;
+  --mk-warn-tint: #f8efd9;
+  --mk-danger: #b23a30;
+  --mk-danger-tint: #f9e8e5;
+  --mk-danger-strong: #96291f;
+  --mk-info: #0e6b55;
+  --mk-info-tint: #e2efe9;
+
+  /* ---- Elevation ----------------------------------------------------------
+     Elevation is quiet: hairline + one soft shadow. Nothing floats loudly.  */
+  --mk-sh-1: 0 1px 2px rgba(21, 30, 26, 0.05);
+  --mk-sh-2: 0 1px 2px rgba(21, 30, 26, 0.04), 0 14px 34px -22px rgba(21, 30, 26, 0.38);
+  --mk-sh-3: 0 -8px 30px -18px rgba(21, 30, 26, 0.35);
+  --mk-ring: 0 0 0 3px var(--mk-brand-ring);
+
+  /* ---- Geometry ------------------------------------------------------------ */
+  --mk-r-xs: 8px;
+  --mk-r-s: 12px;
+  --mk-r-m: 16px;
+  --mk-r-l: 20px;
+  --mk-r-xl: 26px;
+  --mk-r-full: 999px;
+
+  /* ---- Spacing -------------------------------------------------------------- */
+  --mk-s1: 4px;
+  --mk-s2: 8px;
+  --mk-s3: 12px;
+  --mk-s4: 16px;
+  --mk-s5: 20px;
+  --mk-s6: 24px;
+  --mk-s8: 32px;
+  --mk-s10: 40px;
+
+  /* ---- Type ------------------------------------------------------------------- */
+  --mk-font: "IBM Plex Sans Arabic", "Plus Jakarta Sans", "Tajawal", system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --mk-font-latin: "Plus Jakarta Sans", "IBM Plex Sans Arabic", system-ui, sans-serif;
+
+  /* ---- Controls ------------------------------------------------------------------ */
+  --mk-tap: 44px;
+  --mk-ctl-h: 48px;
+  --mk-ctl-h-sm: 40px;
+  --mk-topbar-h: 56px;
+  --mk-bottomnav-h: 60px;
+
+  /* ---- Motion -------------------------------------------------------------------- */
+  --mk-ease: cubic-bezier(0.22, 0.68, 0.3, 1);
+  --mk-t-fast: 130ms;
+  --mk-t-med: 190ms;
+  --mk-t-slow: 280ms;
+
+  /* ---- Layout --------------------------------------------------------------------- */
+  --mk-page-w: 720px;
+  --mk-page-gutter: 16px;
+  --mk-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 768px) {
+  .app {
+    --mk-topbar-h: 60px;
+    --mk-page-gutter: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app {
+    --mk-t-fast: 0ms;
+    --mk-t-med: 0ms;
+    --mk-t-slow: 0ms;
+  }
+  .app *,
+  .app *::before,
+  .app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Legacy token remap
+   --------------------------------------------------------------------------
+   Older component stylesheets (chat, reviews, availability, notifications,
+   onboarding steps, customer account blocks…) read the original dark-theme
+   custom properties (`--surface`, `--ink`, `--gold`, …). Instead of porting
+   every one of them, we repoint those names to the v2 light palette inside
+   the consumer shell. Admin renders outside `.app`, so it keeps the
+   original dark tokens untouched.
+--------------------------------------------------------------------------- */
+
+.app {
+  --bg: var(--mk-bg);
+  --bg-2: var(--mk-bg-strong);
+  --bg-subtle: var(--mk-surface-sunken);
+  --surface: var(--mk-surface);
+  --surface-2: var(--mk-surface-soft);
+  --surface-3: var(--mk-surface-sunken);
+  --surface-hover: var(--mk-surface-sunken);
+
+  --hair: var(--mk-line);
+  --hair-2: var(--mk-line-strong);
+  --border: var(--mk-line);
+  --border-focus: var(--mk-line-focus);
+  --line: var(--mk-line);
+
+  --text: var(--mk-ink);
+  --text-soft: var(--mk-ink-2);
+  --text-mute: var(--mk-ink-3);
+  --ink: var(--mk-ink);
+  --ink-soft: var(--mk-ink-2);
+  --muted: var(--mk-ink-3);
+
+  --gold: var(--mk-brand);
+  --gold-bright: var(--mk-brand-strong);
+  --gold-deep: var(--mk-brand-deep);
+  --gold-soft: var(--mk-brand-tint);
+  --gold-glow: var(--mk-brand-ring);
+  --primary: var(--mk-brand);
+  --primary-hover: var(--mk-brand-strong);
+  --primary-active: var(--mk-brand-deep);
+  --primary-light: var(--mk-brand-tint);
+  --orange: var(--mk-brand);
+  --orange-soft: var(--mk-brand-tint);
+
+  --green: var(--mk-ok);
+  --green-soft: var(--mk-ok-tint);
+  --teal: var(--mk-brand);
+  --teal-soft: var(--mk-brand-tint);
+  --amber: var(--mk-warn);
+  --amber-soft: var(--mk-warn-tint);
+  --red: var(--mk-danger);
+  --red-soft: var(--mk-danger-tint);
+
+  --navy: var(--mk-ink);
+  --navy-light: var(--mk-surface-sunken);
+
+  --shadow-xs: var(--mk-sh-1);
+  --shadow-sm: var(--mk-sh-1);
+  --shadow: var(--mk-sh-2);
+  --shadow-lg: var(--mk-sh-2);
+  --shadow-primary: 0 8px 24px -10px var(--mk-brand-ring);
+  --ring: var(--mk-ring);
+
+  --radius-xs: var(--mk-r-xs);
+  --radius-sm: 10px;
+  --radius: var(--mk-r-s);
+  --radius-lg: var(--mk-r-m);
+  --radius-xl: var(--mk-r-l);
+
+  color: var(--mk-ink);
+}
+

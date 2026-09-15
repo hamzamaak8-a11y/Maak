@@ -1,23 +1,31 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-/**
- * Supabase client for the frontend (browser).
- *
- * Uses ONLY the publishable (anon) key — never the service_role key.
- * Auth is handled entirely by Supabase Auth; this client is safe to ship in
- * the production bundle. Session persistence is managed by Supabase Auth.
- */
-const supabaseUrl =
-  (import.meta.env.VITE_SUPABASE_URL as string) ||
-  "https://pjvayowrmqkhmzvlhwex.supabase.co";
-const supabasePublishableKey =
-  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ||
-  "sb_publishable_8UAL0cygysg6sv5yY_w5eA_0Wpx1I5w";
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
+export const SUPABASE_CONFIG_ERROR = "Supabase frontend configuration is missing or invalid.";
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
+function readSupabaseConfig(): { url: string; key: string } {
+  const url = String(import.meta.env.VITE_SUPABASE_URL ?? "").trim();
+  const key = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "").trim();
+  let parsed: URL;
+  try { parsed = new URL(url); } catch { throw new Error(SUPABASE_CONFIG_ERROR); }
+  const isLocalHttp = parsed.protocol === "http:" && LOCAL_HOSTNAMES.has(parsed.hostname);
+  if ((!isLocalHttp && parsed.protocol !== "https:") || !parsed.hostname || !key) throw new Error(SUPABASE_CONFIG_ERROR);
+  return { url, key };
+}
+
+export function getSupabaseConfigError(): string | null {
+  try { readSupabaseConfig(); return null; }
+  catch (error) { return error instanceof Error ? error.message : SUPABASE_CONFIG_ERROR; }
+}
+
+let client: SupabaseClient | null = null;
+function getClient(): SupabaseClient {
+  if (client) return client;
+  const { url, key } = readSupabaseConfig();
+  client = createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  return client;
+}
+
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, property, receiver) { return Reflect.get(getClient() as object, property, receiver); },
 });

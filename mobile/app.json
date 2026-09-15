@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Maak",
+    "slug": "maak",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "../public/icon-512.png",
+    "scheme": "maak",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router", "expo-secure-store"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.maak.app"
+    },
+    "android": {
+      "package": "com.maak.app",
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "../public/icon-512.png",
+        "backgroundColor": "#F7F3EB"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

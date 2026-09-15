@@ -1,0 +1,333 @@
+/* Maak P0 — native-mobile visual recovery.
+   This layer is intentionally last in the customer UI stack so mobile behaves
+   like a product surface, not a centered marketing website.
+*/
+
+@media (max-width: 899px) {
+  :root {
+    --maak-mobile-bg: #f7f3eb;
+    --maak-mobile-surface: #fffdf8;
+    --maak-mobile-ink: #151a1f;
+    --maak-mobile-muted: #71756f;
+    --maak-mobile-line: rgba(21, 26, 31, 0.09);
+    --maak-mobile-accent: #d6ac62;
+  }
+
+  html,
+  body,
+  #root,
+  .app {
+    width: 100%;
+    min-width: 320px;
+    max-width: none;
+    min-height: 100dvh;
+    background: var(--maak-mobile-bg) !important;
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app:not(.provider-app) {
+    width: 100%;
+    min-height: 100dvh;
+    background: var(--maak-mobile-bg) !important;
+    overflow-x: clip;
+  }
+
+  .app:not(.provider-app) .shell {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0 0 calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .app:not(.provider-app) .app-main {
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100dvh - 60px);
+    padding: 0;
+  }
+
+  /* Native-feeling top app bar: full bleed, compact, no website framing. */
+  .app:not(.provider-app) .topbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 60px;
+    margin: 0;
+    z-index: 1100;
+    background: rgba(255, 253, 248, 0.96) !important;
+    border-bottom: 1px solid var(--maak-mobile-line) !important;
+    box-shadow: 0 1px 0 rgba(255,255,255,.8), 0 6px 24px rgba(21,26,31,.04);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .app:not(.provider-app) .header-inner {
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .app:not(.provider-app) .header-inner > .brand {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    object-fit: contain;
+  }
+
+  .app:not(.provider-app) .desktop-nav {
+    display: none !important;
+  }
+
+  .app:not(.provider-app) .profile-line {
+    display: flex !important;
+    margin-inline-start: auto;
+    gap: 6px;
+  }
+
+  .app:not(.provider-app) .profile-line .notification-slot {
+    display: none;
+  }
+
+  .app:not(.provider-app) .profile-line .lang-toggle-btn {
+    min-height: 38px;
+    padding: 0 10px;
+    border-radius: 12px;
+    background: #f4efe5;
+    border-color: var(--maak-mobile-line);
+  }
+
+  .app:not(.provider-app) .profile-line .auth-login-btn,
+  .app:not(.provider-app) .profile-line .desktop-only {
+    display: none !important;
+  }
+
+  .app:not(.provider-app) .profile-line .icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: #f4efe5;
+  }
+
+  /* Kill the desktop "website" gutters on customer screens. */
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home,
+  .app:not(.provider-app) main[class$="-screen"] {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .app:not(.provider-app) .screen {
+    padding: 18px 14px 28px !important;
+  }
+
+  .app:not(.provider-app) .home {
+    padding: 14px 14px 28px !important;
+  }
+
+  /* Home is a product feed, not a web hero card. */
+  .app:not(.provider-app) .home-intro {
+    margin: 0 0 18px !important;
+    padding: 18px 16px 16px !important;
+    border-radius: 22px !important;
+    border: 1px solid var(--maak-mobile-line) !important;
+    background: linear-gradient(180deg, #fffdf8 0%, #f8f2e8 100%) !important;
+    box-shadow: 0 12px 28px rgba(21, 26, 31, 0.06) !important;
+  }
+
+  .app:not(.provider-app) .home-intro .home-prompt {
+    font-size: clamp(28px, 8vw, 34px) !important;
+    line-height: 1.06 !important;
+    letter-spacing: -0.035em !important;
+  }
+
+  .app:not(.provider-app) .home-intro .home-sub {
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+  }
+
+  .app:not(.provider-app) .home-intro .search-box {
+    margin-top: 16px !important;
+    min-height: 56px !important;
+    border-radius: 16px !important;
+  }
+
+  .app:not(.provider-app) .trust-strip {
+    margin: 0 0 22px !important;
+    border-radius: 18px !important;
+    border: 1px solid var(--maak-mobile-line) !important;
+    background: rgba(255,253,248,.82) !important;
+    box-shadow: 0 8px 20px rgba(21,26,31,.04) !important;
+  }
+
+  .app:not(.provider-app) .home-section {
+    margin: 0 0 24px !important;
+  }
+
+  /* Cards become app surfaces: tighter radius, stronger hierarchy, no floating webpage look. */
+  .app:not(.provider-app) .booking-card,
+  .app:not(.provider-app) .chat-panel,
+  .app:not(.provider-app) .booking-success,
+  .app:not(.provider-app) .auth-gate,
+  .app:not(.provider-app) .review-list,
+  .app:not(.provider-app) .provider-detail-card,
+  .app:not(.provider-app) .detail-card {
+    border-radius: 18px !important;
+    box-shadow: 0 8px 22px rgba(21,26,31,.045) !important;
+  }
+
+  .app:not(.provider-app) .chat-panel {
+    width: 100%;
+    max-width: none;
+    min-height: calc(100dvh - 176px);
+    height: calc(100dvh - 176px);
+    margin: 0;
+  }
+
+  /* Full-width, anchored navigation is the signature of a mobile app shell. */
+  .app:not(.provider-app) .mobile-nav {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    min-height: calc(70px + env(safe-area-inset-bottom));
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
+    box-sizing: border-box;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    border-radius: 0 !important;
+    border: 0 !important;
+    border-top: 1px solid var(--maak-mobile-line) !important;
+    background: rgba(255, 253, 248, 0.98) !important;
+    box-shadow: 0 -10px 28px rgba(21,26,31,.08) !important;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    z-index: 1200;
+  }
+
+  .app:not(.provider-app) .mobile-nav button {
+    min-width: 0 !important;
+    min-height: 52px !important;
+    width: 100% !important;
+    padding: 5px 2px !important;
+    border-radius: 14px !important;
+    color: #81847f !important;
+    font-size: 10.5px !important;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  .app:not(.provider-app) .mobile-nav button svg {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  .app:not(.provider-app) .mobile-nav button.active {
+    color: #b98220 !important;
+    background: rgba(214,172,98,.13) !important;
+  }
+
+  /* Authentication becomes a native onboarding surface, not a floating website card. */
+  .auth-main {
+    min-height: 100dvh !important;
+    width: 100% !important;
+    padding: max(18px, env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom)) !important;
+    display: flex !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(214,172,98,.18), transparent 34%),
+      var(--maak-mobile-bg) !important;
+  }
+
+  .auth-card,
+  .auth-main .auth-card {
+    width: 100% !important;
+    max-width: 460px !important;
+    margin: 0 auto !important;
+    padding: 18px 2px 22px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: center;
+  }
+
+  .auth-card .auth-language {
+    margin-bottom: 18px !important;
+  }
+
+  .auth-card .lang-toggle-btn {
+    min-height: 40px !important;
+    min-width: 74px !important;
+    border-radius: 12px !important;
+    background: #fffdf8 !important;
+  }
+
+  .auth-brand {
+    margin-bottom: 22px !important;
+  }
+
+  .auth-card .auth-brand img,
+  .auth-card .brand-lockup {
+    max-width: 166px !important;
+    height: auto !important;
+    max-height: 54px !important;
+  }
+
+  .auth-title {
+    font-size: clamp(29px, 8vw, 34px) !important;
+    line-height: 1.08 !important;
+  }
+
+  .auth-subtitle {
+    max-width: 330px;
+    margin: 10px auto 24px !important;
+    font-size: 13.5px !important;
+  }
+
+  .auth-form {
+    gap: 13px !important;
+    text-align: start !important;
+  }
+
+  .auth-input {
+    min-height: 54px !important;
+    border-radius: 16px !important;
+    background: rgba(255,253,248,.92) !important;
+  }
+
+  .auth-btn {
+    min-height: 54px !important;
+    border-radius: 16px !important;
+  }
+
+  /* Avoid accidental horizontal clipping from long French/Arabic strings. */
+  .app:not(.provider-app) h1,
+  .app:not(.provider-app) h2,
+  .app:not(.provider-app) h3,
+  .app:not(.provider-app) p,
+  .app:not(.provider-app) button,
+  .app:not(.provider-app) label,
+  .app:not(.provider-app) span {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (min-width: 900px) {
+  .app:not(.provider-app) .mobile-nav { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card,
+  .brand,
+  .mobile-nav { animation: none !important; transition: none !important; }
+}

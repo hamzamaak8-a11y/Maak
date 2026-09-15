@@ -1,5 +1,8 @@
 import type { Env, Provider, ProviderPortfolioImage } from "./types";
 
+const UPSTREAM_TIMEOUT_MS = 10_000;
+const UPSTREAM_TIMEOUT_SIGNAL = () => AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+
 function headers(env: Env): Record<string, string> {
   return {
     apikey: env.SUPABASE_SERVICE_ROLE_KEY,
@@ -19,7 +22,7 @@ async function featuredProviderIds(env: Env): Promise<Set<string>> {
   url.searchParams.set("plan_id", "eq.featured");
   url.searchParams.set("status", "eq.active");
   url.searchParams.set("end_date", `gt.${new Date().toISOString()}`);
-  const res = await fetch(url, { headers: headers(env) });
+  const res = await fetch(url, { headers: headers(env), signal: UPSTREAM_TIMEOUT_SIGNAL() });
   if (!res.ok) {
     throw new Error("supabase featured lookup failed: " + res.status + " " + (await res.text()));
   }
@@ -34,6 +37,7 @@ function withFeatured(provider: Provider, featuredIds: Set<string>): Provider {
 export async function listProviders(env: Env): Promise<Provider[]> {
   const res = await fetch(env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, {
     headers: headers(env),
+    signal: UPSTREAM_TIMEOUT_SIGNAL(),
   });
   if (!res.ok) {
     throw new Error("supabase list failed: " + res.status + " " + (await res.text()));
@@ -46,6 +50,7 @@ export async function listProviders(env: Env): Promise<Provider[]> {
 export async function findProvider(env: Env, id: number): Promise<Provider | null> {
   const res = await fetch(env.SUPABASE_URL + "/rest/v1/providers?id=eq." + id + "&" + PUBLISHED_FILTER, {
     headers: headers(env),
+    signal: UPSTREAM_TIMEOUT_SIGNAL(),
   });
   if (!res.ok) {
     throw new Error("supabase get failed: " + res.status);
@@ -62,6 +67,7 @@ async function signPortfolioObject(env: Env, path: string): Promise<string> {
     method: "POST",
     headers: { ...headers(env), "Content-Type": "application/json" },
     body: JSON.stringify({ expiresIn: PORTFOLIO_URL_TTL_SECONDS }),
+    signal: UPSTREAM_TIMEOUT_SIGNAL(),
   });
   if (!res.ok) throw new Error("supabase portfolio sign failed: " + res.status);
   const body = (await res.json()) as { signedURL?: string };
@@ -78,6 +84,7 @@ export async function getProviderPortfolio(env: Env, id: number): Promise<Provid
     method: "POST",
     headers: { ...headers(env), "Content-Type": "application/json" },
     body: JSON.stringify({ prefix, limit: 100, offset: 0, sortBy: { column: "name", order: "asc" } }),
+    signal: UPSTREAM_TIMEOUT_SIGNAL(),
   });
   if (!listRes.ok) throw new Error("supabase portfolio list failed: " + listRes.status);
 
