@@ -134,11 +134,14 @@ test.describe("P0 visual/runtime recovery", () => {
     expect(imageState.every((image) => image.naturalWidth > 0 && image.naturalHeight > 0)).toBe(true);
     expect(imageState.every((image) => image.src.includes("maak-lockup-light") || image.src.includes("maak-icon"))).toBe(true);
 
-    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
-    await page.locator(".lang-toggle-btn").click();
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await noHorizontalOverflow(page);
     await screenshot(page, "p0-login-rtl-390x844");
+
+    await page.locator(".lang-toggle-btn").click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+    await noHorizontalOverflow(page);
+    await screenshot(page, "p0-login-ltr-390x844");
   });
 });

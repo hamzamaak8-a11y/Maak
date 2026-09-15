@@ -6,13 +6,16 @@ interface Props {
 
 interface State {
   hasError: boolean;
+  errorMessage: string | null;
 }
 
-export default class AppErrorBoundary extends Component<Props, State> {
-  public state: State = { hasError: false };
+const CONFIG_ERROR = "Supabase frontend configuration is missing or invalid.";
 
-  public static getDerivedStateFromError(): State {
-    return { hasError: true };
+export default class AppErrorBoundary extends Component<Props, State> {
+  public state: State = { hasError: false, errorMessage: null };
+
+  public static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, errorMessage: error.message };
   }
 
   public componentDidCatch(error: Error, info: ErrorInfo): void {
@@ -30,6 +33,8 @@ export default class AppErrorBoundary extends Component<Props, State> {
   public render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
 
+    const isConfigError = this.state.errorMessage === CONFIG_ERROR;
+
     return (
       <main
         role="alert"
@@ -44,7 +49,9 @@ export default class AppErrorBoundary extends Component<Props, State> {
       >
         <section style={{ maxWidth: "520px" }}>
           <h1 style={{ marginBottom: "10px" }}>حدث خطأ غير متوقع</h1>
-          <p style={{ marginBottom: "8px" }}>Une erreur inattendue s'est produite.</p>
+          <p style={{ marginBottom: "8px" }}>
+            {isConfigError ? CONFIG_ERROR : "Une erreur inattendue s'est produite."}
+          </p>
           <p style={{ marginBottom: "20px" }}>يمكنك إعادة تحميل الصفحة للمتابعة.</p>
           <button type="button" className="primary" onClick={this.handleReload}>
             إعادة تحميل الصفحة
