@@ -113,7 +113,7 @@ jobs:
           cat > worker/wrangler.e2e.jsonc <<EOF
           {
             "name": "maak-e2e-local",
-            "main": "worker/src/index.ts",
+            "main": "src/index.ts",
             "compatibility_date": "2026-05-01",
             "vars": {
               "MAAK_ALLOW_ORIGIN": "http://127.0.0.1:4173",
