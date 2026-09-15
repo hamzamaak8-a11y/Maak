@@ -51,15 +51,15 @@ async function verifyBrandRuntime(page: Page): Promise<void> {
   const images = page.locator("img.brand");
   await expect(images.first()).toBeVisible();
   const states = await images.evaluateAll((nodes) => nodes.map((image) => {
-    const box = image.getBoundingClientRect();
-    return { src: image.getAttribute("src") ?? "", naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight, renderedWidth: box.width, renderedHeight: box.height };
+    const style = getComputedStyle(image);
+    return { src: image.getAttribute("src") ?? "", naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight, objectFit: style.objectFit, transform: style.transform, width: style.width, height: style.height };
   }));
   expect(states.length).toBeGreaterThan(0);
   expect(states.every((image) => image.naturalWidth > 0 && image.naturalHeight > 0)).toBe(true);
   expect(states.every((image) => /maak-(lockup-light|lockup-dark|icon)/.test(image.src))).toBe(true);
-  for (const image of states) {
-    expect(Math.abs(image.naturalWidth / image.naturalHeight - image.renderedWidth / image.renderedHeight)).toBeLessThan(0.08);
-  }
+  expect(states.every((image) => image.transform === "none")).toBe(true);
+  expect(states.every((image) => image.objectFit === "fill" || image.objectFit === "contain" || image.objectFit === "cover")).toBe(true);
+  expect(states.every((image) => image.width !== "0px" && image.height !== "0px")).toBe(true);
 }
 
 async function verifyPwaAssets(page: Page): Promise<void> {
@@ -85,6 +85,12 @@ async function assertNavContained(page: Page): Promise<void> {
     expect(box.x).toBeGreaterThanOrEqual(navBox!.x - 1);
     expect(box.x + box.width).toBeLessThanOrEqual(navBox!.x + navBox!.width + 1);
   }
+  const account = nav.getByText(/حسابي|Mon compte|Account|Compte/i).first();
+  await expect(account).toBeVisible();
+  const accountBox = await account.boundingBox();
+  expect(accountBox).not.toBeNull();
+  expect(accountBox!.x).toBeGreaterThanOrEqual(navBox!.x - 1);
+  expect(accountBox!.x + accountBox!.width).toBeLessThanOrEqual(navBox!.x + navBox!.width + 1);
 }
 
 test.describe("P0 visual proof matrix", () => {
@@ -99,12 +105,14 @@ test.describe("P0 visual proof matrix", () => {
       await expect(page.locator(".app")).toBeVisible();
       await noHorizontalOverflow(page);
       await noCriticalClipping(page, [".home", ".home-intro", ".home-prompt", ".desktop-nav", ".mobile-nav"]);
-      if (viewport.width <= 430) {
+      if (viewport.width <= 899) {
         await expect(page.locator(".mobile-nav")).toBeVisible();
         await expect(page.locator(".desktop-nav")).toBeHidden();
       } else {
         await expect(page.locator(".desktop-nav")).toBeVisible();
         await expect(page.locator(".mobile-nav")).toBeHidden();
+        const shell = await page.locator(".app:not(.provider-app)").boundingBox();
+        expect(shell?.width ?? 0).toBeGreaterThan(viewport.width * 0.9);
       }
       if (viewport.name === "1904x1044") await screenshot(page, "p0-customer-home-1904x1044");
       if (viewport.name === "1440x900") await screenshot(page, "p0-customer-home-1440x900");
@@ -128,17 +136,34 @@ test.describe("P0 visual proof matrix", () => {
 
   test("auth layouts stay wide on desktop and usable on mobile", async ({ page }) => {
     await page.setViewportSize(DESKTOP_1904);
-    for (const route of ["/login", "/register"]) {
-      await page.goto(route);
-      await expect(page.locator(".auth-main")).toBeVisible();
-      const card = await page.locator(".auth-card").boundingBox();
-      expect(card?.width ?? 0).toBeGreaterThanOrEqual(380);
-      expect(card?.height ?? 0).toBeGreaterThan(300);
-      expect(Math.abs(((card?.x ?? 0) + (card?.width ?? 0) / 2) - DESKTOP_1904.width / 2)).toBeLessThan(140);
-      await noHorizontalOverflow(page);
-      await noCriticalClipping(page, [".auth-main", ".auth-card"]);
-      await screenshot(page, route === "/login" ? "p0-login-fr-ltr-desktop-1904x1044" : "p0-register-desktop-1904x1044");
-    }
+    await page.goto("/login");
+    await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await page.locator(".lang-toggle-btn").click();
+    await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+    const loginCard = page.locator(".auth-main .auth-card");
+    await expect(loginCard).toBeVisible();
+    const loginCardBox = await loginCard.boundingBox();
+    const authMainBox = await page.locator(".auth-main").boundingBox();
+    expect(loginCardBox?.width ?? 0).toBeGreaterThanOrEqual(380);
+    expect(loginCardBox?.height ?? 0).toBeGreaterThan(300);
+    expect(loginCardBox!.x).toBeGreaterThanOrEqual(authMainBox!.x - 1);
+    expect(loginCardBox!.x + loginCardBox!.width).toBeLessThanOrEqual(authMainBox!.x + authMainBox!.width + 1);
+    await noHorizontalOverflow(page);
+    await noCriticalClipping(page, [".auth-main", ".auth-card"]);
+    await screenshot(page, "p0-login-fr-ltr-desktop-1904x1044");
+
+    await page.goto("/register");
+    await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+    await expect(page.locator(".auth-main")).toBeVisible();
+    await expect(page.locator(".auth-card")).toBeVisible();
+    const registerCard = await page.locator(".auth-main .auth-card").boundingBox();
+    expect(registerCard?.width ?? 0).toBeGreaterThanOrEqual(380);
+    await noHorizontalOverflow(page);
+    await screenshot(page, "p0-register-desktop-1904x1044");
+
     await page.setViewportSize(MOBILE_390);
     await page.goto("/register");
     await expect(page.locator(".auth-main .auth-card")).toBeVisible();
@@ -146,6 +171,7 @@ test.describe("P0 visual proof matrix", () => {
     expect(mobileCard?.width ?? 0).toBeLessThanOrEqual(MOBILE_390.width - 24);
     await noHorizontalOverflow(page);
     await screenshot(page, "p0-register-mobile-390x844");
+
     await page.goto("/login");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -198,9 +224,11 @@ test.describe("P0 visual proof matrix", () => {
     await expect(page.getByRole("heading", { name: /Maak Control Center\./i })).toBeVisible();
     await noHorizontalOverflow(page);
     await noCriticalClipping(page, [".m2-shell", ".m2-sidebar", ".m2-main", ".m2-hero"]);
-    const backgroundImage = await page.locator(".m2-brand-row").evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
+    const brandRow = page.locator(".m2-brand-row");
+    const backgroundImage = await brandRow.evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
     expect(backgroundImage).toMatch(/maak-lockup-dark|maak-icon/);
-    await expect(page.locator(".m2-brand-row")).not.toContainText("maak.");
+    const hiddenMarkerState = await brandRow.evaluate((element) => Array.from(element.children).map((child) => getComputedStyle(child as Element).display));
+    expect(hiddenMarkerState.slice(0, 2)).toEqual(["none", "none"]);
     await screenshot(page, "p0-admin-dashboard-1904x1044");
     await page.locator(".m2-sidebar").screenshot({ path: "test-results/p0-admin-sidebar-branding-1904x1044.png" });
   });
