@@ -3,7 +3,6 @@ import { useRouter } from "../router";
 import FaqSection from "../components/help/FaqSection";
 import SupportForm from "../components/help/SupportForm";
 import { useLanguage } from "../i18n";
-import "../styles/help.css";
 
 export default function Help() {
   const { navigate } = useRouter();
