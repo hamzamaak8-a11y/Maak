@@ -8,9 +8,9 @@ grant usage on schema public to service_role;
 
 grant all privileges on all tables in schema public to service_role;
 grant all privileges on all sequences in schema public to service_role;
-
 grant select on public.profiles to authenticated;
 grant select, update on public.provider_profiles to authenticated;
+grant select on public.bookings to authenticated;
 
 do $$
 declare
