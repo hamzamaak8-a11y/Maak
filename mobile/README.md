@@ -1,11 +1,13 @@
 # Maak Native Mobile
 
-This directory is the real Android/iOS client for Maak. It is a React Native + Expo application; it does not render the existing Vite site inside a WebView.
+`mobile/` is the real Android/iOS client for Maak. It is a React Native + Expo application; it does not render the existing Vite site inside a WebView and does not depend on the browser DOM/CSS shell.
 
 ## Stack
 
 - Expo SDK 57 / React Native 0.86
-- Expo Router 57 with native navigation
+- Expo Router 57
+- Platform-native Expo Router tabs
+- Native stack navigation and native provider-detail transitions
 - Supabase Auth with SecureStore session persistence
 - Existing Maak Worker API via `EXPO_PUBLIC_API_URL`
 
@@ -18,22 +20,28 @@ npm install
 npx expo start
 ```
 
-For a device build:
+Use Expo Go first for the normal development loop. Build a custom native client only when native configuration requires it.
+
+For direct native runs:
 
 ```bash
 npx expo run:android
 npx expo run:ios
 ```
 
-For EAS:
+For EAS preview/production builds:
 
 ```bash
 npx eas build --profile preview --platform android
 npx eas build --profile production --platform all
 ```
 
-`EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are client-safe values. Never place the Supabase service-role key in this app.
+## Quality gates
+
+The repository workflow `.github/workflows/mobile-ci.yml` runs Expo Doctor, TypeScript typecheck, and a Metro web export smoke build for the native package whenever `mobile/**` changes.
 
 ## Architecture boundary
 
 `/` at the repository root remains the existing web application. `mobile/` is the native application source of truth for Android/iOS. They share the Supabase backend and Worker contract but do not share the browser DOM/CSS shell.
+
+Client variables such as `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are browser/device-visible by design. Never place the Supabase service-role key in this app.
