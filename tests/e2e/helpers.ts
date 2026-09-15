@@ -76,9 +76,12 @@ export async function createBookingAsCustomer(page: Page, locationText: string, 
 
   await page.locator("input.booking-native").fill(locationText);
   await continueButton.click();
-  await expect(page.getByRole("heading", { name: /review|مراجعة|r[eé]capitulatif/i })).toBeVisible();
+  await expect(page.locator('[aria-labelledby="booking-review-title"]')).toBeVisible();
 
+  // The review step exposes its visual surface as a labelled container, not a heading.
+  // Keep the assertion tied to that exact runtime DOM contract before exercising the submit action.
   const submitButton = page.getByRole("button", { name: /Submit|إرسال الطلب|Envoyer la demande|طلب الخدمة|إرسال/i }).last();
+  await expect(submitButton).toBeVisible();
   await submitButton.click();
   await expect(page.locator(".booking-success")).toBeVisible();
 }
