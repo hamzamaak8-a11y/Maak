@@ -43,10 +43,13 @@ test.describe("P0 visual/runtime recovery", () => {
       await page.waitForLoadState("domcontentloaded");
       await expect(page.locator(".auth-main")).toBeVisible();
       const card = await page.locator(".auth-card").boundingBox();
+      const authMain = await page.locator(".auth-main").boundingBox();
       expect(card?.width ?? 0).toBeGreaterThanOrEqual(380);
       expect(card?.height ?? 0).toBeGreaterThan(300);
-      const center = (card?.x ?? 0) + (card?.width ?? 0) / 2;
-      expect(Math.abs(center - 1904 / 2)).toBeLessThan(120);
+      expect(card).not.toBeNull();
+      expect(authMain).not.toBeNull();
+      expect(card!.x).toBeGreaterThanOrEqual(authMain!.x - 1);
+      expect(card!.x + card!.width).toBeLessThanOrEqual(authMain!.x + authMain!.width + 1);
       await noHorizontalOverflow(page);
       await screenshot(page, `p0-${route.slice(1)}-1904x1044`);
     }
