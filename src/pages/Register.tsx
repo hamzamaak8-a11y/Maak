@@ -1,10 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Eye, EyeOff, Globe, Loader2, MailCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Globe, Loader2, MailCheck } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
-import { Logo } from "../components/atoms";
+import { MaakMark } from "../components/BrandMark";
 import { supabase } from "../lib/supabaseClient";
-import "../styles/auth.css";
 import { useLanguage } from "../i18n";
 import { consumeReturnTo } from "../lib/returnTo";
 
@@ -80,35 +79,48 @@ export default function Register() {
     setCooldown(RESEND_COOLDOWN_SECONDS);
   }
 
+  const langToggle = (
+    <div className="mk-auth-lang">
+      <button className="mk-langbtn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
+        <Globe size={13} aria-hidden="true" />
+        <span>{lang === "ar" ? "FR" : "ع"}</span>
+      </button>
+    </div>
+  );
+
   if (pendingEmail) {
     return (
-      <main className="auth-main">
-        <div className="auth-card">
-          <div className="auth-brand">
-            <Logo variant="lockup" />
+      <main className="mk-auth auth-main">
+        <div className="mk-auth-card auth-card">
+          {langToggle}
+          <MaakMark size={46} />
+          <div className="mk-auth-verify-icon" aria-hidden="true">
+            <MailCheck size={26} />
           </div>
-          <div className="auth-verify-icon">
-            <MailCheck size={28} />
-          </div>
-          <h1 className="auth-title">{t("auth.checkEmail")}</h1>
-          <p className="auth-subtitle">
+          <h1 className="mk-auth-title">{t("auth.checkEmail")}</h1>
+          <p className="mk-auth-sub">
             {t("auth.confirmSentTo")}{" "}
-            <span className="auth-verify-email" dir="ltr">{pendingEmail}</span>
-            {" "}{t("auth.confirmFollowup")}
+            <b dir="ltr">{pendingEmail}</b>{" "}
+            {t("auth.confirmFollowup")}
           </p>
 
-          {resendNote ? <div className={resendOk ? "auth-success" : "auth-error"}>{resendNote}</div> : null}
+          {resendNote ? (
+            <div className={resendOk ? "mk-auth-success" : "mk-auth-error"} role={resendOk ? "status" : "alert"}>
+              {resendOk ? <CheckCircle2 size={15} aria-hidden="true" /> : <AlertCircle size={15} aria-hidden="true" />}
+              <span>{resendNote}</span>
+            </div>
+          ) : null}
 
-          <button className="auth-btn" onClick={handleResend} disabled={resending || cooldown > 0}>
+          <button className="mk-btn mk-btn--lg mk-btn--block" onClick={handleResend} disabled={resending || cooldown > 0}>
             {resending
-              ? <Loader2 size={18} className="auth-spin" />
+              ? <Loader2 size={18} className="spin" aria-hidden="true" />
               : cooldown > 0
                 ? t("auth.resendIn", { n: cooldown })
                 : t("auth.resendLink")}
           </button>
 
-          <p className="auth-link-row">
-            <button className="auth-link" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
+          <p className="mk-auth-links">
+            <button className="mk-auth-link" type="button" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
           </p>
         </div>
       </main>
@@ -116,25 +128,19 @@ export default function Register() {
   }
 
   return (
-    <main className="auth-main">
-      <div className="auth-card">
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-          <button className="lang-toggle-btn" type="button" onClick={toggleLang} aria-label={t("lang.label")}>
-            <Globe size={13} />
-            <span>{lang === "ar" ? "FR" : "عربي"}</span>
-          </button>
-        </div>
-        <div className="auth-brand">
-          <Logo variant="lockup" />
-        </div>
-        <h1 className="auth-title">{t("auth.registerTitle")}</h1>
-        <p className="auth-subtitle">{t("auth.registerSub")}</p>
+    <main className="mk-auth auth-main">
+      <div className="mk-auth-card auth-card">
+        {langToggle}
+        <MaakMark size={46} />
+        <h1 className="mk-auth-title">{t("auth.registerTitle")}</h1>
+        <p className="mk-auth-sub">{t("auth.registerSub")}</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span>{t("common.email")}</span>
+        <form onSubmit={handleSubmit}>
+          <div className="mk-field">
+            <label className="mk-label" htmlFor="reg-email">{t("common.email")}</label>
             <input
-              className="auth-input"
+              id="reg-email"
+              className="mk-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -143,13 +149,14 @@ export default function Register() {
               required
               dir="ltr"
             />
-          </label>
+          </div>
 
-          <label className="auth-field">
-            <span>{t("common.password")}</span>
-            <div className="auth-password-wrap">
+          <div className="mk-field">
+            <label className="mk-label" htmlFor="reg-password">{t("common.password")}</label>
+            <div className="mk-passwrap">
               <input
-                className="auth-input"
+                id="reg-password"
+                className="mk-input"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -158,22 +165,23 @@ export default function Register() {
                 dir="ltr"
               />
               <button
-                className="auth-password-toggle"
+                className="mk-passtoggle"
                 type="button"
                 onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-                title={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                aria-label={showPassword ? t("v2.hidePassword") : t("v2.showPassword")}
               >
-                {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+                {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
               </button>
             </div>
-          </label>
+            <p className="mk-hint">{t("auth.pwMin")}</p>
+          </div>
 
-          <label className="auth-field">
-            <span>{t("auth.confirmPassword")}</span>
-            <div className="auth-password-wrap">
+          <div className="mk-field">
+            <label className="mk-label" htmlFor="reg-confirm">{t("auth.confirmPassword")}</label>
+            <div className="mk-passwrap">
               <input
-                className="auth-input"
+                id="reg-confirm"
+                className="mk-input"
                 type={showConfirm ? "text" : "password"}
                 value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
@@ -182,27 +190,31 @@ export default function Register() {
                 dir="ltr"
               />
               <button
-                className="auth-password-toggle"
+                className="mk-passtoggle"
                 type="button"
                 onClick={() => setShowConfirm((visible) => !visible)}
-                aria-label={showConfirm ? "إخفاء تأكيد كلمة المرور" : "إظهار تأكيد كلمة المرور"}
-                title={showConfirm ? "إخفاء تأكيد كلمة المرور" : "إظهار تأكيد كلمة المرور"}
+                aria-label={showConfirm ? t("v2.hidePassword") : t("v2.showPassword")}
               >
-                {showConfirm ? <EyeOff size={19} /> : <Eye size={19} />}
+                {showConfirm ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
               </button>
             </div>
-          </label>
+          </div>
 
-          {error ? <div className="auth-error">{t(error)}</div> : null}
+          {error ? (
+            <div className="mk-auth-error" role="alert">
+              <AlertCircle size={16} aria-hidden="true" />
+              <span>{t(error)}</span>
+            </div>
+          ) : null}
 
-          <button className="auth-btn" type="submit" disabled={submitting}>
-            {submitting ? <Loader2 size={18} className="auth-spin" /> : t("auth.createBtn")}
+          <button className="mk-btn mk-btn--lg mk-btn--block" type="submit" disabled={submitting}>
+            {submitting ? <Loader2 size={18} className="spin" aria-hidden="true" /> : t("auth.createBtn")}
           </button>
         </form>
 
-        <p className="auth-link-row">
+        <p className="mk-auth-links">
           {t("auth.hasAccount")}{" "}
-          <button className="auth-link" onClick={() => navigate("/login")}>
+          <button className="mk-auth-link" type="button" onClick={() => navigate("/login")}>
             {t("auth.signIn")}
           </button>
         </p>

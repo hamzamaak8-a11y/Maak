@@ -27,6 +27,15 @@ import "./styles/admin-v2-mobile.css";
 import "./styles/admin-v2-clean.css";
 import "./styles/customer-zip-redesign.css";
 import "./styles/p0-native-mobile.css";
+/* Maak Product Identity v2 — must stay last: it overrides the legacy layers
+   inside the consumer shell (.app) while leaving admin surfaces untouched. */
+import "./styles/v2/tokens.css";
+import "./styles/v2/base.css";
+import "./styles/v2/shell.css";
+import "./styles/v2/components.css";
+import "./styles/v2/legacy-compat.css";
+import "./styles/v2/screens.css";
+import "./styles/v2/provider.css";
 (function(){try{var stored=sessionStorage.getItem("maak:deep-link");if(stored){sessionStorage.removeItem("maak:deep-link");var current=window.location.pathname+window.location.search+window.location.hash;if(stored!==current)window.history.replaceState({},"",stored)}}catch(_){}})();
 if("serviceWorker" in navigator&&window.location.protocol==="https:"){window.addEventListener("load",()=>{navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch((error)=>console.error("[maak-runtime] service_worker_registration_failed",{name:error instanceof Error?error.name:"Error",message:error instanceof Error?error.message:String(error)}))})}
 createRoot(document.getElementById("root")!).render(<React.StrictMode><AppErrorBoundary><App/></AppErrorBoundary></React.StrictMode>);

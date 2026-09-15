@@ -76,7 +76,7 @@ export default function Onboarding() {
   }, [loading, user, role]);
 
   if (loading || booting) {
-    return <main className="screen onb-loading"><Loader2 className="auth-spin" size={26} /></main>;
+    return <main className="screen onb-loading" aria-busy="true"><Loader2 className="spin" size={26} aria-hidden="true" /></main>;
   }
   if (!user) return null;
 
@@ -84,10 +84,10 @@ export default function Onboarding() {
     return (
       <main className="screen">
         <div className="onb-status-card">
-          <span className="onb-status-icon suspended"><ShieldAlert size={26} /></span>
+          <span className="onb-status-icon suspended"><ShieldAlert size={26} aria-hidden="true" /></span>
           <h1 className="onb-status-title">{t("onboarding.adminBlocked")}</h1>
           <p className="onb-status-body">{t("onb.adminsCannotApply")}</p>
-          <button className="primary" onClick={() => navigate("/")}>{t("onboarding.backHome")}</button>
+          <button className="mk-btn" onClick={() => navigate("/")}>{t("onboarding.backHome")}</button>
         </div>
       </main>
     );
@@ -97,10 +97,10 @@ export default function Onboarding() {
     return (
       <main className="screen">
         <div className="onb-status-card">
-          <span className="onb-status-icon suspended"><ShieldAlert size={26} /></span>
+          <span className="onb-status-icon suspended"><ShieldAlert size={26} aria-hidden="true" /></span>
           <h1 className="onb-status-title">{t("onboarding.loadError")}</h1>
           <p className="onb-status-body">{t(bootError)}</p>
-          <button className="primary" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
+          <button className="mk-btn" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
         </div>
       </main>
     );
@@ -112,10 +112,10 @@ export default function Onboarding() {
     return (
       <main className="screen">
         <div className="onb-status-card">
-          <span className="onb-status-icon pending"><Clock size={26} /></span>
+          <span className="onb-status-icon" style={{ background: "var(--mk-warn-tint)", color: "var(--mk-warn)" }}><Clock size={26} aria-hidden="true" /></span>
           <h1 className="onb-status-title">{t("acct.underReview")}</h1>
           <p className="onb-status-body">{t("onb.underReviewBody")}</p>
-          <button className="primary" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
+          <button className="mk-btn" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
         </div>
       </main>
     );
@@ -124,10 +124,10 @@ export default function Onboarding() {
     return (
       <main className="screen">
         <div className="onb-status-card">
-          <span className="onb-status-icon approved"><ShieldCheck size={26} /></span>
+          <span className="onb-status-icon" style={{ background: "var(--mk-ok-tint)", color: "var(--mk-ok)" }}><ShieldCheck size={26} aria-hidden="true" /></span>
           <h1 className="onb-status-title">{t("onboarding.approvedTitle")}</h1>
           <p className="onb-status-body">{t("onb.accreditedBody")}</p>
-          <button className="primary" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
+          <button className="mk-btn" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
         </div>
       </main>
     );
@@ -136,10 +136,10 @@ export default function Onboarding() {
     return (
       <main className="screen">
         <div className="onb-status-card">
-          <span className="onb-status-icon suspended"><Ban size={26} /></span>
+          <span className="onb-status-icon suspended"><Ban size={26} aria-hidden="true" /></span>
           <h1 className="onb-status-title">{t("acct.suspendedTitle")}</h1>
           <p className="onb-status-body">{t("onb.suspendedBody")}</p>
-          <button className="primary" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
+          <button className="mk-btn" onClick={() => navigate("/account")}>{t("onboarding.backAccount")}</button>
         </div>
       </main>
     );
@@ -180,25 +180,31 @@ export default function Onboarding() {
 
   return (
     <main className="screen onb-wrap">
-      <div className="page-title">
+      <div className="mk-page-head">
         <div>
-          <span className="section-kicker">{t("account.applyTitle")}</span>
+          <span className="mk-kicker">{t("account.applyTitle")}</span>
           <h1>{t("onboarding.applyHeading")}</h1>
         </div>
       </div>
       <Progress step={step} />
-      {isRejected ? <div className="onb-banner">{t("onb.rejectedBanner")}{provider?.rejection_reason ? <span className="onb-banner-reason">{t("onb.reasonPrefix")} {provider.rejection_reason}</span> : null}</div> : null}
-      {step === 1 ? <PersonalStep value={personal} onChange={setPersonal} /> : null}
-      {step === 2 ? <ProfessionalStep value={professional} onChange={setProfessional} /> : null}
-      {step === 3 ? <DocumentsStep documents={documents} onDocumentsChange={setDocuments} /> : null}
-      {step === 4 ? <ReviewStep personal={personal} professional={professional} documents={documents} /> : null}
-      <div className="onb-nav">
-        {step > 1 ? <button className="secondary" type="button" onClick={prev}>{t("common.previous")}</button> : null}
+      {isRejected ? (
+        <div className="mk-notice mk-notice--warn" style={{ margin: "12px 0" }}>
+          <span>{t("onb.rejectedBanner")}{provider?.rejection_reason ? <span className="onb-banner-reason"> {t("onb.reasonPrefix")} {provider.rejection_reason}</span> : null}</span>
+        </div>
+      ) : null}
+      <div className="mk-card mk-card--pad" style={{ marginTop: 4 }}>
+        {step === 1 ? <PersonalStep value={personal} onChange={setPersonal} /> : null}
+        {step === 2 ? <ProfessionalStep value={professional} onChange={setProfessional} /> : null}
+        {step === 3 ? <DocumentsStep documents={documents} onDocumentsChange={setDocuments} /> : null}
+        {step === 4 ? <ReviewStep personal={personal} professional={professional} documents={documents} /> : null}
+      </div>
+      <div className="onb-nav" style={{ display: "flex", gap: 8, marginTop: 14 }}>
+        {step > 1 ? <button className="mk-btn mk-btn--secondary" type="button" onClick={prev}>{t("common.previous")}</button> : null}
         {step < 4 ? (
-          <button className="primary" type="button" onClick={next}>{t("common.next")}</button>
+          <button className="mk-btn" style={{ flex: 1 }} type="button" onClick={next}>{t("common.next")}</button>
         ) : (
-          <button className="primary" type="button" onClick={submit} disabled={submitting}>
-            {submitting ? <Loader2 className="auth-spin" size={16} /> : null}
+          <button className="mk-btn" style={{ flex: 1 }} type="button" onClick={submit} disabled={submitting}>
+            {submitting ? <Loader2 className="spin" size={16} aria-hidden="true" /> : null}
             <span>{t("onboarding.submit")}</span>
           </button>
         )}

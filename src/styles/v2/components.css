@@ -1,0 +1,410 @@
+/* ==========================================================================
+   Maak v2 — Component kit (all classes prefixed `mk-`)
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Buttons
+--------------------------------------------------------------------------- */
+
+.app .mk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--mk-ctl-h);
+  padding: 0 20px;
+  border-radius: var(--mk-r-s);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--mk-on-brand);
+  background: var(--mk-brand);
+  border: 1px solid var(--mk-brand-strong);
+  box-shadow: var(--mk-sh-1), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: background var(--mk-t-fast) var(--mk-ease), transform var(--mk-t-fast) var(--mk-ease),
+    box-shadow var(--mk-t-fast) var(--mk-ease), opacity var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-btn:hover { background: var(--mk-brand-strong); }
+.app .mk-btn:active { transform: translateY(1px); background: var(--mk-brand-deep); }
+.app .mk-btn:disabled { opacity: 0.55; transform: none; }
+
+.app .mk-btn--secondary {
+  background: var(--mk-surface);
+  color: var(--mk-ink);
+  border: 1px solid var(--mk-line-strong);
+  box-shadow: var(--mk-sh-1);
+}
+.app .mk-btn--secondary:hover { background: var(--mk-surface-soft); border-color: var(--mk-ink-4); }
+.app .mk-btn--secondary:active { background: var(--mk-surface-sunken); }
+
+.app .mk-btn--soft {
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+  border-color: transparent;
+  box-shadow: none;
+}
+.app .mk-btn--soft:hover { background: var(--mk-brand-tint-strong); }
+
+.app .mk-btn--ghost {
+  background: transparent;
+  color: var(--mk-ink-2);
+  border-color: transparent;
+  box-shadow: none;
+}
+.app .mk-btn--ghost:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+
+.app .mk-btn--danger {
+  background: var(--mk-danger);
+  border-color: var(--mk-danger-strong);
+  color: #fff;
+}
+.app .mk-btn--danger:hover { background: var(--mk-danger-strong); }
+
+.app .mk-btn--sm { min-height: var(--mk-ctl-h-sm); padding: 0 14px; font-size: 13px; border-radius: 10px; }
+.app .mk-btn--lg { min-height: 52px; font-size: 15px; border-radius: 14px; }
+.app .mk-btn--block { width: 100%; }
+
+/* ---------------------------------------------------------------------------
+   Chips & badges
+--------------------------------------------------------------------------- */
+
+.app .mk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--mk-r-full);
+  border: 1px solid var(--mk-line-strong);
+  background: var(--mk-surface);
+  color: var(--mk-ink-2);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--mk-t-fast) var(--mk-ease), border-color var(--mk-t-fast) var(--mk-ease),
+    color var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-chip:hover { border-color: var(--mk-ink-4); }
+.app .mk-chip[aria-pressed="true"],
+.app .mk-chip.is-active {
+  background: var(--mk-ink);
+  border-color: var(--mk-ink);
+  color: #f6f5f0;
+}
+
+.app .mk-chip small { font-weight: 500; opacity: 0.75; font-size: 11px; }
+
+.app .mk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--mk-r-full);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.app .mk-badge--brand { background: var(--mk-brand-tint); color: var(--mk-brand-strong); }
+.app .mk-badge--gold { background: var(--mk-gold-tint); color: var(--mk-gold-strong); border: 1px solid var(--mk-gold-line); }
+.app .mk-badge--neutral { background: var(--mk-surface-sunken); color: var(--mk-ink-2); }
+
+/* Booking status pills */
+.app .mk-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--mk-r-full);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.app .mk-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.app .mk-status--pending { background: var(--mk-warn-tint); color: var(--mk-warn); }
+.app .mk-status--accepted { background: var(--mk-info-tint); color: var(--mk-info); }
+.app .mk-status--progress { background: var(--mk-gold-tint); color: var(--mk-gold-strong); }
+.app .mk-status--done { background: var(--mk-ok-tint); color: var(--mk-ok); }
+.app .mk-status--rejected { background: var(--mk-danger-tint); color: var(--mk-danger); }
+.app .mk-status--cancelled { background: var(--mk-surface-sunken); color: var(--mk-ink-3); }
+
+/* ---------------------------------------------------------------------------
+   Cards
+--------------------------------------------------------------------------- */
+
+.app .mk-card {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  box-shadow: var(--mk-sh-1);
+}
+
+.app .mk-card--pad { padding: var(--mk-s4); }
+
+/* ---------------------------------------------------------------------------
+   Avatars
+--------------------------------------------------------------------------- */
+
+.app .mk-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--mk-r-full);
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+  font-weight: 800;
+  font-size: 17px;
+  overflow: hidden;
+  border: 1px solid var(--mk-line);
+}
+.app .mk-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.app .mk-avatar--lg { width: 72px; height: 72px; font-size: 26px; }
+.app .mk-avatar--sm { width: 34px; height: 34px; font-size: 13px; }
+
+.app .mk-avail-dot {
+  position: absolute;
+  bottom: 1px;
+  inset-inline-end: 1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--mk-surface);
+}
+.app .mk-avail-dot.on { background: var(--mk-ok); }
+.app .mk-avail-dot.off { background: var(--mk-ink-4); }
+
+/* ---------------------------------------------------------------------------
+   Forms
+--------------------------------------------------------------------------- */
+
+.app .mk-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--mk-s4); }
+.app .mk-label { font-size: 13px; font-weight: 700; color: var(--mk-ink); }
+.app .mk-hint { font-size: 12px; color: var(--mk-ink-3); margin-top: -2px; }
+.app .mk-err { font-size: 12.5px; font-weight: 600; color: var(--mk-danger); display: flex; gap: 6px; align-items: center; }
+
+.app .mk-input,
+.app .mk-select,
+.app .mk-textarea {
+  width: 100%;
+  min-height: var(--mk-ctl-h);
+  padding: 0 14px;
+  border-radius: var(--mk-r-s);
+  border: 1px solid var(--mk-line-strong);
+  background: var(--mk-surface);
+  color: var(--mk-ink);
+  font-family: inherit;
+  font-size: 14.5px;
+  transition: border-color var(--mk-t-fast) var(--mk-ease), box-shadow var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-input::placeholder, .app .mk-textarea::placeholder { color: var(--mk-ink-4); }
+.app .mk-input:focus, .app .mk-select:focus, .app .mk-textarea:focus {
+  border-color: var(--mk-line-focus);
+  box-shadow: var(--mk-ring);
+  outline: none;
+}
+.app .mk-input[aria-invalid="true"], .app .mk-textarea[aria-invalid="true"] {
+  border-color: var(--mk-danger);
+}
+.app .mk-textarea { min-height: 110px; padding: 12px 14px; line-height: 1.6; resize: vertical; }
+
+.app .mk-select {
+  appearance: none;
+  padding-inline-end: 34px;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23717d77' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 12px center; /* selects sit in RTL context; chevron at end */
+}
+.app[dir="ltr"] .mk-select { background-position: right 12px center; }
+
+/* Password reveal wrapper */
+.app .mk-passwrap { position: relative; }
+.app .mk-passwrap .mk-input { padding-inline-end: 48px; }
+.app .mk-passtoggle {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 6px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--mk-ink-3);
+}
+.app .mk-passtoggle:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+
+/* ---------------------------------------------------------------------------
+   Segmented control
+--------------------------------------------------------------------------- */
+
+.app .mk-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--mk-r-full);
+  background: var(--mk-surface-sunken);
+  border: 1px solid var(--mk-line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app .mk-seg::-webkit-scrollbar { display: none; }
+
+.app .mk-seg-item {
+  flex: 1 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--mk-r-full);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mk-ink-3);
+  white-space: nowrap;
+  transition: background var(--mk-t-fast) var(--mk-ease), color var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-seg-item:hover { color: var(--mk-ink); }
+.app .mk-seg-item.is-active {
+  background: var(--mk-surface);
+  color: var(--mk-ink);
+  box-shadow: var(--mk-sh-1);
+}
+
+/* ---------------------------------------------------------------------------
+   Empty / error / loading states
+--------------------------------------------------------------------------- */
+
+.app .mk-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mk-s2);
+  text-align: center;
+  padding: var(--mk-s10) var(--mk-s5);
+  background: var(--mk-surface);
+  border: 1px dashed var(--mk-line-strong);
+  border-radius: var(--mk-r-m);
+}
+.app .mk-state-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--mk-r-l);
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+  margin-bottom: var(--mk-s1);
+}
+.app .mk-state-icon.warn { background: var(--mk-warn-tint); color: var(--mk-warn); }
+.app .mk-state-icon.danger { background: var(--mk-danger-tint); color: var(--mk-danger); }
+.app .mk-state h3 { font-size: 15.5px; }
+.app .mk-state p { color: var(--mk-ink-3); font-size: 13.5px; max-width: 40ch; }
+
+/* Legacy `.empty-state` still used by provider-mode & chat — lift it too */
+.app .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 36px 20px;
+  background: var(--mk-surface);
+  border: 1px dashed var(--mk-line-strong);
+  border-radius: var(--mk-r-m);
+  color: var(--mk-ink-2);
+}
+.app .empty-state p { color: var(--mk-ink-3); font-size: 13.5px; }
+.app .empty-state h3 { font-size: 15.5px; color: var(--mk-ink); }
+
+/* ---------------------------------------------------------------------------
+   Sticky action bar (bottom CTAs)
+--------------------------------------------------------------------------- */
+
+.app .mk-stickybar {
+  position: fixed;
+  bottom: calc(var(--mk-bottomnav-h) + var(--mk-safe-bottom));
+  left: 0;
+  right: 0;
+  z-index: 80;
+  background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--mk-line);
+  padding: 12px var(--mk-page-gutter);
+}
+.app .mk-stickybar-inner {
+  max-width: var(--mk-page-w);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+@media (min-width: 900px) {
+  .app .mk-stickybar { bottom: 0; }
+}
+/* Add room so content isn't hidden behind the sticky bar */
+.app .mk-stickybar-pad { height: 92px; }
+
+@keyframes mk-fade { from { opacity: 0; } }
+@keyframes mk-rise { from { opacity: 0; transform: translateY(18px); } }
+
+/* Reviews modal (legacy component) — soften to the v2 surface language */
+.app .reviews-modal-backdrop { background: var(--mk-overlay); animation: mk-fade var(--mk-t-med) var(--mk-ease); }
+.app .reviews-modal {
+  border-radius: var(--mk-r-l);
+  border-color: var(--mk-line);
+  animation: mk-rise var(--mk-t-med) var(--mk-ease);
+}
+.app .reviews-button.primary, .app .reviews-load-more { background: var(--mk-brand); }
+.app .reviews-button.primary:hover, .app .reviews-load-more:hover { background: var(--mk-brand-strong); }
+.app .reviews-button.secondary { background: var(--mk-surface-soft); border-color: var(--mk-line-strong); color: var(--mk-ink); }
+.app .review-item { border-color: var(--mk-line); border-radius: var(--mk-r-s); }
+.app .review-star.active { color: var(--mk-gold); }
+.app .reviews-form-section textarea {
+  border-color: var(--mk-line-strong);
+  background: var(--mk-surface);
+}
+.app .reviews-form-section textarea:focus {
+  border-color: var(--mk-line-focus);
+  box-shadow: var(--mk-ring);
+}
+
+/* ---------------------------------------------------------------------------
+   Horizontal rails
+--------------------------------------------------------------------------- */
+
+.app .mk-rail {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px;
+  margin-inline: calc(-1 * var(--mk-page-gutter));
+  padding-inline: var(--mk-page-gutter);
+}
+.app .mk-rail::-webkit-scrollbar { display: none; }
+
+/* ---------------------------------------------------------------------------
+   Divider rows / info lists
+--------------------------------------------------------------------------- */
+
+.app .mk-rows { background: var(--mk-surface); border: 1px solid var(--mk-line); border-radius: var(--mk-r-m); overflow: hidden; box-shadow: var(--mk-sh-1); }
+.app .mk-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mk-s3);
+  padding: 13px 16px;
+  font-size: 13.5px;
+  color: var(--mk-ink);
+}
+.app .mk-row + .mk-row { border-top: 1px solid var(--mk-line); }
+.app .mk-row .k { color: var(--mk-ink-3); font-weight: 500; }
+.app .mk-row .v { font-weight: 600; text-align: end; max-width: 65%; overflow-wrap: anywhere; }

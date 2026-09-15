@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { MapPin } from "lucide-react";
-import { CategoryChip, ProviderRow, ProviderSkeleton, SearchBox, ServiceChip, StateCard, TrustStrip } from "../components/atoms";
+import { ChevronRight, MapPin } from "lucide-react";
+import { CategoryCard, ProviderRow, ProviderSkeleton, SearchBox, ServiceChip, StateCard, TrustStrip } from "../components/atoms";
 import { categoryCountLabel, countByCategory, getCategories } from "../services";
 import { useProviders } from "../hooks/useProviders";
 import { useAuth } from "../auth";
@@ -12,7 +12,7 @@ export default function Home() {
   const { navigate } = useRouter();
   const { showToast } = useToast();
   const { profile } = useAuth();
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
   const [query, setQuery] = useState("");
   const { providers, status, refetch } = useProviders();
 
@@ -31,44 +31,39 @@ export default function Home() {
   const goDiscover = (term: string) =>
     navigate("/discover" + (term ? "?q=" + encodeURIComponent(term) : ""));
   const featured = providers.slice(0, 4);
+  const chevronFlip = dir === "rtl" ? { transform: "scaleX(-1)" } : undefined;
 
   return (
     <main className="home">
-      <section className="home-intro" aria-labelledby="home-prompt">
-        <div className="home-bar">
-          <button
-            className="home-loc"
-            type="button"
-            onClick={() => showToast(t("home.locationUnavailable"))}
-          >
-            <MapPin size={16} aria-hidden="true" />
-            <span>{city || t("home.locate")}</span>
-          </button>
-        </div>
+      <section className="mk-home-head" aria-labelledby="home-prompt">
+        <button
+          className="mk-home-loc"
+          type="button"
+          onClick={() => showToast(t("home.locationUnavailable"))}
+        >
+          <MapPin size={13} aria-hidden="true" />
+          <span>{city || t("home.locate")}</span>
+        </button>
 
-        <div className="home-intro-copy">
-          <p className="home-greet">{name ? t("home.greetName", { name }) : t("home.greet")}</p>
-          <h1 id="home-prompt" className="home-prompt">{t("home.prompt")}</h1>
-          <p className="home-sub">{t("home.sub")}</p>
-        </div>
+        <p className="mk-greet">{name ? t("home.greetName", { name }) : t("home.greet")}</p>
+        <h1 id="home-prompt" className="mk-home-title">{t("home.prompt")}</h1>
+        <p className="mk-home-sub">{t("home.sub")}</p>
 
         <SearchBox value={query} onChange={setQuery} onSubmit={() => goDiscover(query)} />
+        <TrustStrip />
       </section>
 
-      <TrustStrip />
-
-      <section className="home-section" aria-labelledby="home-services-heading">
-        <div className="home-section-head">
-          <div>
-            <h2 id="home-services-heading">{t("home.services")}</h2>
-          </div>
-          <button className="text-button" type="button" onClick={() => goDiscover("")}>
+      <section aria-labelledby="home-services-heading">
+        <div className="mk-section-head">
+          <h2 id="home-services-heading">{t("home.services")}</h2>
+          <button className="mk-link-btn" type="button" onClick={() => goDiscover("")}>
             {t("home.explore")}
+            <ChevronRight size={14} aria-hidden="true" style={chevronFlip} />
           </button>
         </div>
-        <div className="category-rail" aria-label={t("home.categoriesRail")}>
+        <div className="mk-cat-grid" aria-label={t("home.categoriesRail")}>
           {categories.map((category) => (
-            <CategoryChip
+            <CategoryCard
               key={category.name}
               category={category}
               onClick={() => goDiscover(category.name)}
@@ -76,7 +71,7 @@ export default function Home() {
           ))}
         </div>
         {availableServices.length > 0 ? (
-          <div className="service-rail" aria-label={t("home.servicesRail")}>
+          <div className="mk-rail" style={{ marginTop: 12 }} aria-label={t("home.servicesRail")}>
             {availableServices.map((service) => (
               <ServiceChip key={service} label={service} onClick={() => goDiscover(service)} />
             ))}
@@ -84,13 +79,12 @@ export default function Home() {
         ) : null}
       </section>
 
-      <section className="home-section" aria-labelledby="home-providers-heading">
-        <div className="home-section-head">
-          <div>
-            <h2 id="home-providers-heading">{t("home.providers")}</h2>
-          </div>
-          <button className="text-button" type="button" onClick={() => goDiscover("")}>
+      <section aria-labelledby="home-providers-heading">
+        <div className="mk-section-head">
+          <h2 id="home-providers-heading">{t("home.providers")}</h2>
+          <button className="mk-link-btn" type="button" onClick={() => goDiscover("")}>
             {t("home.viewAll")}
+            <ChevronRight size={14} aria-hidden="true" style={chevronFlip} />
           </button>
         </div>
         {status === "loading" ? (
@@ -106,7 +100,7 @@ export default function Home() {
             onAction={() => goDiscover("")}
           />
         ) : (
-          <div className="provider-list">
+          <div className="mk-provider-list">
             {featured.map((provider) => (
               <ProviderRow
                 key={provider.id}
@@ -115,7 +109,7 @@ export default function Home() {
               />
             ))}
             {providers.length > featured.length ? (
-              <button className="ghost-button home-more" type="button" onClick={() => goDiscover("")}>
+              <button className="mk-btn mk-btn--secondary mk-btn--block" type="button" onClick={() => goDiscover("")}>
                 {t("home.viewAllProviders")}
               </button>
             ) : null}

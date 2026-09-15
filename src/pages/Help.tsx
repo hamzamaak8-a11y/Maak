@@ -1,46 +1,61 @@
-import { ArrowRight, CircleHelp, LifeBuoy } from "lucide-react";
+import { ArrowRight, LifeBuoy } from "lucide-react";
 import { useRouter } from "../router";
-import { getFaqData } from "../lib/help";
 import FaqSection from "../components/help/FaqSection";
 import SupportForm from "../components/help/SupportForm";
+import { useLanguage } from "../i18n";
 import "../styles/help.css";
 
 export default function Help() {
   const { navigate } = useRouter();
-  const faq = getFaqData();
+  const { t, dir } = useLanguage();
+  const chevronFlip = dir === "rtl" ? { transform: "scaleX(-1)" } : undefined;
 
   return (
-    <div className="help-page">
-      <section className="help-hero">
+    <main className="screen help-page">
+      <div className="mk-page-head">
         <div>
-          <span className="help-kicker"><CircleHelp size={15} aria-hidden="true" /> HELP CENTER</span>
-          <h1>How can we help?</h1>
-          <p>Find quick answers about bookings, accounts, providers and payments, or contact the support team when you need more help.</p>
-          <div className="help-hero-actions">
-            <a href="#faq" className="primary help-hero-btn" onClick={(event) => { event.preventDefault(); document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" }); }}>
-              Browse FAQs <ArrowRight size={16} aria-hidden="true" />
-            </a>
-            <button type="button" className="secondary help-hero-btn" onClick={() => document.getElementById("support")?.scrollIntoView({ behavior: "smooth" })}>
-              Contact support
-            </button>
-          </div>
+          <span className="mk-kicker">{t("v2.helpKicker")}</span>
+          <h1>{t("v2.helpTitle")}</h1>
+          <p className="mk-page-sub">{t("v2.helpSub")}</p>
         </div>
-        <div className="help-hero-card" aria-hidden="true">
-          <LifeBuoy size={38} strokeWidth={1.8} />
-          <strong>Customer support</strong>
-          <span>Clear answers, one place.</span>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+        <button
+          type="button"
+          className="mk-btn mk-btn--sm"
+          onClick={() => document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" })}
+        >
+          {t("v2.helpBrowseFaq")}
+        </button>
+        <button
+          type="button"
+          className="mk-btn mk-btn--secondary mk-btn--sm"
+          onClick={() => document.getElementById("support")?.scrollIntoView({ behavior: "smooth" })}
+        >
+          {t("v2.helpContact")}
+        </button>
+      </div>
+
+      <div className="mk-card mk-card--pad" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <span className="mk-state-icon" style={{ margin: 0, width: 44, height: 44 }} aria-hidden="true">
+          <LifeBuoy size={22} strokeWidth={1.9} />
+        </span>
+        <div>
+          <b style={{ fontSize: 13.5 }}>{t("v2.helpCardTitle")}</b>
+          <p style={{ fontSize: 12.5, color: "var(--mk-ink-3)" }}>{t("v2.helpCardSub")}</p>
         </div>
-      </section>
+      </div>
 
-      <main className="help-content">
-        <div id="faq"><FaqSection items={faq} /></div>
-        <div id="support"><SupportForm onSent={() => undefined} /></div>
-      </main>
+      <div id="faq"><FaqSection /></div>
+      <div id="support" style={{ marginTop: 18 }}><SupportForm onSent={() => undefined} /></div>
 
-      <footer className="help-footer">
-        <span>Need to continue using Maak?</span>
-        <button type="button" onClick={() => navigate("/discover")}>Back to services <ArrowRight size={15} aria-hidden="true" /></button>
-      </footer>
-    </div>
+      <div style={{ marginTop: 24 }}>
+        <button type="button" className="mk-btn mk-btn--ghost" onClick={() => navigate("/discover")}>
+          {t("v2.helpBackToServices")}
+          <ArrowRight size={15} aria-hidden="true" style={chevronFlip} />
+        </button>
+      </div>
+    </main>
   );
 }

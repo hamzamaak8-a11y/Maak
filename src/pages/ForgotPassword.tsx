@@ -1,9 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Loader2, MailCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, MailCheck } from "lucide-react";
 import { useRouter } from "../router";
-import { Logo } from "../components/atoms";
+import { MaakMark } from "../components/BrandMark";
 import { supabase } from "../lib/supabaseClient";
-import "../styles/auth.css";
 import { useLanguage } from "../i18n";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -80,33 +79,34 @@ export default function ForgotPassword() {
 
   if (sentTo) {
     return (
-      <main className="auth-main">
-        <div className="auth-card">
-          <div className="auth-brand">
-            <Logo variant="lockup" />
+      <main className="mk-auth auth-main">
+        <div className="mk-auth-card auth-card">
+          <MaakMark size={46} />
+          <div className="mk-auth-verify-icon" aria-hidden="true">
+            <MailCheck size={26} />
           </div>
-          <div className="auth-verify-icon">
-            <MailCheck size={28} />
-          </div>
-          <h1 className="auth-title">{t("auth.resetCheck")}</h1>
-          <p className="auth-subtitle">
-            {t("auth.resetSentTo")}{" "}
-            <span className="auth-verify-email" dir="ltr">{sentTo}</span>
-            {" "}{t("auth.resetFollowup")}
+          <h1 className="mk-auth-title">{t("auth.resetCheck")}</h1>
+          <p className="mk-auth-sub">
+            {t("auth.resetSentTo")} <b dir="ltr">{sentTo}</b> {t("auth.resetFollowup")}
           </p>
 
-          {resendNote ? <div className={resendOk ? "auth-success" : "auth-error"}>{resendNote}</div> : null}
+          {resendNote ? (
+            <div className={resendOk ? "mk-auth-success" : "mk-auth-error"} role={resendOk ? "status" : "alert"}>
+              {resendOk ? <CheckCircle2 size={15} aria-hidden="true" /> : <AlertCircle size={15} aria-hidden="true" />}
+              <span>{resendNote}</span>
+            </div>
+          ) : null}
 
-          <button className="auth-btn" onClick={() => void requestReset(sentTo, true)} disabled={resending || cooldown > 0}>
+          <button className="mk-btn mk-btn--lg mk-btn--block" onClick={() => void requestReset(sentTo, true)} disabled={resending || cooldown > 0}>
             {resending
-              ? <Loader2 size={18} className="auth-spin" />
+              ? <Loader2 size={18} className="spin" aria-hidden="true" />
               : cooldown > 0
                 ? t("auth.resendIn", { n: cooldown })
                 : t("auth.resendResetLink")}
           </button>
 
-          <p className="auth-link-row">
-            <button className="auth-link" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
+          <p className="mk-auth-links">
+            <button className="mk-auth-link" type="button" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
           </p>
         </div>
       </main>
@@ -114,19 +114,18 @@ export default function ForgotPassword() {
   }
 
   return (
-    <main className="auth-main">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <Logo variant="lockup" />
-        </div>
-        <h1 className="auth-title">{t("auth.forgotTitle")}</h1>
-        <p className="auth-subtitle">{t("auth.forgotSub")}</p>
+    <main className="mk-auth auth-main">
+      <div className="mk-auth-card auth-card">
+        <MaakMark size={46} />
+        <h1 className="mk-auth-title">{t("auth.forgotTitle")}</h1>
+        <p className="mk-auth-sub">{t("auth.forgotSub")}</p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
-          <label className="auth-field">
-            <span>{t("common.email")}</span>
+        <form onSubmit={handleSubmit}>
+          <div className="mk-field">
+            <label className="mk-label" htmlFor="forgot-email">{t("common.email")}</label>
             <input
-              className="auth-input"
+              id="forgot-email"
+              className="mk-input"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -135,17 +134,22 @@ export default function ForgotPassword() {
               required
               dir="ltr"
             />
-          </label>
+          </div>
 
-          {error ? <div className="auth-error">{t(error)}</div> : null}
+          {error ? (
+            <div className="mk-auth-error" role="alert">
+              <AlertCircle size={16} aria-hidden="true" />
+              <span>{t(error)}</span>
+            </div>
+          ) : null}
 
-          <button className="auth-btn" type="submit" disabled={submitting}>
-            {submitting ? <Loader2 size={18} className="auth-spin" /> : t("auth.sendResetLink")}
+          <button className="mk-btn mk-btn--lg mk-btn--block" type="submit" disabled={submitting}>
+            {submitting ? <Loader2 size={18} className="spin" aria-hidden="true" /> : t("auth.sendResetLink")}
           </button>
         </form>
 
-        <p className="auth-link-row">
-          <button className="auth-link" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
+        <p className="mk-auth-links">
+          <button className="mk-auth-link" type="button" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
         </p>
       </div>
     </main>

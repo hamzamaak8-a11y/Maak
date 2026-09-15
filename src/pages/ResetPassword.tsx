@@ -1,10 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { AlertTriangle, KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, AlertTriangle, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { useAuth } from "../auth";
 import { useRouter } from "../router";
-import { Logo } from "../components/atoms";
+import { MaakMark } from "../components/BrandMark";
 import { supabase } from "../lib/supabaseClient";
-import "../styles/auth.css";
 import { useLanguage } from "../i18n";
 
 type PageStatus = "checking" | "ready" | "invalid" | "success";
@@ -101,31 +100,30 @@ export default function ResetPassword() {
   }
 
   return (
-    <main className="auth-main">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <Logo variant="lockup" />
-        </div>
+    <main className="mk-auth auth-main">
+      <div className="mk-auth-card auth-card">
+        <MaakMark size={46} />
 
         {status === "checking" ? (
-          <div className="auth-checking">
-            <Loader2 size={26} className="auth-spin" />
-            <p className="auth-subtitle">{t("auth.verifying")}</p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "24px 0", color: "var(--mk-brand)" }} aria-busy="true">
+            <Loader2 size={26} className="spin" aria-hidden="true" />
+            <p className="mk-auth-sub" style={{ margin: 0 }}>{t("auth.verifying")}</p>
           </div>
         ) : null}
 
         {status === "ready" ? (
           <>
-            <div className="auth-verify-icon">
-              <KeyRound size={28} />
+            <div className="mk-auth-verify-icon" aria-hidden="true">
+              <KeyRound size={26} />
             </div>
-            <h1 className="auth-title">{t("auth.resetTitle")}</h1>
-            <p className="auth-subtitle">{t("auth.resetSub")}</p>
-            <form className="auth-form" onSubmit={handleSubmit}>
-              <label className="auth-field">
-                <span>{t("auth.newPassword")}</span>
+            <h1 className="mk-auth-title">{t("auth.resetTitle")}</h1>
+            <p className="mk-auth-sub">{t("auth.resetSub")}</p>
+            <form onSubmit={handleSubmit}>
+              <div className="mk-field">
+                <label className="mk-label" htmlFor="reset-password">{t("auth.newPassword")}</label>
                 <input
-                  className="auth-input"
+                  id="reset-password"
+                  className="mk-input"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -133,11 +131,12 @@ export default function ResetPassword() {
                   required
                   dir="ltr"
                 />
-              </label>
-              <label className="auth-field">
-                <span>{t("auth.confirmPassword")}</span>
+              </div>
+              <div className="mk-field">
+                <label className="mk-label" htmlFor="reset-confirm">{t("auth.confirmPassword")}</label>
                 <input
-                  className="auth-input"
+                  id="reset-confirm"
+                  className="mk-input"
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
@@ -145,10 +144,15 @@ export default function ResetPassword() {
                   required
                   dir="ltr"
                 />
-              </label>
-              {error ? <div className="auth-error">{t(error)}</div> : null}
-              <button className="auth-btn" type="submit" disabled={submitting}>
-                {submitting ? <Loader2 size={18} className="auth-spin" /> : t("auth.resetBtn")}
+              </div>
+              {error ? (
+                <div className="mk-auth-error" role="alert">
+                  <AlertCircle size={16} aria-hidden="true" />
+                  <span>{t(error)}</span>
+                </div>
+              ) : null}
+              <button className="mk-btn mk-btn--lg mk-btn--block" type="submit" disabled={submitting}>
+                {submitting ? <Loader2 size={18} className="spin" aria-hidden="true" /> : t("auth.resetBtn")}
               </button>
             </form>
           </>
@@ -156,25 +160,25 @@ export default function ResetPassword() {
 
         {status === "success" ? (
           <>
-            <div className="auth-verify-icon">
-              <ShieldCheck size={28} />
+            <div className="mk-auth-verify-icon" aria-hidden="true">
+              <ShieldCheck size={26} />
             </div>
-            <h1 className="auth-title">{t("auth.resetOk")}</h1>
-            <p className="auth-subtitle">{t("auth.resetOkBody")}</p>
-            <button className="auth-btn" onClick={() => void goToLogin()}>{t("auth.loginTitle")}</button>
+            <h1 className="mk-auth-title">{t("auth.resetOk")}</h1>
+            <p className="mk-auth-sub">{t("auth.resetOkBody")}</p>
+            <button className="mk-btn mk-btn--lg mk-btn--block" onClick={() => void goToLogin()}>{t("auth.loginTitle")}</button>
           </>
         ) : null}
 
         {status === "invalid" ? (
           <>
-            <div className="auth-verify-icon">
-              <AlertTriangle size={28} />
+            <div className="mk-auth-verify-icon" style={{ background: "var(--mk-warn-tint)", color: "var(--mk-warn)" }} aria-hidden="true">
+              <AlertTriangle size={26} />
             </div>
-            <h1 className="auth-title">{t("auth.linkExpired")}</h1>
-            <p className="auth-subtitle">{t("auth.linkExpiredBody")}</p>
-            <button className="auth-btn" onClick={() => navigate("/forgot-password")}>{t("auth.requestNewLink")}</button>
-            <p className="auth-link-row">
-              <button className="auth-link" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
+            <h1 className="mk-auth-title">{t("auth.linkExpired")}</h1>
+            <p className="mk-auth-sub">{t("auth.linkExpiredBody")}</p>
+            <button className="mk-btn mk-btn--lg mk-btn--block" onClick={() => navigate("/forgot-password")}>{t("auth.requestNewLink")}</button>
+            <p className="mk-auth-links">
+              <button className="mk-auth-link" type="button" onClick={() => navigate("/login")}>{t("auth.backToLogin")}</button>
             </p>
           </>
         ) : null}

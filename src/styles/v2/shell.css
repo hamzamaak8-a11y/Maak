@@ -1,0 +1,238 @@
+/* ==========================================================================
+   Maak v2 — Application shell: top bar + bottom navigation
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   Top bar
+--------------------------------------------------------------------------- */
+
+.app .mk-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  height: var(--mk-topbar-h);
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: saturate(1.2) blur(10px);
+  backdrop-filter: saturate(1.2) blur(10px);
+  border-bottom: 1px solid var(--mk-line);
+}
+
+.app .mk-topbar-inner {
+  height: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: var(--mk-page-gutter);
+  display: flex;
+  align-items: center;
+  gap: var(--mk-s3);
+}
+
+.app .mk-brandline {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: 0 0 auto;
+  border-radius: var(--mk-r-xs);
+  padding: 4px 2px;
+}
+
+.app .mk-wordmark {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--mk-ink);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.app .mk-wordmark small {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--mk-ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* Desktop nav (hidden on mobile) */
+.app .mk-topnav {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-inline: auto;
+}
+
+@media (min-width: 900px) {
+  .app .mk-topnav { display: flex; }
+}
+
+.app .mk-topnav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--mk-r-full);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--mk-ink-2);
+  transition: background var(--mk-t-fast) var(--mk-ease), color var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-topnav-item:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+.app .mk-topnav-item.is-active {
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+}
+.app .mk-topnav-item svg { flex: 0 0 auto; }
+
+/* Trailing controls */
+.app .mk-topbar-trail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+/* Hide desktop-only controls on small screens */
+.app .desktop-only { display: none; }
+@media (min-width: 900px) {
+  .app .desktop-only { display: inline-flex; }
+}
+
+/* Notification bell lives in legacy markup; align it with the v2 icon buttons */
+.app .notification-bell-wrap .notification-bell {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mk-r-full);
+  color: var(--mk-ink-2);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.app .notification-bell-wrap .notification-bell:hover { background: var(--mk-surface-sunken); }
+.app .notification-badge { border-color: #fff; }
+
+
+.app .mk-iconbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mk-r-full);
+  color: var(--mk-ink-2);
+  border: 1px solid transparent;
+  transition: background var(--mk-t-fast) var(--mk-ease), border-color var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-iconbtn:hover { background: var(--mk-surface-sunken); }
+
+.app .mk-langbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--mk-r-full);
+  border: 1px solid var(--mk-line-strong);
+  background: var(--mk-surface);
+  color: var(--mk-ink-2);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: var(--mk-sh-1);
+  transition: background var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-langbtn:hover { background: var(--mk-surface-soft); }
+
+.app .mk-avatarbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--mk-r-full);
+  border: 2px solid var(--mk-surface);
+  box-shadow: 0 0 0 1px var(--mk-line-strong), var(--mk-sh-1);
+  overflow: hidden;
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+  font-weight: 800;
+  font-size: 14px;
+  transition: box-shadow var(--mk-t-fast) var(--mk-ease);
+}
+.app .mk-avatarbtn:hover { box-shadow: 0 0 0 1.5px var(--mk-brand), var(--mk-sh-1); }
+.app .mk-avatarbtn img { width: 100%; height: 100%; object-fit: cover; }
+
+.app .mk-avatarbtn--busy {
+  background: var(--mk-surface-sunken);
+  animation: mk-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes mk-pulse { 50% { opacity: 0.55; } }
+
+/* ---------------------------------------------------------------------------
+   Bottom navigation (mobile app tabs)
+--------------------------------------------------------------------------- */
+
+.app .mk-bottomnav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 95;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+  backdrop-filter: saturate(1.2) blur(12px);
+  border-top: 1px solid var(--mk-line);
+  padding-bottom: var(--mk-safe-bottom);
+}
+
+@media (min-width: 900px) {
+  .app .mk-bottomnav { display: none; }
+  .app .app-main { padding-bottom: 32px; }
+}
+
+.app .mk-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: var(--mk-bottomnav-h);
+  padding: 8px 4px 7px;
+  color: var(--mk-ink-3);
+  font-size: 10.5px;
+  font-weight: 600;
+  border-radius: 0;
+  transition: color var(--mk-t-fast) var(--mk-ease);
+}
+
+.app .mk-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 26px;
+  border-radius: var(--mk-r-full);
+  transition: background var(--mk-t-med) var(--mk-ease), color var(--mk-t-med) var(--mk-ease);
+}
+
+.app .mk-tab.is-active { color: var(--mk-brand-strong); }
+.app .mk-tab.is-active .mk-tab-icon {
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+}
+
+/* ---------------------------------------------------------------------------
+   Provider-mode shell keeps the app chrome too
+--------------------------------------------------------------------------- */
+
+.app.provider-app {
+  display: flex;
+  flex-direction: column;
+}
