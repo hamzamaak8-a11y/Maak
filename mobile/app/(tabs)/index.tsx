@@ -2,16 +2,18 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { Brand } from '../../components/Brand';
-import { colors, radii, spacing } from '../../constants/theme';
+import { colors, radii } from '../../constants/theme';
 import { fetchProviders, type NativeProvider } from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 
 function ProviderCard({ item }: { item: NativeProvider }) {
-  return <Pressable onPress={() => router.push(`/provider/${item.id}`)} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-    <View style={styles.avatar}><Text style={styles.avatarText}>{item.name.trim().charAt(0) || 'م'}</Text></View>
-    <View style={styles.cardBody}><Text style={styles.name}>{item.name}</Text><Text style={styles.job}>{item.job}</Text><Text style={styles.meta}>{item.city}{item.rating ? ` · ★ ${item.rating}` : ''}</Text></View>
-    {item.available ? <View style={styles.online}><View style={styles.dot} /><Text style={styles.onlineText}>متاح</Text></View> : null}
-  </Pressable>;
+  return (
+    <Pressable onPress={() => router.push(`/provider/${item.id}`)} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+      <View style={styles.avatar}><Text style={styles.avatarText}>{item.name.trim().charAt(0) || 'م'}</Text></View>
+      <View style={styles.cardBody}><Text selectable style={styles.name}>{item.name}</Text><Text selectable style={styles.job}>{item.job}</Text><Text selectable style={styles.meta}>{item.city}{item.rating ? ` · ★ ${item.rating}` : ''}</Text></View>
+      {item.available ? <View style={styles.online}><View style={styles.dot} /><Text style={styles.onlineText}>متاح</Text></View> : null}
+    </Pressable>
+  );
 }
 
 export default function HomeScreen() {
@@ -25,21 +27,32 @@ export default function HomeScreen() {
   useEffect(() => { void load(); }, []);
   async function refresh() { setRefreshing(true); await load(); setRefreshing(false); }
 
-  return <FlatList
-    style={styles.root}
-    contentContainerStyle={styles.content}
-    data={providers.slice(0, 12)}
-    keyExtractor={(item) => String(item.id)}
-    renderItem={({ item }) => <ProviderCard item={item} />}
-    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.goldDeep} />}
-    ListHeaderComponent={<>
-      <View style={styles.header}><Brand compact /><Pressable onPress={() => router.push('/account')} style={styles.profile}><Text style={styles.profileText}>{(profile?.full_name ?? 'م').charAt(0).toUpperCase()}</Text></Pressable></View>
-      <View style={styles.hero}><Text style={styles.eyebrow}>MAAK</Text><Text style={styles.title}>{profile?.full_name ? `شنو بغيتي اليوم، ${profile.full_name.split(' ')[0]}؟` : 'شنو بغيتي اليوم؟'}</Text><Text style={styles.subtitle}>اختار الخدمة وخلي علينا نلقاو ليك الشخص المناسب.</Text><Pressable onPress={() => router.push('/discover')} style={styles.search}><Text style={styles.searchText}>ابحث عن سباك، كهربائي، تنظيف...</Text><Text style={styles.searchIcon}>⌕</Text></Pressable></View>
-      <View style={styles.sectionHead}><Text style={styles.sectionTitle}>مقدمو خدمات موثوقون</Text><Pressable onPress={() => router.push('/discover')}><Text style={styles.link}>الكل</Text></Pressable></View>
-    </>}
-    ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyTitle}>اكتشف خدمات Maak</Text><Text style={styles.emptyText}>جميع الخدمات ستظهر هنا بمجرد ربط Worker API في إعدادات التطبيق.</Text><Pressable onPress={() => router.push('/discover')} style={styles.emptyButton}><Text style={styles.emptyButtonText}>استكشف الآن</Text></Pressable></View>}
-    ListFooterComponent={<View style={{ height: 18 }} />}
-  />;
+  return (
+    <FlatList
+      style={styles.root}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustKeyboardInsets
+      data={providers.slice(0, 12)}
+      keyExtractor={(item) => String(item.id)}
+      renderItem={({ item }) => <ProviderCard item={item} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.goldDeep} />}
+      ListHeaderComponent={
+        <>
+          <View style={styles.header}><Brand compact /><Pressable onPress={() => router.push('/account')} style={styles.profile}><Text style={styles.profileText}>{(profile?.full_name ?? 'م').charAt(0).toUpperCase()}</Text></Pressable></View>
+          <View style={styles.hero}>
+            <Text style={styles.eyebrow}>MAAK</Text>
+            <Text selectable style={styles.title}>{profile?.full_name ? `شنو بغيتي اليوم، ${profile.full_name.split(' ')[0]}؟` : 'شنو بغيتي اليوم؟'}</Text>
+            <Text selectable style={styles.subtitle}>اختار الخدمة وخلي علينا نلقاو ليك الشخص المناسب.</Text>
+            <Pressable onPress={() => router.push('/discover')} style={styles.search}><Text style={styles.searchText}>ابحث عن سباك، كهربائي، تنظيف...</Text><Text style={styles.searchIcon}>⌕</Text></Pressable>
+          </View>
+          <View style={styles.sectionHead}><Text selectable style={styles.sectionTitle}>مقدمو خدمات موثوقون</Text><Pressable onPress={() => router.push('/discover')}><Text style={styles.link}>الكل</Text></Pressable></View>
+        </>
+      }
+      ListEmptyComponent={<View style={styles.empty}><Text selectable style={styles.emptyTitle}>اكتشف خدمات Maak</Text><Text selectable style={styles.emptyText}>جميع الخدمات ستظهر هنا بمجرد ربط Worker API في إعدادات التطبيق.</Text><Pressable onPress={() => router.push('/discover')} style={styles.emptyButton}><Text style={styles.emptyButtonText}>استكشف الآن</Text></Pressable></View>}
+      ListFooterComponent={<View style={{ height: 18 }} />}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
