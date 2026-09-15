@@ -36,27 +36,14 @@ export default defineConfig(({ mode }) => {
   const envDir = process.env.MAAK_VITE_ENV_DIR || process.cwd();
   const fileEnv = loadEnv(mode, envDir, "");
   const env = { ...fileEnv, ...process.env };
-  const supabaseUrl = String(env.VITE_SUPABASE_URL || "").trim();
-  const supabaseKey = String(env.VITE_SUPABASE_PUBLISHABLE_KEY || "").trim();
   const apiTarget = env.MAAK_API_TARGET || "http://localhost:8787";
   const base = env.VITE_BASE || "./";
-
-  let supabaseHost = "missing";
-  try {
-    supabaseHost = new URL(supabaseUrl).host || "missing";
-  } catch {
-    supabaseHost = "invalid";
-  }
-  console.log(
-    `[maak] frontend env diagnostic: url_present=${Boolean(supabaseUrl)} key_present=${Boolean(supabaseKey)} url_host=${supabaseHost}`,
-  );
 
   return {
     envDir,
     define: {
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(supabaseKey),
-      __MAAK_SUPABASE_ENV_PRESENT__: JSON.stringify(Boolean(supabaseUrl && supabaseKey)),
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(env.VITE_SUPABASE_URL || ""),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY || ""),
     },
     plugins: [normalizeLegacyPublicAssetUrls(base), react()],
     base,
