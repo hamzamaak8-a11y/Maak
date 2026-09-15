@@ -105,4 +105,5 @@ export async function acceptAndCompleteLatestBooking(page: Page, locationText: s
   const completeButton = activeRequest.getByRole("button", { name: /Complete|Terminer|إتمام|إكمال/i }).first();
   await expect(completeButton).toBeVisible();
   await completeButton.click();
+  await expect(activeRequest).toHaveCount(0);
 }
