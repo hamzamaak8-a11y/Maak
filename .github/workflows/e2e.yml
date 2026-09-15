@@ -110,12 +110,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat > worker/.dev.vars <<EOF
-          SUPABASE_URL=${SUPABASE_URL}
-          SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
-          MAAK_ALLOW_ORIGIN=http://127.0.0.1:4173
+          cat > worker/wrangler.e2e.jsonc <<EOF
+          {
+            "name": "maak-e2e-local",
+            "main": "src/index.ts",
+            "compatibility_date": "2026-05-01",
+            "vars": {
+              "MAAK_ALLOW_ORIGIN": "http://127.0.0.1:4173",
+              "SUPABASE_URL": "${SUPABASE_URL}"
+            }
+          }
           EOF
-          npm --prefix worker run dev -- --local --ip 127.0.0.1 --port 8787 > "$RUNNER_TEMP/maak-worker.log" 2>&1 &
+          cat > worker/.dev.vars <<EOF
+          SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+          EOF
+          npm --prefix worker run dev -- --config wrangler.e2e.jsonc --local --ip 127.0.0.1 --port 8787 > "$RUNNER_TEMP/maak-worker.log" 2>&1 &
           echo "$!" > "$RUNNER_TEMP/maak-worker.pid"
           echo "VITE_API_URL=http://127.0.0.1:8787" >> "$GITHUB_ENV"
           for _ in $(seq 1 60); do
@@ -147,7 +156,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          env -u VITE_SUPABASE_URL -u VITE_SUPABASE_PUBLISHABLE_KEY \
+          VITE_SUPABASE_URL='' VITE_SUPABASE_PUBLISHABLE_KEY='' \
             npm run dev -- --host 127.0.0.1 --port 4174 > "$RUNNER_TEMP/maak-vite-negative.log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
@@ -155,9 +164,21 @@ jobs:
             if curl --fail --silent http://127.0.0.1:4174/ >/dev/null; then break; fi
             sleep 1
           done
-          env -u VITE_SUPABASE_URL -u VITE_SUPABASE_PUBLISHABLE_KEY \
+          VITE_SUPABASE_URL='' VITE_SUPABASE_PUBLISHABLE_KEY='' \
             MAAK_E2E_BASE_URL=http://127.0.0.1:4174 \
             npx playwright test tests/e2e/config-negative.spec.ts --project=chromium
+
+      - name: Verify isolated worker network boundary
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$RUNNER_TEMP/maak-worker.log"
+          grep -q 'Ready on http://127.0.0.1:8787' "$RUNNER_TEMP/maak-worker.log"
+          grep -q 'env.SUPABASE_URL ("http://127.0.0.1:54321")' "$RUNNER_TEMP/maak-worker.log"
+          ! grep -q 'pjvayowrmqkhmzvlhwex.supabase.co' "$RUNNER_TEMP/maak-worker.log"
+          ! grep -q 'hamzamaak8-a11y.github.io' "$RUNNER_TEMP/maak-worker.log"
+          test "${VITE_API_URL}" = "http://127.0.0.1:8787"
 
       - name: Upload Playwright report
         if: always()
@@ -191,7 +212,7 @@ jobs:
         run: |
           if [ -f "$RUNNER_TEMP/maak-worker.pid" ]; then kill "$(cat "$RUNNER_TEMP/maak-worker.pid")" 2>/dev/null || true; fi
           pkill -f "wrangler.*8787" 2>/dev/null || true
-          rm -f worker/.dev.vars
+          rm -f worker/.dev.vars worker/wrangler.e2e.jsonc
 
       - name: Stop isolated Supabase
         if: always()
