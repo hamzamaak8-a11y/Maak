@@ -137,6 +137,8 @@ test.describe("P0 visual proof matrix", () => {
   test("auth layouts stay wide on desktop and usable on mobile", async ({ page }) => {
     await page.setViewportSize(DESKTOP_1904);
     await page.goto("/login");
+    await page.evaluate(() => localStorage.removeItem("maak:lang:v2"));
+    await page.reload();
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await page.locator(".lang-toggle-btn").click();
@@ -173,6 +175,8 @@ test.describe("P0 visual proof matrix", () => {
     await screenshot(page, "p0-register-mobile-390x844");
 
     await page.goto("/login");
+    await page.evaluate(() => localStorage.removeItem("maak:lang:v2"));
+    await page.reload();
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await screenshot(page, "p0-login-ar-rtl-390x844");
