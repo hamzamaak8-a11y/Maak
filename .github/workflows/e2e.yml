@@ -103,6 +103,28 @@ jobs:
           node scripts/seed-e2e.mjs
           node scripts/seed-e2e-fixtures.mjs
 
+      - name: Install worker dependencies
+        run: npm install --prefix worker --ignore-scripts --no-audit --no-fund
+
+      - name: Start isolated local worker API
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > worker/.dev.vars <<EOF
+          SUPABASE_URL=${SUPABASE_URL}
+          SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+          MAAK_ALLOW_ORIGIN=http://127.0.0.1:4173
+          EOF
+          npm --prefix worker run dev -- --local --ip 127.0.0.1 --port 8787 > "$RUNNER_TEMP/maak-worker.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/maak-worker.pid"
+          echo "VITE_API_URL=http://127.0.0.1:8787" >> "$GITHUB_ENV"
+          for _ in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8787/health >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/maak-worker.log"
+          exit 1
+
       - name: Start frontend for Chromium
         shell: bash
         run: |
@@ -147,6 +169,7 @@ jobs:
             test-results/
             ${{ runner.temp }}/maak-vite.log
             ${{ runner.temp }}/maak-vite-negative.log
+            ${{ runner.temp }}/maak-worker.log
           if-no-files-found: ignore
 
       - name: Cleanup isolated E2E fixtures
@@ -161,6 +184,14 @@ jobs:
         run: |
           if [ -f "$RUNNER_TEMP/maak-vite.pid" ]; then kill "$(cat "$RUNNER_TEMP/maak-vite.pid")" 2>/dev/null || true; fi
           pkill -f "vite.*--port 4173" 2>/dev/null || true
+
+      - name: Stop worker
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/maak-worker.pid" ]; then kill "$(cat "$RUNNER_TEMP/maak-worker.pid")" 2>/dev/null || true; fi
+          pkill -f "wrangler.*8787" 2>/dev/null || true
+          rm -f worker/.dev.vars
 
       - name: Stop isolated Supabase
         if: always()
