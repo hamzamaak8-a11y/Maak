@@ -6,10 +6,7 @@ const DESKTOP_1440 = { width: 1440, height: 900 };
 const MOBILE_390 = { width: 390, height: 844 };
 
 async function noHorizontalOverflow(page: Page): Promise<void> {
-  const metrics = await page.evaluate(() => ({
-    scrollWidth: document.documentElement.scrollWidth,
-    clientWidth: document.documentElement.clientWidth,
-  }));
+  const metrics = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
   expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
 }
 
@@ -41,9 +38,7 @@ function watchBrandResponses(page: Page): string[] {
   const failures: string[] = [];
   page.on("response", (response) => {
     const url = response.url();
-    if (/(maak-|icon-192|icon-512|manifest\.webmanifest)/i.test(url) && response.status() >= 400) {
-      failures.push(`${response.status()} ${url}`);
-    }
+    if (/(maak-|icon-192|icon-512|manifest\.webmanifest)/i.test(url) && response.status() >= 400) failures.push(`${response.status()} ${url}`);
   });
   return failures;
 }
@@ -57,21 +52,13 @@ async function verifyBrandRuntime(page: Page): Promise<void> {
   await expect(images.first()).toBeVisible();
   const states = await images.evaluateAll((nodes) => nodes.map((image) => {
     const box = image.getBoundingClientRect();
-    return {
-      src: image.getAttribute("src") ?? "",
-      naturalWidth: image.naturalWidth,
-      naturalHeight: image.naturalHeight,
-      renderedWidth: box.width,
-      renderedHeight: box.height,
-    };
+    return { src: image.getAttribute("src") ?? "", naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight, renderedWidth: box.width, renderedHeight: box.height };
   }));
   expect(states.length).toBeGreaterThan(0);
   expect(states.every((image) => image.naturalWidth > 0 && image.naturalHeight > 0)).toBe(true);
   expect(states.every((image) => /maak-(lockup-light|lockup-dark|icon)/.test(image.src))).toBe(true);
   for (const image of states) {
-    const naturalRatio = image.naturalWidth / image.naturalHeight;
-    const renderedRatio = image.renderedWidth / image.renderedHeight;
-    expect(Math.abs(naturalRatio - renderedRatio)).toBeLessThan(0.08);
+    expect(Math.abs(image.naturalWidth / image.naturalHeight - image.renderedWidth / image.renderedHeight)).toBeLessThan(0.08);
   }
 }
 
@@ -103,15 +90,9 @@ async function assertNavContained(page: Page): Promise<void> {
 test.describe("P0 visual proof matrix", () => {
   test("required responsive viewport matrix is real-browser green", async ({ page }) => {
     const viewports = [
-      { width: 360, height: 800, name: "360x800" },
-      { width: 390, height: 844, name: "390x844" },
-      { width: 430, height: 932, name: "430x932" },
-      { width: 768, height: 1024, name: "768x1024" },
-      { width: 1280, height: 800, name: "1280x800" },
-      { width: 1440, height: 900, name: "1440x900" },
-      { width: 1904, height: 1044, name: "1904x1044" },
+      { width: 360, height: 800, name: "360x800" }, { width: 390, height: 844, name: "390x844" }, { width: 430, height: 932, name: "430x932" },
+      { width: 768, height: 1024, name: "768x1024" }, { width: 1280, height: 800, name: "1280x800" }, { width: 1440, height: 900, name: "1440x900" }, { width: 1904, height: 1044, name: "1904x1044" },
     ];
-
     for (const viewport of viewports) {
       await page.setViewportSize(viewport);
       await page.goto("/");
@@ -158,7 +139,6 @@ test.describe("P0 visual proof matrix", () => {
       await noCriticalClipping(page, [".auth-main", ".auth-card"]);
       await screenshot(page, route === "/login" ? "p0-login-fr-ltr-desktop-1904x1044" : "p0-register-desktop-1904x1044");
     }
-
     await page.setViewportSize(MOBILE_390);
     await page.goto("/register");
     await expect(page.locator(".auth-main .auth-card")).toBeVisible();
@@ -166,7 +146,6 @@ test.describe("P0 visual proof matrix", () => {
     expect(mobileCard?.width ?? 0).toBeLessThanOrEqual(MOBILE_390.width - 24);
     await noHorizontalOverflow(page);
     await screenshot(page, "p0-register-mobile-390x844");
-
     await page.goto("/login");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
@@ -184,7 +163,6 @@ test.describe("P0 visual proof matrix", () => {
     await verifyBrandRuntime(page);
     await verifyPwaAssets(page);
     await expect(page.locator("body")).not.toContainText("m / maak.");
-
     await page.goto("/");
     await expect(page.locator(".desktop-nav")).toBeVisible();
     await assertNavContained(page);
@@ -201,7 +179,6 @@ test.describe("P0 visual proof matrix", () => {
     await verifyBrandRuntime(page);
     await page.reload();
     await expect(page.locator(".admin-auth-screen .auth-card")).toBeVisible();
-
     await page.goto("/login");
     await page.goto("/admin/login");
     await expect(page.locator(".admin-auth-screen .auth-card")).toBeVisible();
@@ -221,11 +198,9 @@ test.describe("P0 visual proof matrix", () => {
     await expect(page.getByRole("heading", { name: /Maak Control Center\./i })).toBeVisible();
     await noHorizontalOverflow(page);
     await noCriticalClipping(page, [".m2-shell", ".m2-sidebar", ".m2-main", ".m2-hero"]);
-
-    const sidebarBrandImage = page.locator(".m2-brand-row::before");
     const backgroundImage = await page.locator(".m2-brand-row").evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
     expect(backgroundImage).toMatch(/maak-lockup-dark|maak-icon/);
-    expect(await sidebarBrandImage.count()).toBe(0);
+    await expect(page.locator(".m2-brand-row")).not.toContainText("maak.");
     await screenshot(page, "p0-admin-dashboard-1904x1044");
     await page.locator(".m2-sidebar").screenshot({ path: "test-results/p0-admin-sidebar-branding-1904x1044.png" });
   });
