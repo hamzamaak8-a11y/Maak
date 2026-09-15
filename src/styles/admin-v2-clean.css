@@ -20,8 +20,8 @@
   margin-bottom: 10px;
 }
 
-/* P0 brand recovery: remove the legacy m / maak. placeholder and use the
-   supplied official lockup in expanded mode, icon in collapsed mode. */
+/* P0 brand recovery: replace the legacy sidebar placeholder with the
+   supplied official lockup in expanded mode and icon in collapsed mode. */
 .m2-brand-row > .m2-brand-mark,
 .m2-brand-row > div:nth-child(2) {
   display: none !important;
