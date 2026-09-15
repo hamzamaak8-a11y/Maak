@@ -105,7 +105,7 @@ export async function acceptAndCompleteLatestBooking(page: Page, locationText: s
   const acceptButton = request.locator("button.primary").first();
   await expect(acceptButton).toBeVisible();
   await acceptButton.click();
-  await expect(page.getByRole("status").first()).toBeVisible();
+  await expect(request).toHaveCount(0);
 
   await providerTab(page, /Accepted|Acceptées|مقبول|المقبولة/i);
   const acceptedRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
@@ -113,6 +113,7 @@ export async function acceptAndCompleteLatestBooking(page: Page, locationText: s
   const startButton = acceptedRequest.getByRole("button", { name: /Start|Démarrer|بدء/i }).first();
   await expect(startButton).toBeVisible();
   await startButton.click();
+  await expect(acceptedRequest).toHaveCount(0);
 
   await providerTab(page, /In progress|En cours|قيد التنفيذ|جارية/i);
   const activeRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
@@ -120,5 +121,5 @@ export async function acceptAndCompleteLatestBooking(page: Page, locationText: s
   const completeButton = activeRequest.getByRole("button", { name: /Complete|Terminer|إتمام|إكمال/i }).first();
   await expect(completeButton).toBeVisible();
   await completeButton.click();
-  await expect(page.getByRole("status").first()).toBeVisible();
+  await expect(activeRequest).toHaveCount(0);
 }
