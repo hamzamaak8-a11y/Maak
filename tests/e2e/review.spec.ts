@@ -11,11 +11,7 @@ test("customer rates a completed booking and the review appears on the provider 
 
   const providerContext = await browser.newContext();
   const providerPage = await providerContext.newPage();
-  try {
-    await acceptAndCompleteLatestBooking(providerPage, locationText);
-  } finally {
-    await providerContext.close();
-  }
+  await acceptAndCompleteLatestBooking(providerPage, locationText);
 
   await page.goto("/bookings");
   const booking = page.locator(".booking-card").filter({ hasText: locationText }).first();
