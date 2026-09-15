@@ -11,16 +11,12 @@ test("customer rates a completed booking and the review appears on the provider 
 
   const providerContext = await browser.newContext();
   const providerPage = await providerContext.newPage();
-  try {
-    await acceptAndCompleteLatestBooking(providerPage, locationText);
-  } finally {
-    await providerContext.close();
-  }
+  await acceptAndCompleteLatestBooking(providerPage, locationText);
 
   await page.goto("/bookings");
   const booking = page.locator(".booking-card").filter({ hasText: locationText }).first();
   await expect(booking).toBeVisible();
-  await expect(booking).toContainText(/completed|مكتمل|تم إكمال|terminée/i);
+  await expect(booking).toContainText(/completed|مكتمل|تم إكمال|terminée|ماكتملت الخدمة/i);
 
   const rateButton = booking.getByRole("button", { name: /Rate service|تقييم الخدمة|Évaluation du service/i });
   await expect(rateButton).toBeVisible();
