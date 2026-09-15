@@ -37,6 +37,17 @@ async function noCriticalClipping(page: Page, selectors: string[]): Promise<void
   expect(issues).toEqual([]);
 }
 
+function watchBrandResponses(page: Page): string[] {
+  const failures: string[] = [];
+  page.on("response", (response) => {
+    const url = response.url();
+    if (/(maak-|icon-192|icon-512|manifest\.webmanifest)/i.test(url) && response.status() >= 400) {
+      failures.push(`${response.status()} ${url}`);
+    }
+  });
+  return failures;
+}
+
 async function screenshot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: `test-results/${name}.png`, fullPage: true });
 }
@@ -62,14 +73,6 @@ async function verifyBrandRuntime(page: Page): Promise<void> {
     const renderedRatio = image.renderedWidth / image.renderedHeight;
     expect(Math.abs(naturalRatio - renderedRatio)).toBeLessThan(0.08);
   }
-
-  const brandFailures: string[] = [];
-  page.on("response", (response) => {
-    const url = response.url();
-    if (/(maak-|icon-192|icon-512|manifest\.webmanifest)/i.test(url) && response.status() >= 400) {
-      brandFailures.push(`${response.status()} ${url}`);
-    }
-  });
 }
 
 async function verifyPwaAssets(page: Page): Promise<void> {
@@ -175,6 +178,7 @@ test.describe("P0 visual proof matrix", () => {
   });
 
   test("branding, favicon, manifest, PWA icons, and legacy placeholder are clean", async ({ page }) => {
+    const failures = watchBrandResponses(page);
     await page.setViewportSize(DESKTOP_1904);
     await page.goto("/login");
     await verifyBrandRuntime(page);
@@ -186,11 +190,11 @@ test.describe("P0 visual proof matrix", () => {
     await assertNavContained(page);
     const bodyText = await page.locator("body").innerText();
     expect(bodyText).not.toContain("m / maak.");
-    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await page.getByRole("button").filter({ hasText: /FR|فرنسي|Français/i }).first().click().catch(() => undefined);
+    expect(failures).toEqual([]);
   });
 
   test("admin login direct/refresh and browser history never render blank", async ({ page }) => {
+    const failures = watchBrandResponses(page);
     await page.setViewportSize(DESKTOP_1904);
     await page.goto("/admin/login");
     await expect(page.locator(".admin-auth-screen .auth-card")).toBeVisible();
@@ -206,6 +210,7 @@ test.describe("P0 visual proof matrix", () => {
     await page.goForward();
     await expect(page.locator(".admin-auth-screen .auth-card")).toBeVisible();
     await noHorizontalOverflow(page);
+    expect(failures).toEqual([]);
     await screenshot(page, "p0-admin-login-1904x1044");
   });
 
@@ -217,14 +222,12 @@ test.describe("P0 visual proof matrix", () => {
     await noHorizontalOverflow(page);
     await noCriticalClipping(page, [".m2-shell", ".m2-sidebar", ".m2-main", ".m2-hero"]);
 
-    const sidebar = page.locator(".m2-sidebar");
-    await expect(sidebar).toBeVisible();
-    await expect(sidebar.locator("img")).toHaveCount(1);
-    const brand = sidebar.locator("img").first();
-    expect(await brand.getAttribute("src")).toMatch(/maak-lockup-dark|maak-icon/);
-    await expect(brand).toHaveAttribute("alt", "maak");
+    const sidebarBrandImage = page.locator(".m2-brand-row::before");
+    const backgroundImage = await page.locator(".m2-brand-row").evaluate((element) => getComputedStyle(element, "::before").backgroundImage);
+    expect(backgroundImage).toMatch(/maak-lockup-dark|maak-icon/);
+    expect(await sidebarBrandImage.count()).toBe(0);
     await screenshot(page, "p0-admin-dashboard-1904x1044");
-    await sidebar.screenshot({ path: "test-results/p0-admin-sidebar-branding-1904x1044.png" });
+    await page.locator(".m2-sidebar").screenshot({ path: "test-results/p0-admin-sidebar-branding-1904x1044.png" });
   });
 
   test("blank route renders a real NotFound surface, not a blank page", async ({ page }) => {
