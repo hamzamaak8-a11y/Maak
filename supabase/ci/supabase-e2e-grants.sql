@@ -1,12 +1,16 @@
 -- CI-only grants for the isolated E2E Supabase runner.
 -- Never apply this file to a production project.
--- The E2E seed uses the local Supabase service_role API key and needs explicit
--- table/sequence privileges even though service_role bypasses RLS.
+-- Service-role access is used only by isolated fixture seeding. The authenticated
+-- grants below give the browser role the minimum table privileges required for
+-- real RLS-backed application flows; RLS remains the authorization boundary.
 
 grant usage on schema public to service_role;
 
 grant all privileges on all tables in schema public to service_role;
 grant all privileges on all sequences in schema public to service_role;
+
+grant select on public.profiles to authenticated;
+grant select, update on public.provider_profiles to authenticated;
 
 do $$
 declare
