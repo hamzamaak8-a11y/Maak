@@ -8,12 +8,10 @@ const storage: SupportedStorage = {
   removeItem: (key) => SecureStore.deleteItemAsync(key),
 };
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-if (!url || !key) {
-  throw new Error('Maak mobile Supabase configuration is missing.');
-}
+// Safe publishable client values for the isolated Maak Preview environment.
+// Production native builds should override these with EXPO_PUBLIC_* values.
+const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://rafoxqcayxzrnqzwtaft.supabase.co';
+const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_JOMVe3gucIt2SKCEnNw1eQ_S6H9ciZo';
 
 export const supabase = createClient(url, key, {
   auth: {
