@@ -132,3 +132,65 @@ button, input, textarea, select { font: inherit; }
   .auth-card { animation: none !important; }
   * { scroll-behavior: auto !important; }
 }
+
+/* P0 visual recovery: the customer application uses the full desktop viewport;
+   only inner content containers are constrained. Direction comes from i18n. */
+.auth-main { direction: inherit; }
+.auth-card, .auth-form, .auth-field, .auth-main > * { min-width: 0; }
+.auth-input, .auth-btn { min-width: 0; max-width: 100%; }
+.home-intro, .home-prompt { min-width: 0; }
+.home-prompt { word-break: normal; overflow-wrap: break-word; }
+
+@media (min-width: 900px) {
+  .app:not(.provider-app) {
+    width: 100%;
+    min-height: 100dvh;
+    margin-inline: 0;
+    background: var(--w-paper, #f3f3f1);
+    box-shadow: none;
+    overflow-x: clip;
+  }
+  .app:not(.provider-app) .shell {
+    width: 100%;
+    padding-inline: 22px;
+    min-width: 0;
+  }
+  .app:not(.provider-app) .header-inner {
+    width: min(1240px, 100%);
+    margin-inline: auto;
+  }
+  .app:not(.provider-app) .desktop-nav,
+  .app:not(.provider-app) .profile-line {
+    display: flex !important;
+  }
+  .app:not(.provider-app) .mobile-nav {
+    display: none !important;
+  }
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home {
+    width: min(1180px, calc(100% - 44px));
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 899px) {
+  .app:not(.provider-app) .screen,
+  .app:not(.provider-app) .home { min-width: 0; }
+  .app:not(.provider-app) .mobile-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    inset-inline: 8px !important;
+    width: auto !important;
+    min-width: 0;
+    box-sizing: border-box;
+    transform: none !important;
+  }
+  .app:not(.provider-app) .mobile-nav > * { min-width: 0; max-width: 100%; }
+  .app:not(.provider-app) .mobile-nav button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 44px;
+    overflow: hidden;
+  }
+}

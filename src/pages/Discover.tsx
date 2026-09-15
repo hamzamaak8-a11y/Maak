@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { CategoryChip, ProviderRow, ProviderSkeleton, StateCard } from "../components/atoms";
 import SearchBar from "../components/search/SearchBar";
-import CategoryFilter from "../components/search/CategoryFilter";
 import RatingFilter from "../components/search/RatingFilter";
 import PriceFilter, { type PriceRange } from "../components/search/PriceFilter";
 import AvailabilityFilter, { type AvailabilityFilterValue } from "../components/search/AvailabilityFilter";
@@ -11,7 +10,6 @@ import { useProviders } from "../hooks/useProviders";
 import type { Category } from "../types";
 import { useRouter } from "../router";
 import { useLanguage } from "../i18n";
-import "../components/search/search.css";
 
 type TranslateFunc = (key: string, vars?: Record<string, string | number>) => string;
 
@@ -71,84 +69,82 @@ export default function Discover() {
 
   return (
     <main className="screen discover">
-      <div className="page-title">
-        <h1>{t("discover.title")}</h1>
-        {providers.length > 0 ? <span className="count-badge">{providerCountLabel(providers.length, t)}</span> : null}
+      <div className="mk-page-head">
+        <div>
+          <h1>{t("discover.title")}</h1>
+          <p className="mk-page-sub">{t("discover.subV2")}</p>
+        </div>
+        {providers.length > 0 ? <span className="mk-count-badge">{providerCountLabel(providers.length, t)}</span> : null}
       </div>
 
       <SearchBar value={query} onChange={setQuery} onClear={clearAll} />
 
-      <section id="discover-categories" className="content-section discover-categories">
-        <div className="section-heading"><h2>{t("home.categoriesRail")}</h2></div>
-        <div className="category-rail" aria-label={t("home.categoriesRail")}>
-          {chips.map((item) => {
-            const isAll = item.name === t("filters.all");
-            const isActive = isAll ? !category : category === item.name;
-            return (
-              <CategoryChip
-                key={item.name}
-                category={item}
-                active={isActive}
-                onClick={() => setCategory(isAll ? "" : category === item.name ? "" : item.name)}
-              />
-            );
-          })}
-        </div>
-      </section>
+      <div className="mk-rail" style={{ marginTop: 12 }} aria-label={t("home.categoriesRail")}>
+        {chips.map((item) => {
+          const isAll = item.name === t("filters.all");
+          const isActive = isAll ? !category : category === item.name;
+          return (
+            <CategoryChip
+              key={item.name}
+              category={item}
+              active={isActive}
+              onClick={() => setCategory(isAll ? "" : category === item.name ? "" : item.name)}
+            />
+          );
+        })}
+      </div>
 
-      <section className="market-filter-panel" aria-label={t("search.filters")}>
-        <div className="market-filter-row">
-          <CategoryFilter value={category} onChange={setCategory} />
-          <RatingFilter value={minRating} onChange={setMinRating} />
-          <PriceFilter value={priceRange} onChange={setPriceRange} />
-          <AvailabilityFilter value={availability} onChange={setAvailability} />
-          <label className="market-filter-select">
+      <div className="mk-filter-selects" style={{ marginTop: 10 }} aria-label={t("search.filters")}>
+        <RatingFilter value={minRating} onChange={setMinRating} />
+        <PriceFilter value={priceRange} onChange={setPriceRange} />
+        <AvailabilityFilter value={availability} onChange={setAvailability} />
+        {cities.length > 0 ? (
+          <span className="mk-filter-select">
             <span className="sr-only">{t("common.city")}</span>
             <select value={city} onChange={(event) => setCity(event.target.value)} aria-label={t("common.city")}>
               <option value="">{t("filters.allCities")}</option>
               {cities.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
-          </label>
-          {hasActiveFilters ? <button className="filter-clear" onClick={clearAll}>{t("discover.clearFilters")}</button> : null}
-        </div>
-      </section>
+          </span>
+        ) : null}
+        {hasActiveFilters ? (
+          <button className="mk-btn mk-btn--ghost mk-btn--sm" type="button" onClick={clearAll} style={{ borderRadius: 999 }}>
+            {t("discover.clearFilters")}
+          </button>
+        ) : null}
+      </div>
 
-      {status === "loading" ? <section className="content-section providers-section"><ProviderSkeleton rows={4} /></section> : null}
-      {status === "error" ? <section className="content-section providers-section"><StateCard variant="error" actionLabel={t("common.retry")} onAction={refetch} /></section> : null}
+      {status === "loading" ? <section style={{ marginTop: 16 }}><ProviderSkeleton rows={4} /></section> : null}
+      {status === "error" ? <section style={{ marginTop: 16 }}><StateCard variant="error" actionLabel={t("common.retry")} onAction={refetch} /></section> : null}
 
       {status === "success" && featuredProviders.length > 0 ? (
-        <section className="content-section featured-section" aria-labelledby="featured-heading">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">{t("featured.badge")}</span>
-              <h2 id="featured-heading">{t("featured.title")}</h2>
-              <p className="featured-subtitle">{t("featured.subtitle")}</p>
-            </div>
-            <span className="results-count">{providerCountLabel(featuredProviders.length, t)}</span>
+        <section aria-labelledby="featured-heading">
+          <div className="mk-results-info">
+            <h2 id="featured-heading">{t("featured.title")}</h2>
+            <span className="mk-results-count">{providerCountLabel(featuredProviders.length, t)}</span>
           </div>
-          <div className="discover-results featured-results">
+          <div className="mk-provider-list">
             {featuredProviders.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)}
           </div>
         </section>
       ) : null}
 
       {status === "success" ? (
-        <section className="content-section providers-section">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">{hasActiveFilters ? t("search.filteredResults") : t("discover.allProviders")}</span>
-              <h2>{t("featured.otherProviders")}</h2>
-            </div>
-            <span className="results-count">{providerCountLabel(otherProviders.length, t)}</span>
+        <section aria-labelledby="discover-results-heading">
+          <div className="mk-results-info">
+            <h2 id="discover-results-heading">
+              {hasActiveFilters || featuredProviders.length > 0 ? t("featured.otherProviders") : t("discover.allProviders")}
+            </h2>
+            <span className="mk-results-count">{providerCountLabel(otherProviders.length, t)}</span>
           </div>
-          <div className="discover-results">
+          <div className="mk-provider-list">
             {otherProviders.length === 0 ? (
               <StateCard
                 variant="empty"
                 emptyTitle={marketplaceEmpty ? t("home.emptyTitle") : featuredProviders.length > 0 ? t("featured.empty") : t("search.noMatches")}
                 emptyBody={marketplaceEmpty ? t("home.emptyBody") : t("search.noMatchesBody")}
                 actionLabel={marketplaceEmpty ? t("home.explore") : hasActiveFilters ? t("discover.clearFilters") : undefined}
-                onAction={marketplaceEmpty ? () => document.getElementById("discover-categories")?.scrollIntoView({ behavior: "smooth", block: "start" }) : hasActiveFilters ? clearAll : undefined}
+                onAction={marketplaceEmpty ? () => window.scrollTo({ top: 0, behavior: "smooth" }) : hasActiveFilters ? clearAll : undefined}
               />
             ) : (
               otherProviders.map((provider) => <ProviderRow key={provider.id} provider={provider} onClick={() => navigate("/provider/" + provider.id)} />)

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { ImageOff, Loader2 } from "lucide-react";
 import { useLanguage } from "../../i18n";
 import { getPortfolioImages, type PortfolioImage } from "../../lib/storage";
 
@@ -19,20 +18,31 @@ export default function ProviderPortfolio({ providerId }: { providerId: number }
   }, [providerId]);
 
   if (loading) {
-    return <section className="public-provider-section portfolio-section"><div className="portfolio-loading"><Loader2 className="spin" size={20} /><span>{t("portfolio.loading")}</span></div></section>;
+    return (
+      <section className="mk-card mk-pd-section" aria-busy="true">
+        <h2>{t("portfolio.publicTitle")}</h2>
+        <div className="mk-portfolio-grid">
+          {Array.from({ length: 3 }).map((_, index) => <span key={index} className="mk-skel" style={{ aspectRatio: "1", borderRadius: 12, display: "block" }} />)}
+        </div>
+      </section>
+    );
   }
   if (images.length === 0) return null;
 
   return (
-    <section className="public-provider-section portfolio-section">
-      <div className="public-provider-review-title">
-        <div><span className="section-kicker">{t("portfolio.tab")}</span><h2>{t("portfolio.publicTitle")}</h2></div>
-        <span className="public-provider-review-summary">{images.length}</span>
+    <section className="mk-card mk-pd-section" aria-labelledby="portfolio-public-title">
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+        <h2 id="portfolio-public-title">{t("portfolio.publicTitle")}</h2>
+        <span className="mk-results-count">{images.length}</span>
       </div>
-      <div className="portfolio-public-grid">
-        {images.map((image) => <a className="portfolio-public-item" key={image.id} href={image.url} target="_blank" rel="noreferrer"><img src={image.url} alt={t("portfolio.imageAlt")} loading="lazy" /></a>)}
+      <div className="mk-portfolio-grid">
+        {images.map((image) => (
+          <a key={image.id} href={image.url} target="_blank" rel="noreferrer" aria-label={t("portfolio.imageAlt")}>
+            <img src={image.url} alt={t("portfolio.imageAlt")} loading="lazy" />
+          </a>
+        ))}
       </div>
-      <div className="portfolio-note"><ImageOff size={14} /> <span>{t("portfolio.privateNote")}</span></div>
+      <p style={{ fontSize: 12, color: "var(--mk-ink-4)" }}>{t("portfolio.privateNote")}</p>
     </section>
   );
 }

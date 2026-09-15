@@ -43,16 +43,16 @@ export async function login(page: Page, role: "customer" | "provider" | "admin")
   }
 }
 
-export async function loginCustomer(page: Page): Promise<void> {
-  await login(page, "customer");
-}
+export async function loginCustomer(page: Page): Promise<void> { await login(page, "customer"); }
+export async function loginProvider(page: Page): Promise<void> { await login(page, "provider"); }
+export async function loginAdmin(page: Page): Promise<void> { await login(page, "admin"); }
 
-export async function loginProvider(page: Page): Promise<void> {
-  await login(page, "provider");
-}
-
-export async function loginAdmin(page: Page): Promise<void> {
-  await login(page, "admin");
+async function openProviderRequests(page: Page): Promise<void> {
+  await page.goto("/provider-mode");
+  await expect(page.locator(".provider-layout")).toBeVisible();
+  const requestsTab = page.locator(".provider-side").getByRole("button", { name: /New|Nouveau|Nouvelles|جديدة|طلبات/i }).first();
+  await expect(requestsTab).toBeVisible();
+  await requestsTab.click();
 }
 
 export async function createBookingAsCustomer(page: Page, locationText: string, dayOffset = 1): Promise<void> {
@@ -60,25 +60,21 @@ export async function createBookingAsCustomer(page: Page, locationText: string, 
   await loginCustomer(page);
   await page.goto(`/provider/${state.provider.listingId}/booking`);
   await expect(page.locator(".service-chip-opt").first()).toBeVisible();
-
   const continueButton = page.getByRole("button", { name: /Continue|استمرار|Suivant|متابعة/i }).last();
   await page.locator(".service-chip-opt").first().click();
   await continueButton.click();
   await expect(page.locator("textarea.booking-native")).toBeVisible();
   await continueButton.click();
-
-  // Fixed one-hour slots are used by the V1 availability model. Scenarios use different future days for isolation.
   await expect(page.getByRole("tab").nth(dayOffset)).toBeVisible();
   await page.getByRole("tab").nth(dayOffset).click();
   const availableSlot = page.locator("button.slot-option:not([disabled])").first();
   await expect(availableSlot).toBeVisible();
   await availableSlot.click();
-
   await page.locator("input.booking-native").fill(locationText);
   await continueButton.click();
-  await expect(page.getByRole("heading", { name: /review|مراجعة|r[eé]capitulatif/i })).toBeVisible();
-
+  await expect(page.locator('[aria-labelledby="booking-review-title"]')).toBeVisible();
   const submitButton = page.getByRole("button", { name: /Submit|إرسال الطلب|Envoyer la demande|طلب الخدمة|إرسال/i }).last();
+  await expect(submitButton).toBeVisible();
   await submitButton.click();
   await expect(page.locator(".booking-success")).toBeVisible();
 }
@@ -89,28 +85,25 @@ async function providerTab(page: Page, expression: RegExp): Promise<void> {
 
 export async function acceptAndCompleteLatestBooking(page: Page, locationText: string): Promise<void> {
   await loginProvider(page);
-  await page.goto("/provider-mode");
-
+  await openProviderRequests(page);
   const request = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(request).toBeVisible();
-
   const acceptButton = request.locator("button.primary").first();
   await expect(acceptButton).toBeVisible();
   await acceptButton.click();
-  await expect(page.getByRole("status").first()).toBeVisible();
-
+  await expect(request).toHaveCount(0);
   await providerTab(page, /Accepted|Acceptées|مقبول|المقبولة/i);
   const acceptedRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(acceptedRequest).toBeVisible();
   const startButton = acceptedRequest.getByRole("button", { name: /Start|Démarrer|بدء/i }).first();
   await expect(startButton).toBeVisible();
   await startButton.click();
-
-  await providerTab(page, /In progress|En cours|قيد التنفيذ|جارية/i);
+  await expect(acceptedRequest).toHaveCount(0);
+  await providerTab(page, /In progress|En cours|جارٍ التنفيذ|قيد التنفيذ/i);
   const activeRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(activeRequest).toBeVisible();
   const completeButton = activeRequest.getByRole("button", { name: /Complete|Terminer|إتمام|إكمال/i }).first();
   await expect(completeButton).toBeVisible();
   await completeButton.click();
-  await expect(page.getByRole("status").first()).toBeVisible();
+  await expect(activeRequest).toHaveCount(0);
 }

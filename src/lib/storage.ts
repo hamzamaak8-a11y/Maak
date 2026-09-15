@@ -25,8 +25,8 @@ function extensionFor(file: File): string {
 }
 
 function buildStoragePath(userId: string, type: DocType, file: File): string {
-  const random = Math.random().toString(36).slice(2, 8);
-  return `${userId}/${type}-${Date.now()}-${random}${extensionFor(file)}`;
+  const requestId = globalThis.crypto.randomUUID();
+  return `${userId}/${type}-${Date.now()}-${requestId}${extensionFor(file)}`;
 }
 
 function validateDocument(file: File): void {
@@ -130,8 +130,8 @@ export async function deleteDocument(documentId: string): Promise<void> {
 export async function uploadPortfolioImage(file: File): Promise<PortfolioImage> {
   const userId = await requireUserId();
   validatePortfolioImage(file);
-  const random = Math.random().toString(36).slice(2, 8);
-  const path = `${userId}/portfolio-${Date.now()}-${random}${extensionForPortfolio(file)}`;
+  const requestId = globalThis.crypto.randomUUID();
+  const path = `${userId}/portfolio-${Date.now()}-${requestId}${extensionForPortfolio(file)}`;
 
   const { error } = await supabase.storage.from(PROVIDER_PORTFOLIO_BUCKET).upload(path, file, {
     contentType: file.type,

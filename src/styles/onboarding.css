@@ -330,3 +330,39 @@
     bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
+
+/* Phase 8 — customer provider application presentation. */
+.onb-wrap{color:var(--maak-ui-ink);padding-bottom:calc(112px + env(safe-area-inset-bottom));}
+.onb-loading{color:var(--maak-ui-accent);}
+.onb-progress{gap:var(--maak-ui-space-2);margin-bottom:var(--maak-ui-space-4);padding:var(--maak-ui-space-2);border:1px solid var(--maak-ui-border);border-radius:var(--maak-ui-radius-xl);background:var(--maak-ui-surface-soft);}
+.onb-step{gap:var(--maak-ui-space-2);}
+.onb-step-dot{width:32px;height:32px;background:var(--maak-ui-surface);color:var(--maak-ui-ink-muted);border-color:var(--maak-ui-border);}
+.onb-step.active .onb-step-dot{background:var(--maak-ui-accent);border-color:var(--maak-ui-accent);color:var(--maak-ui-surface);}
+.onb-step.done .onb-step-dot{background:var(--maak-ui-accent-soft);border-color:var(--maak-ui-success);color:var(--maak-ui-success);}
+.onb-step-label{color:var(--maak-ui-ink-muted);}
+.onb-step.active .onb-step-label{color:var(--maak-ui-ink);}
+.onb-step-card{max-width:720px;padding:var(--maak-ui-space-6);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-2xl);background:var(--maak-ui-surface);box-shadow:var(--maak-ui-shadow-card);}
+.onb-step-title{color:var(--maak-ui-ink);font-size:clamp(20px,4vw,28px);}
+.onb-step-sub{color:var(--maak-ui-ink-secondary);line-height:1.75;}
+.onb-fields{gap:var(--maak-ui-space-4)}
+.onb-field>span{color:var(--maak-ui-ink-secondary);}
+.onb-error{border-color:var(--maak-ui-danger);background:var(--maak-ui-accent-soft);color:var(--maak-ui-danger);border-radius:var(--maak-ui-radius-md);}
+.onb-banner{border-color:var(--maak-ui-warning);background:var(--maak-ui-accent-soft);color:var(--maak-ui-warning);border-radius:var(--maak-ui-radius-md);}
+.onb-doc{border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-lg);background:var(--maak-ui-surface-soft);}
+.onb-doc-label,.onb-review-row span:last-child{color:var(--maak-ui-ink);}
+.onb-doc-ok{color:var(--maak-ui-success);}
+.onb-doc-file,.onb-review-row span:first-child{color:var(--maak-ui-ink-secondary);}
+.onb-upload{min-height:48px;border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-lg);background:var(--maak-ui-surface);color:var(--maak-ui-ink-secondary);}
+.onb-upload:hover{border-color:var(--maak-ui-accent);color:var(--maak-ui-ink);}
+.onb-review-row{border-bottom-color:var(--maak-ui-border);}
+.onb-status-card{max-width:520px;padding:var(--maak-ui-space-6);border-color:var(--maak-ui-border);border-radius:var(--maak-ui-radius-2xl);background:var(--maak-ui-surface);box-shadow:var(--maak-ui-shadow-card);}
+.onb-status-icon{width:64px;height:64px;}
+.onb-status-icon.pending{background:var(--maak-ui-accent-soft);color:var(--maak-ui-warning);border-color:var(--maak-ui-warning);}
+.onb-status-icon.approved{background:var(--maak-ui-accent-soft);color:var(--maak-ui-success);border-color:var(--maak-ui-success);}
+.onb-status-icon.suspended{background:var(--maak-ui-accent-soft);color:var(--maak-ui-danger);border-color:var(--maak-ui-danger);}
+.onb-status-title{color:var(--maak-ui-ink);}.onb-status-body{color:var(--maak-ui-ink-secondary);}
+.onb-nav{gap:var(--maak-ui-space-2);padding:var(--maak-ui-space-2) var(--maak-ui-space-3) calc(var(--maak-ui-space-2) + env(safe-area-inset-bottom));background:var(--maak-ui-surface);border-top-color:var(--maak-ui-border);}
+.onb-nav .primary,.onb-nav .secondary{min-height:48px;}
+.onb-wrap button:focus-visible,.onb-wrap input:focus-visible,.onb-wrap select:focus-visible,.onb-wrap textarea:focus-visible{outline:3px solid var(--maak-ui-accent-soft);outline-offset:3px;}
+@media(max-width:767px){.onb-wrap{padding-bottom:calc(128px + env(safe-area-inset-bottom));}.onb-progress{overflow:auto;}.onb-step-card{padding:var(--maak-ui-space-4);}.onb-nav{bottom:calc(84px + env(safe-area-inset-bottom));}}
+html[dir="rtl"] .onb-wrap,html[dir="rtl"] .onb-step-card,html[dir="rtl"] .onb-review-row{direction:rtl;}html[dir="ltr"] .onb-wrap,html[dir="ltr"] .onb-step-card,html[dir="ltr"] .onb-review-row{direction:ltr;}

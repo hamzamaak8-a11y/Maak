@@ -5,7 +5,7 @@
  */
 export const ar: Record<string, string> = {
  "common.loading": "جارٍ التحميل…",
- "common.loadProvidersFail": "فشل تحميل المقدمين (",
+ "common.loadProvidersFail": "فشل تحميل مقدّمي الخدمة",
  "svc.errProviders": "فشل تحميل المقدمين",
  "svc.nProviders": "{n} مقدمي خدمة",
  "svc.errProvider": "فشل تحميل المقدم",
@@ -298,8 +298,8 @@ export const ar: Record<string, string> = {
  "lang.fr": "Français",
  "home.greet": "مرحباً بك في معك",
  "home.greetName": "مرحباً بك، {name}",
- "home.prompt": "ما الخدمة التي تحتاج إليها؟",
- "home.sub": "اكتشف مقدمي الخدمات الموثوقين بالقرب منك",
+ "home.prompt": "ماذا تحتاج أن تُنجز اليوم؟",
+ "home.sub": "اختر خدمة، قارن المقدّمين، واحجز بثقة",
  "home.services": "الخدمات",
  "home.explore": "استكشف الخدمات",
  "home.providers": "مقدمو الخدمات",

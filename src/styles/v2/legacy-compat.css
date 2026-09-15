@@ -1,0 +1,326 @@
+/* ==========================================================================
+   Maak v2 — Legacy compatibility layer
+   --------------------------------------------------------------------------
+   Components not yet rewritten keep their legacy class names. The token
+   remap in tokens.css already turns their surfaces light; this file aligns
+   their controls with the v2 visual language. Everything is scoped to the
+   consumer shell (`.app`) so admin keeps its own styling.
+   ========================================================================== */
+
+/* --- Legacy buttons -------------------------------------------------------- */
+
+.app .primary {
+  background: var(--mk-brand);
+  color: var(--mk-on-brand);
+  border: 1px solid var(--mk-brand-strong);
+  font-weight: 700;
+  box-shadow: var(--mk-sh-1);
+  transition: background var(--mk-t-fast) var(--mk-ease);
+}
+.app .primary:hover:not(:disabled) { background: var(--mk-brand-strong); }
+.app .primary:active:not(:disabled) { background: var(--mk-brand-deep); }
+.app .primary:disabled { opacity: 0.55; }
+
+.app .secondary {
+  background: var(--mk-surface);
+  color: var(--mk-ink);
+  border: 1px solid var(--mk-line-strong);
+  font-weight: 700;
+  box-shadow: var(--mk-sh-1);
+  transition: background var(--mk-t-fast) var(--mk-ease);
+}
+.app .secondary:hover:not(:disabled) { background: var(--mk-surface-soft); }
+.app .secondary:disabled { opacity: 0.55; }
+
+.app .ghost-button,
+.app .text-button {
+  background: transparent;
+  color: var(--mk-ink-2);
+  border: 1px solid transparent;
+  font-weight: 700;
+}
+.app .ghost-button:hover:not(:disabled),
+.app .text-button:hover:not(:disabled) { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+.app .text-button { color: var(--mk-brand); }
+.app .text-button:hover:not(:disabled) { background: var(--mk-brand-tint); color: var(--mk-brand-strong); }
+
+.app .mini-button { border-radius: 10px; font-weight: 700; }
+
+/* --- Legacy form controls --------------------------------------------------- */
+
+.app input:not([type="checkbox"]):not([type="radio"]),
+.app select,
+.app textarea,
+.app .booking-native {
+  font-family: inherit;
+  color: var(--mk-ink);
+}
+
+.app .onb-field input,
+.app .onb-field select,
+.app .onb-field textarea,
+.app .field input,
+.app .field select,
+.app .field textarea,
+.app .customer-card input,
+.app .customer-card select,
+.app .customer-card textarea,
+.app .booking-native,
+.app .chat-input {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line-strong);
+  border-radius: var(--mk-r-s);
+  color: var(--mk-ink);
+  min-height: 46px;
+  padding: 10px 14px;
+  font-size: 14px;
+  transition: border-color var(--mk-t-fast) var(--mk-ease), box-shadow var(--mk-t-fast) var(--mk-ease);
+}
+.app .onb-field input:focus,
+.app .onb-field select:focus,
+.app .onb-field textarea:focus,
+.app .field input:focus,
+.app .field select:focus,
+.app .field textarea:focus,
+.app .customer-card input:focus,
+.app .customer-card select:focus,
+.app .customer-card textarea:focus,
+.app .booking-native:focus,
+.app .chat-input:focus {
+  outline: none;
+  border-color: var(--mk-line-focus);
+  box-shadow: var(--mk-ring);
+}
+
+.app .onb-field label,
+.app .field label {
+  color: var(--mk-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* --- Onboarding ------------------------------------------------------------- */
+
+.app .onb-step-card {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  box-shadow: var(--mk-sh-1);
+  padding: var(--mk-s4);
+}
+.app .onb-step-title { color: var(--mk-ink); font-weight: 800; }
+.app .onb-step-sub { color: var(--mk-ink-3); }
+
+.app .onb-progress { display: flex; gap: 6px; }
+.app .onb-step-dot {
+  flex: 1;
+  height: 5px;
+  border-radius: var(--mk-r-full);
+  background: var(--mk-line-strong);
+}
+.app .onb-step-dot.on { background: var(--mk-brand); }
+.app .onb-step-label { font-size: 12px; font-weight: 700; color: var(--mk-ink-3); }
+
+.app .onb-banner {
+  background: var(--mk-warn-tint);
+  color: var(--mk-warn);
+  border-radius: var(--mk-r-s);
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+.app .onb-banner-reason { display: block; font-weight: 500; margin-top: 4px; }
+
+/* --- Customer account blocks ------------------------------------------------- */
+
+.app .customer-card {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  box-shadow: var(--mk-sh-1);
+}
+.app .customer-account-grid { display: flex; flex-direction: column; gap: 12px; }
+.app .customer-profile-hero { border-radius: var(--mk-r-m) var(--mk-r-m) 0 0; }
+.app .customer-avatar {
+  border-radius: 50%;
+  border: 2px solid var(--mk-surface);
+  box-shadow: 0 0 0 1px var(--mk-line-strong);
+}
+.app .customer-account-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 12px 16px;
+  box-shadow: var(--mk-sh-1);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mk-ink-2);
+}
+
+/* --- Time slot picker ---------------------------------------------------------- */
+
+.app .slot-picker {
+  background: var(--mk-surface-soft);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-s);
+  padding: 12px;
+}
+.app .slot-days { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.app .slot-days::-webkit-scrollbar { display: none; }
+.app .slot-days button {
+  flex: 0 0 auto;
+  min-height: 58px;
+  min-width: 62px;
+  border-radius: var(--mk-r-s);
+  border: 1px solid var(--mk-line-strong);
+  background: var(--mk-surface);
+  color: var(--mk-ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 8px;
+}
+.app .slot-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.app .slot-picker-head label { font-weight: 800; font-size: 14px; color: var(--mk-ink); }
+.app .slot-picker-head p { font-size: 12px; color: var(--mk-ink-3); }
+.app .slot-picker-head svg { color: var(--mk-brand); }
+
+.app .slot-days button[aria-pressed="true"],
+.app .slot-days button.active {
+  background: var(--mk-brand-tint);
+  border-color: var(--mk-brand);
+  color: var(--mk-brand-strong);
+}
+.app .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; margin-top: 10px; }
+.app .slot-grid .slot-option {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--mk-line-strong);
+  background: var(--mk-surface);
+  color: var(--mk-ink-2);
+  font-size: 13.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.app .slot-grid .slot-option small { font-size: 10px; font-weight: 600; color: var(--mk-ink-3); }
+.app .slot-grid .slot-option.selected {
+  background: var(--mk-brand);
+  border-color: var(--mk-brand-strong);
+  color: var(--mk-on-brand);
+}
+.app .slot-grid .slot-option.selected small { color: var(--mk-on-brand); opacity: 0.8; }
+.app .slot-grid .slot-option:disabled,
+.app .slot-grid .slot-option.unavailable { opacity: 0.45; }
+.app .slot-grid .slot-option.unavailable span { text-decoration: line-through; }
+.app .slot-state { display: flex; align-items: center; gap: 8px; color: var(--mk-ink-3); font-size: 13px; padding: 10px 4px; }
+.app .slot-state.error { color: var(--mk-danger); }
+.app .slot-selected-date { font-size: 12.5px; color: var(--mk-ink-3); margin-top: 8px; }
+
+/* --- Chat ------------------------------------------------------------------------ */
+
+.app .chat-page {
+  width: 100%;
+  max-width: 1020px;
+  margin-inline: auto;
+  padding: var(--mk-s4) var(--mk-page-gutter) calc(var(--mk-bottomnav-h) + var(--mk-safe-bottom) + 12px);
+}
+.app:not(.provider-app) .chat-page { max-width: 1020px; }
+
+.app .chat-main-header { background: var(--mk-surface); }
+.app .chat-main { background: var(--mk-surface); }
+.app .chat-conversation-list { background: var(--mk-surface-soft); }
+.app .chat-conversation-item.active { background: var(--mk-brand-tint); border-color: var(--mk-brand-tint-strong); }
+.app .chat-avatar { background: var(--mk-brand-tint); color: var(--mk-brand-strong); }
+.app .chat-message-row.mine .chat-bubble {
+  background: var(--mk-brand);
+  color: var(--mk-on-brand);
+}
+.app .chat-message-row.mine .chat-bubble time { opacity: 0.75; }
+.app .chat-unread { background: var(--mk-brand); color: var(--mk-on-brand); }
+.app .chat-empty-icon { background: var(--mk-brand-tint); color: var(--mk-brand-strong) !important; }
+.app .chat-empty-list svg { color: var(--mk-brand); }
+.app .chat-error { color: var(--mk-danger-strong); }
+.app .chat-input-wrap { background: var(--mk-surface-soft); }
+.app .chat-input { background: var(--mk-surface); }
+.app .chat-shell {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-l);
+  box-shadow: var(--mk-sh-1);
+  overflow: hidden;
+}
+.app .chat-list-pane { background: var(--mk-surface-soft); }
+.app .chat-conversation-list { display: flex; flex-direction: column; }
+.app .chat-conversation-list button,
+.app .chat-conversation-list > * {
+  border-bottom: 1px solid var(--mk-line);
+}
+.app .chat-main-header {
+  background: var(--mk-surface);
+  border-bottom: 1px solid var(--mk-line);
+}
+.app .chat-bubble { border-radius: 14px; }
+.app .chat-input-wrap { border-top: 1px solid var(--mk-line); background: var(--mk-surface); }
+.app .chat-unread { background: var(--mk-brand); color: var(--mk-on-brand); }
+
+/* --- Availability calendar (provider workspace) ---------------------------------- */
+
+.app .avail-calendar,
+.app .availability-calendar {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  box-shadow: var(--mk-sh-1);
+}
+
+/* --- Legacy segmented tabs (still used by provider mode etc.) --------------------- */
+
+.app .seg-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--mk-surface-sunken);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-full);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.app .seg-tab {
+  flex: 1 0 auto;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: var(--mk-r-full);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mk-ink-3);
+  white-space: nowrap;
+}
+.app .seg-tab.active { background: var(--mk-surface); color: var(--mk-ink); box-shadow: var(--mk-sh-1); }
+
+/* --- Legacy count badge ------------------------------------------------------------- */
+
+.app .count-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--mk-ink-2);
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-full);
+  padding: 4px 10px;
+  box-shadow: var(--mk-sh-1);
+}

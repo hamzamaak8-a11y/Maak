@@ -1,8 +1,9 @@
-#env
+# Environment files
 .env
 .env.*
-!.env.production
+!.env.example
 !.env.production.example
+!.env.development.example
 !.env.e2e.example
 
 # Logs

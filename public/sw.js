@@ -1,4 +1,4 @@
-const CACHE_NAME = "maak-shell-v15";
+const CACHE_NAME = "maak-shell-v16";
 const APP_ROOT = new URL("./", self.location).href;
 const INDEX_URL = new URL("./index.html", self.location).href;
 const MANIFEST_URL = new URL("./manifest.webmanifest", self.location).href;

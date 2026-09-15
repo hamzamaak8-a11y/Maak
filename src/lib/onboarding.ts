@@ -123,8 +123,8 @@ function extFromMime(mime: string, name: string): string {
 }
 
 function buildStoragePath(userId: string, docType: DocType, ext: string): string {
-  const rand = Math.random().toString(36).slice(2, 8);
-  return userId + "/" + docType + "-" + Date.now() + "-" + rand + ext;
+  const requestId = globalThis.crypto.randomUUID();
+  return userId + "/" + docType + "-" + Date.now() + "-" + requestId + ext;
 }
 
 export async function fetchProviderProfile(userId: string): Promise<ProviderProfileRow | null> {

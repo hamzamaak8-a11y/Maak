@@ -451,3 +451,38 @@ html[dir="ltr"] .app:not(.provider-app) .provider-row:hover .provider-chevron {
     padding-top: 20px;
   }
 }
+
+/* Phase 1 canonical semantic UI tokens. Legacy tokens remain above for compatibility. */
+:root {
+  --maak-ui-bg: #FFFBF5;
+  --maak-ui-bg-secondary: #F6F1E9;
+  --maak-ui-surface: #FFFFFF;
+  --maak-ui-surface-soft: #FFF8EF;
+  --maak-ui-ink: #121214;
+  --maak-ui-ink-secondary: #6B6B76;
+  --maak-ui-ink-muted: #A8A8B3;
+  --maak-ui-border: #EDE8E0;
+  --maak-ui-accent: #FF4D12;
+  --maak-ui-accent-soft: rgba(255, 77, 18, 0.10);
+  --maak-ui-action-dark: #111111;
+  --maak-ui-success: #0E9F6E;
+  --maak-ui-warning: #F0A500;
+  --maak-ui-danger: #E02424;
+  --maak-ui-indigo: #4F46E5;
+  --maak-ui-radius-sm: 8px;
+  --maak-ui-radius-md: 12px;
+  --maak-ui-radius-lg: 16px;
+  --maak-ui-radius-xl: 20px;
+  --maak-ui-radius-2xl: 24px;
+  --maak-ui-radius-3xl: 32px;
+  --maak-ui-radius-pill: 999px;
+  --maak-ui-space-1: 4px;
+  --maak-ui-space-2: 8px;
+  --maak-ui-space-3: 16px;
+  --maak-ui-space-4: 24px;
+  --maak-ui-space-5: 32px;
+  --maak-ui-space-6: 48px;
+  --maak-ui-shadow-soft: 0 14px 34px rgba(18, 18, 20, 0.07);
+  --maak-ui-shadow-card: 0 20px 48px rgba(18, 18, 20, 0.08);
+  --maak-ui-shadow-focus: 0 0 0 4px rgba(255, 77, 18, 0.12);
+}

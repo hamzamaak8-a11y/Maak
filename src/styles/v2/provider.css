@@ -1,0 +1,278 @@
+/* ==========================================================================
+   Maak v2 — Provider workspace (ProviderMode + dashboard components)
+   Restyles existing markup via legacy class names, scoped to the app shell.
+   ========================================================================== */
+
+.app.provider-app {
+  background:
+    radial-gradient(1000px 420px at 90% -10%, rgba(14, 107, 85, 0.05), transparent 60%),
+    var(--mk-bg);
+}
+
+.app .provider-layout {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: var(--mk-s4) var(--mk-page-gutter) calc(var(--mk-s10) + var(--mk-safe-bottom));
+  display: grid;
+  gap: var(--mk-s4);
+}
+
+@media (min-width: 980px) {
+  .app .provider-layout { grid-template-columns: 250px 1fr; align-items: start; padding-top: var(--mk-s6); }
+}
+
+/* --- Sidebar --------------------------------------------------------------- */
+
+.app .provider-side {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 8px;
+  box-shadow: var(--mk-sh-1);
+}
+.app .provider-side::-webkit-scrollbar { display: none; }
+
+.app .provider-side-brand { display: none; }
+.app .provider-side-title { display: none; }
+
+@media (min-width: 980px) {
+  .app .provider-side {
+    position: sticky;
+    top: calc(var(--mk-topbar-h) + 16px);
+    flex-direction: column;
+    overflow: visible;
+    padding: 14px;
+    gap: 4px;
+  }
+  .app .provider-side-brand {
+    display: inline-flex;
+    padding: 2px 10px 10px;
+  }
+  .app .provider-side-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 10px 12px;
+    border-bottom: 1px solid var(--mk-line);
+    margin-bottom: 8px;
+  }
+  .app .provider-side-title span { font-size: 11px; font-weight: 700; color: var(--mk-brand); }
+  .app .provider-side-title b { font-size: 14px; }
+}
+
+.app .provider-side button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: var(--mk-r-s);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--mk-ink-2);
+  white-space: nowrap;
+  transition: background var(--mk-t-fast) var(--mk-ease), color var(--mk-t-fast) var(--mk-ease);
+}
+.app .provider-side button:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+.app .provider-side button.sel { background: var(--mk-brand-tint); color: var(--mk-brand-strong); font-weight: 700; }
+
+.app .provider-side .nav-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--mk-r-full);
+  background: var(--mk-warn-tint);
+  color: var(--mk-warn);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.app .provider-side .switch-role {
+  margin-top: 0;
+  color: var(--mk-ink-3);
+  border: 1px dashed var(--mk-line-strong);
+  justify-content: center;
+}
+@media (min-width: 980px) { .app .provider-side .switch-role { margin-top: 12px; } }
+.app .provider-side .switch-role:hover { color: var(--mk-ink); background: var(--mk-surface-sunken); }
+
+/* --- Main column ------------------------------------------------------------ */
+
+.app .provider-main { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.app .admin-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+}
+.app .admin-top h1 { font-size: 20px; font-weight: 800; }
+
+.app .section-kicker,
+.app .section-heading .section-kicker,
+.app .kicker {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--mk-brand);
+  margin-bottom: 2px;
+}
+
+.app .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+.app .section-heading h2 { font-size: 16px; }
+
+/* Metrics */
+.app .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.app .metric {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 14px 16px;
+  box-shadow: var(--mk-sh-1);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app .metric small { font-size: 11px; font-weight: 700; color: var(--mk-ink-3); }
+.app .metric strong { font-size: 24px; font-weight: 800; color: var(--mk-ink); line-height: 1.2; }
+.app .metric span { font-size: 11px; color: var(--mk-ink-4); }
+
+/* Request rows */
+.app .request-row {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 14px;
+  box-shadow: var(--mk-sh-1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.app .request-client { display: flex; gap: 10px; align-items: flex-start; }
+.app .request-client .avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mk-brand-tint);
+  color: var(--mk-brand-strong);
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.app .request-client .status {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--mk-warn);
+  background: var(--mk-warn-tint);
+  padding: 2px 9px;
+  border-radius: var(--mk-r-full);
+  margin-bottom: 4px;
+}
+.app .request-client h3 { font-size: 14.5px; font-weight: 800; }
+.app .request-client p { font-size: 12.5px; color: var(--mk-ink-3); }
+
+.app .cta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.app .request-detail {
+  border-top: 1px dashed var(--mk-line-strong);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.app .request-detail .detail-row { display: flex; justify-content: space-between; gap: 14px; font-size: 13px; }
+.app .request-detail .detail-row b { color: var(--mk-ink-3); font-weight: 600; }
+.app .request-detail .detail-row span { text-align: end; font-weight: 600; }
+
+.app .reject-form, .app .provider-price-editor { display: flex; flex-direction: column; gap: 10px; }
+.app .provider-price-display { display: flex; justify-content: space-between; font-size: 13.5px; align-items: center; }
+.app .provider-price-display strong { font-size: 15px; }
+.app .provider-price-form { display: flex; gap: 8px; flex-wrap: wrap; }
+.app .provider-price-form input { max-width: 160px; }
+
+/* Provider dashboard blocks */
+.app .provider-dashboard-grid,
+.app .provider-dashboard { display: flex; flex-direction: column; gap: 12px; }
+
+.app .provider-stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+
+.app .provider-card-kicker { font-size: 11.5px; font-weight: 700; color: var(--mk-brand); display: block; }
+.app .provider-rating-card {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: var(--mk-sh-1);
+}
+.app .provider-rating-value { font-size: 26px; font-weight: 800; }
+.app .provider-stars { display: flex; gap: 2px; color: var(--mk-gold); }
+
+/* Stat cards, schedule, activity */
+.app .stat-card,
+.app .upcoming-card,
+.app .activity-card,
+.app .service-catalog,
+.app .portfolio-manager,
+.app .subscription-manager {
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-m);
+  padding: 16px;
+  box-shadow: var(--mk-sh-1);
+}
+
+/* Status screens (pending approval etc.) */
+.app .onb-status-card {
+  max-width: 480px;
+  margin: 10vh auto 0;
+  background: var(--mk-surface);
+  border: 1px solid var(--mk-line);
+  border-radius: var(--mk-r-l);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  box-shadow: var(--mk-sh-2);
+}
+.app .onb-status-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: var(--mk-warn-tint);
+  color: var(--mk-warn);
+}
+.app .onb-status-icon.suspended { background: var(--mk-danger-tint); color: var(--mk-danger); }
+.app .onb-status-title { font-size: 18px; font-weight: 800; }
+.app .onb-status-body { color: var(--mk-ink-3); font-size: 14px; line-height: 1.7; max-width: 44ch; }
+
+.app .onb-loading { min-height: 60dvh; display: flex; align-items: center; justify-content: center; color: var(--mk-brand); }
