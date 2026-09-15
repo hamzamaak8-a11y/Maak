@@ -42,17 +42,41 @@ test.describe("isolated database authorization smoke", () => {
   test("provider cannot mutate a different user's provider profile", async () => {
     const provider = createClient(process.env.SUPABASE_URL!, process.env.VITE_SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
     const service = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
-    const auth = await provider.auth.signInWithPassword(credentials("provider"));
-    expect(auth.error).toBeNull();
-    const customerId = getState().customer.userId;
-    const before = await service.from("provider_profiles").select("bio").eq("id", customerId).single();
-    expect(before.error).toBeNull();
-    const result = await provider.from("provider_profiles").update({ bio: "must-not-write" }).eq("id", customerId).select("bio");
-    expect(result.error).toBeNull();
-    expect(result.data ?? []).toEqual([]);
-    const after = await service.from("provider_profiles").select("bio").eq("id", customerId).single();
-    expect(after.error).toBeNull();
-    expect(after.data?.bio).toBe(before.data?.bio);
+    const targetId = getState().admin.userId;
+    const existing = await service.from("provider_profiles").select("bio").eq("id", targetId).maybeSingle();
+    expect(existing.error).toBeNull();
+    let insertedFixture = false;
+    try {
+      let targetBio = existing.data?.bio ?? null;
+      if (!existing.data) {
+        const inserted = await service.from("provider_profiles").insert({
+          id: targetId,
+          profession: "E2E target",
+          verification_status: "approved",
+          service_category: "E2E",
+          bio: "[maak_e2e_target]",
+          experience_years: 1,
+          services: ["E2E"],
+          price_from: 1,
+          service_radius_km: 1,
+          profile_photo_public: false,
+        }).select("bio").single();
+        expect(inserted.error).toBeNull();
+        targetBio = inserted.data?.bio ?? null;
+        insertedFixture = true;
+      }
+
+      const auth = await provider.auth.signInWithPassword(credentials("provider"));
+      expect(auth.error).toBeNull();
+      const result = await provider.from("provider_profiles").update({ bio: "must-not-write" }).eq("id", targetId).select("bio");
+      expect(result.error).toBeNull();
+      expect(result.data ?? []).toEqual([]);
+      const after = await service.from("provider_profiles").select("bio").eq("id", targetId).single();
+      expect(after.error).toBeNull();
+      expect(after.data?.bio).toBe(targetBio);
+    } finally {
+      if (insertedFixture) await service.from("provider_profiles").delete().eq("id", targetId);
+    }
   });
 
   test("hidden review fixture is not visible through public review reads", async () => {
@@ -73,7 +97,7 @@ test.describe("isolated database authorization smoke", () => {
       p_end_time: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
     });
     expect(error).toBeNull();
-    expect(data).toBeTypeOf("boolean");
+    expect(typeof data).toBe("boolean");
   });
 
   test("invalid booking transition is rejected for an authenticated customer", async () => {
