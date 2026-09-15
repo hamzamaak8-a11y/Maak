@@ -152,7 +152,7 @@ jobs:
       - name: Run Playwright E2E suite
         id: playwright
         continue-on-error: true
-        run: npm run test:e2e
+        run: npm run test:e2e -- --grep-invert "@negative-config"
 
       - name: Run missing-config browser gate on a separate Vite process
         id: negative_config
