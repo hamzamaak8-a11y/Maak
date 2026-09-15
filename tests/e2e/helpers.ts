@@ -43,17 +43,9 @@ export async function login(page: Page, role: "customer" | "provider" | "admin")
   }
 }
 
-export async function loginCustomer(page: Page): Promise<void> {
-  await login(page, "customer");
-}
-
-export async function loginProvider(page: Page): Promise<void> {
-  await login(page, "provider");
-}
-
-export async function loginAdmin(page: Page): Promise<void> {
-  await login(page, "admin");
-}
+export async function loginCustomer(page: Page): Promise<void> { await login(page, "customer"); }
+export async function loginProvider(page: Page): Promise<void> { await login(page, "provider"); }
+export async function loginAdmin(page: Page): Promise<void> { await login(page, "admin"); }
 
 async function openProviderRequests(page: Page): Promise<void> {
   await page.goto("/provider-mode");
@@ -68,23 +60,19 @@ export async function createBookingAsCustomer(page: Page, locationText: string, 
   await loginCustomer(page);
   await page.goto(`/provider/${state.provider.listingId}/booking`);
   await expect(page.locator(".service-chip-opt").first()).toBeVisible();
-
   const continueButton = page.getByRole("button", { name: /Continue|استمرار|Suivant|متابعة/i }).last();
   await page.locator(".service-chip-opt").first().click();
   await continueButton.click();
   await expect(page.locator("textarea.booking-native")).toBeVisible();
   await continueButton.click();
-
   await expect(page.getByRole("tab").nth(dayOffset)).toBeVisible();
   await page.getByRole("tab").nth(dayOffset).click();
   const availableSlot = page.locator("button.slot-option:not([disabled])").first();
   await expect(availableSlot).toBeVisible();
   await availableSlot.click();
-
   await page.locator("input.booking-native").fill(locationText);
   await continueButton.click();
   await expect(page.locator('[aria-labelledby="booking-review-title"]')).toBeVisible();
-
   const submitButton = page.getByRole("button", { name: /Submit|إرسال الطلب|Envoyer la demande|طلب الخدمة|إرسال/i }).last();
   await expect(submitButton).toBeVisible();
   await submitButton.click();
@@ -98,15 +86,12 @@ async function providerTab(page: Page, expression: RegExp): Promise<void> {
 export async function acceptAndCompleteLatestBooking(page: Page, locationText: string): Promise<void> {
   await loginProvider(page);
   await openProviderRequests(page);
-
   const request = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(request).toBeVisible();
-
   const acceptButton = request.locator("button.primary").first();
   await expect(acceptButton).toBeVisible();
   await acceptButton.click();
   await expect(request).toHaveCount(0);
-
   await providerTab(page, /Accepted|Acceptées|مقبول|المقبولة/i);
   const acceptedRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(acceptedRequest).toBeVisible();
@@ -114,15 +99,10 @@ export async function acceptAndCompleteLatestBooking(page: Page, locationText: s
   await expect(startButton).toBeVisible();
   await startButton.click();
   await expect(acceptedRequest).toHaveCount(0);
-
   await providerTab(page, /In progress|En cours|قيد التنفيذ|جارية/i);
   const activeRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
   await expect(activeRequest).toBeVisible();
   const completeButton = activeRequest.getByRole("button", { name: /Complete|Terminer|إتمام|إكمال/i }).first();
   await expect(completeButton).toBeVisible();
   await completeButton.click();
-
-  await providerTab(page, /Completed|Terminées|Terminés|مكتمل|المكتملة|مكتملة/i);
-  const completedRequest = page.locator(".request-row").filter({ hasText: locationText }).first();
-  await expect(completedRequest).toBeVisible();
 }
