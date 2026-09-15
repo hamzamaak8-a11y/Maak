@@ -702,3 +702,8 @@
   color: var(--mk-brand-tint-strong);
   line-height: 1;
 }
+
+/* Support form two-column grid on wider phones / desktop */
+@media (min-width: 640px) {
+  .app .mk-support-grid { grid-template-columns: 1fr 1fr; }
+}

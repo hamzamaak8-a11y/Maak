@@ -106,22 +106,22 @@ export function SideRail({ path }: { path: string }) {
   const sub = lang === "ar" ? "خدمات موثوقة" : "services de confiance";
 
   return (
-    <nav className="mk-rail" aria-label={t("nav.primary")}>
-      <button type="button" className="mk-rail-brand" onClick={() => navigate("/")} aria-label={t("nav.home")}>
+    <nav className="mk-side" aria-label={t("nav.primary")}>
+      <button type="button" className="mk-side-brand" onClick={() => navigate("/")} aria-label={t("nav.home")}>
         <MaakLockup word={word} sub={sub} />
       </button>
-      <div className="mk-rail-items">
+      <div className="mk-side-items">
         {items.map(([id, label, Icon, to]) => {
           const selected = isRouteSelected(path, to);
           return (
             <button
               key={id}
               type="button"
-              className={"mk-rail-item" + (selected ? " is-active" : "")}
+              className={"mk-side-item" + (selected ? " is-active" : "")}
               onClick={() => navigate(to)}
               aria-current={selected ? "page" : undefined}
             >
-              <span className="mk-rail-icon">
+              <span className="mk-side-icon">
                 <Icon size={19} strokeWidth={selected ? 2.4 : 2} aria-hidden="true" />
               </span>
               <span>{label}</span>

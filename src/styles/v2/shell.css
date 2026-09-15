@@ -91,12 +91,12 @@
    Desktop application rail (replaces website-style horizontal links)
 --------------------------------------------------------------------------- */
 
-.app .mk-rail {
+.app .mk-side {
   display: none;
 }
 
 @media (min-width: 900px) {
-  .app:not(.provider-app) .mk-rail {
+  .app:not(.provider-app) .mk-side {
     display: flex;
     flex-direction: column;
     flex: 0 0 218px;
@@ -110,7 +110,7 @@
   .app:not(.provider-app) .mk-brandline { display: none; }
 }
 
-.app .mk-rail-brand {
+.app .mk-side-brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -119,13 +119,13 @@
   margin-bottom: 10px;
 }
 
-.app .mk-rail-items {
+.app .mk-side-items {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.app .mk-rail-item {
+.app .mk-side-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -138,14 +138,14 @@
   transition: background var(--mk-t-fast) var(--mk-ease), color var(--mk-t-fast) var(--mk-ease);
 }
 
-.app .mk-rail-item:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
+.app .mk-side-item:hover { background: var(--mk-surface-sunken); color: var(--mk-ink); }
 
-.app .mk-rail-item.is-active {
+.app .mk-side-item.is-active {
   background: var(--mk-brand-tint);
   color: var(--mk-brand-strong);
 }
 
-.app .mk-rail-icon {
+.app .mk-side-icon {
   display: grid;
   place-items: center;
   width: 34px;
@@ -154,7 +154,7 @@
   transition: background var(--mk-t-fast) var(--mk-ease);
 }
 
-.app .mk-rail-item.is-active .mk-rail-icon {
+.app .mk-side-item.is-active .mk-side-icon {
   background: var(--mk-surface);
   box-shadow: var(--mk-sh-1);
 }

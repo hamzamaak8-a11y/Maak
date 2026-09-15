@@ -321,7 +321,7 @@ html, body { overscroll-behavior: none; }
 /* Chrome (bars/tabs/buttons) is UI, not document text. */
 .app .mk-topbar,
 .app .mk-bottomnav,
-.app .mk-rail,
+.app .mk-side,
 .app button {
   -webkit-user-select: none;
   user-select: none;
