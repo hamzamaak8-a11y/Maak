@@ -33,11 +33,13 @@ function normalizeLegacyPublicAssetUrls(base: string): Plugin {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+  const envDir = process.env.MAAK_VITE_ENV_DIR || process.cwd();
+  const env = loadEnv(mode, envDir, "");
   const apiTarget = env.MAAK_API_TARGET || "http://localhost:8787";
   const base = env.VITE_BASE || "./";
 
   return {
+    envDir,
     plugins: [normalizeLegacyPublicAssetUrls(base), react()],
     base,
     server: {
