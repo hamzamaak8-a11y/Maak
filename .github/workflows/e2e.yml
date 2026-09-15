@@ -155,7 +155,7 @@ jobs:
         run: npm run test:e2e
 
       - name: Run missing-config browser gate on a separate Vite process
-        id: negative-config
+        id: negative_config
         if: always()
         shell: bash
         run: |
@@ -253,7 +253,7 @@ jobs:
             echo "Playwright E2E suite failed."
             exit 1
           fi
-          if [ "${{ steps.negative-config.outcome }}" != "success" ]; then
+          if [ "${{ steps.negative_config.outcome }}" != "success" ]; then
             echo "Negative configuration browser gate failed."
             exit 1
           fi
