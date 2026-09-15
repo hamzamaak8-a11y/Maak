@@ -40,6 +40,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     envDir,
+    define: {
+      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(env.VITE_SUPABASE_URL || ""),
+      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(env.VITE_SUPABASE_PUBLISHABLE_KEY || ""),
+    },
     plugins: [normalizeLegacyPublicAssetUrls(base), react()],
     base,
     server: {
