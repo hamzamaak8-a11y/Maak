@@ -150,13 +150,21 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright E2E suite
+        id: playwright
+        continue-on-error: true
         run: npm run test:e2e
 
       - name: Run missing-config browser gate on a separate Vite process
+        id: negative-config
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
+          negative_env_dir="$RUNNER_TEMP/maak-empty-env"
+          rm -rf "$negative_env_dir"
+          mkdir -p "$negative_env_dir"
           env -u VITE_SUPABASE_URL -u VITE_SUPABASE_PUBLISHABLE_KEY \
+            MAAK_VITE_ENV_DIR="$negative_env_dir" \
             npm run dev -- --host 127.0.0.1 --port 4174 > "$RUNNER_TEMP/maak-vite-negative.log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
@@ -165,6 +173,7 @@ jobs:
             sleep 1
           done
           env -u VITE_SUPABASE_URL -u VITE_SUPABASE_PUBLISHABLE_KEY \
+            MAAK_VITE_ENV_DIR="$negative_env_dir" \
             MAAK_E2E_BASE_URL=http://127.0.0.1:4174 \
             npx playwright test tests/e2e/config-negative.spec.ts --project=chromium
 
@@ -234,4 +243,17 @@ jobs:
           if [ -d supabase/migrations.release ]; then
             rm -rf supabase/migrations
             mv supabase/migrations.release supabase/migrations
+          fi
+
+      - name: Fail if any release-critical E2E gate failed
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.playwright.outcome }}" != "success" ]; then
+            echo "Playwright E2E suite failed."
+            exit 1
+          fi
+          if [ "${{ steps.negative-config.outcome }}" != "success" ]; then
+            echo "Negative configuration browser gate failed."
+            exit 1
           fi
