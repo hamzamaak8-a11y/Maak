@@ -3,17 +3,11 @@
    preserving navigation, actions, statuses, errors, and live data. */
 .m2-sidebar .m2-nav > p,
 .m2-sidebar .m2-brand-row small,
-.m2-card-head .m2-kicker {
-  display: none;
-}
-
+.m2-card-head .m2-kicker { display: none; }
 .m2-card-head { align-items: center; }
-.m2-placeholder h1,
-.m2-placeholder h2 { margin-top: 0; }
+.m2-placeholder h1, .m2-placeholder h2 { margin-top: 0; }
 .m2-notice { margin-bottom: 10px; }
-
-.m2-brand-row > .m2-brand-mark,
-.m2-brand-row > div:nth-child(2) { display: none !important; }
+.m2-brand-row > .m2-brand-mark, .m2-brand-row > div:nth-child(2) { display: none !important; }
 .m2-brand-row::before {
   content: "";
   display: block;
@@ -22,8 +16,7 @@
   height: 46px;
   background: url("../assets/brand/maak-lockup-dark.webp") center / contain no-repeat;
 }
-.m2-sidebar.m2-collapsed .m2-brand-row::before,
-.m2-sidebar.collapsed .m2-brand-row::before {
+.m2-sidebar.m2-collapsed .m2-brand-row::before, .m2-sidebar.collapsed .m2-brand-row::before {
   width: 42px;
   height: 42px;
   background-image: url("../assets/brand/maak-icon.webp");
