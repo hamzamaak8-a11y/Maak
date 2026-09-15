@@ -4,7 +4,7 @@ test.describe("production runtime gates", () => {
   test("anonymous visitors see the bookings authentication gate", async ({ page }) => {
     await page.goto("/bookings");
     await expect(page.locator(".auth-gate")).toBeVisible();
-    await expect(page.getByRole("button", { name: /sign in|تسجيل الدخول|connexion/i })).toBeVisible();
+    await expect(page.locator(".auth-gate").getByRole("button", { name: /sign in|تسجيل الدخول|connexion/i })).toBeVisible();
   });
 
   test("anonymous visitors are redirected from chat to login", async ({ page }) => {
