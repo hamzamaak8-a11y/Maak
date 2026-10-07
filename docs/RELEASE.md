@@ -19,8 +19,10 @@ To apply now: `20261007140000_delete_my_account.sql`, then `20261007140100_conte
 ```bash
 npm install
 npm install -g eas-cli
-eas login            # official Expo account
-eas init             # creates the EAS project and writes extra.eas.projectId into app.config.ts → commit it
+eas login            # official Expo account: hamzamaak8 (hamzamaak8@gmail.com)
+eas whoami           # must print: hamzamaak8
+# The EAS project "MAAK" is already linked in app.config.ts (owner hamzamaak8, projectId 0ad7c4c2-…).
+# Do NOT run `eas init` again; if you ever must, use: eas init --id 0ad7c4c2-3fcf-4bb4-b37b-281e0e34c97c
 ```
 
 ## 3. Test builds

@@ -6,6 +6,8 @@ const baseUrl = process.env.EXPO_BASE_URL || undefined;
 const config: ExpoConfig = {
   name: 'Maak',
   slug: 'maak',
+  // Official Expo account (hamzamaak8) and EAS project "MAAK" — created under hamzamaak8@gmail.com.
+  owner: 'hamzamaak8',
   scheme: 'maak',
   version: '1.0.0',
   orientation: 'portrait',
@@ -43,6 +45,7 @@ const config: ExpoConfig = {
       },
     ],
   ],
+  extra: { eas: { projectId: '0ad7c4c2-3fcf-4bb4-b37b-281e0e34c97c' } },
   experiments: baseUrl ? { baseUrl } : undefined,
 };
 
