@@ -15,7 +15,7 @@ export function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
         <View style={{ alignItems: 'flex-end' }}><LanguageSwitcher compact /></View>
         <View style={{ alignItems: 'center', gap: 12, marginTop: 8 }}>
           <Image source={require('../../../assets/splash-icon.png')} style={{ width: 96, height: 96, borderRadius: 24 }} />
-          <Text style={{ color: colors.text, fontSize: 32, fontWeight: '900' }}>Maak</Text>
+          <Text style={{ color: colors.text, fontSize: 32, fontWeight: '900' }}>MAAK</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 16, textAlign: 'center', lineHeight: 24 }}>{t('welcome.tagline')}</Text>
         </View>
         <View style={{ gap: 12 }}>

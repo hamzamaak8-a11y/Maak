@@ -6,21 +6,21 @@ export type ThemeColors = {
 };
 
 export const lightColors: ThemeColors = {
-  background: '#F7F6F1', surface: '#FFFFFF', surfaceAlt: '#EFEEE7', border: '#E2E0D6',
-  text: '#16211D', textSecondary: '#4F5B56', textMuted: '#85908B',
-  primary: '#0E6B55', primaryDark: '#0A5242', primaryLight: '#E1F0EA', onPrimary: '#FFFFFF',
-  accent: '#D9892B', accentLight: '#FBEBD3',
-  success: '#12805C', successLight: '#D8F1E6', error: '#C2362B', errorLight: '#FBE1DE',
-  warning: '#B7791F', warningLight: '#FBEFD2', info: '#2563EB', infoLight: '#DEE8FD',
-  overlay: 'rgba(8,16,13,0.45)', shadow: 'rgba(16,33,27,0.10)',
+  background: '#F8FAFC', surface: '#FFFFFF', surfaceAlt: '#F1F5F9', border: '#E2E8F0',
+  text: '#0F172A', textSecondary: '#64748B', textMuted: '#94A3B8',
+  primary: '#0D9488', primaryDark: '#115E59', primaryLight: '#CCFBF1', onPrimary: '#FFFFFF',
+  accent: '#F97316', accentLight: '#FFEDD5',
+  success: '#10B981', successLight: '#D1FAE5', error: '#EF4444', errorLight: '#FEE2E2',
+  warning: '#B45309', warningLight: '#FEF3C7', info: '#3B82F6', infoLight: '#DBEAFE',
+  overlay: 'rgba(0,0,0,0.4)', shadow: 'rgba(0,0,0,0.08)',
 };
 
 export const darkColors: ThemeColors = {
-  background: '#0D1411', surface: '#151F1B', surfaceAlt: '#1D2A25', border: '#2A3A34',
-  text: '#EEF3F0', textSecondary: '#AEBBB5', textMuted: '#7D8C86',
-  primary: '#2FB38F', primaryDark: '#1F8F72', primaryLight: '#123A30', onPrimary: '#06201A',
-  accent: '#F0A64A', accentLight: '#3A2A12',
-  success: '#3DD6A0', successLight: '#103A2C', error: '#F07468', errorLight: '#40201D',
-  warning: '#F1B84E', warningLight: '#3A2C10', info: '#7AA2F7', infoLight: '#17284A',
-  overlay: 'rgba(0,0,0,0.65)', shadow: 'rgba(0,0,0,0.5)',
+  background: '#020617', surface: '#0F172A', surfaceAlt: '#1E293B', border: '#334155',
+  text: '#F8FAFC', textSecondary: '#94A3B8', textMuted: '#64748B',
+  primary: '#2DD4BF', primaryDark: '#0D9488', primaryLight: '#134E4A', onPrimary: '#042F2E',
+  accent: '#FB923C', accentLight: '#431407',
+  success: '#34D399', successLight: '#064E3B', error: '#F87171', errorLight: '#450A0A',
+  warning: '#FBBF24', warningLight: '#451A03', info: '#60A5FA', infoLight: '#172554',
+  overlay: 'rgba(0,0,0,0.7)', shadow: 'rgba(0,0,0,0.5)',
 };
