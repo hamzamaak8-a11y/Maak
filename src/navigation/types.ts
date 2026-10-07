@@ -37,6 +37,7 @@ export type AllParams = {
   Help: undefined;
   Security: undefined;
   EditProfile: undefined;
+  DeleteAccount: undefined;
   ProviderApplication: undefined;
   // provider
   ProviderServices: undefined;
@@ -51,6 +52,7 @@ export type AllParams = {
   AdminBookings: undefined;
   AdminReviews: undefined;
   AdminAudit: undefined;
+  AdminReports: undefined;
 };
 
 export type Nav = NativeStackNavigationProp<AllParams>;

@@ -15,7 +15,8 @@ One Expo / React Native codebase ships **iOS, Android and Web**. Languages: ال
 | Sign up with e-mail + password, or Google | ✅ | | | |
 | Apply as provider (profile + ID + photo, then wait for approval) | ✅ | ✅ | | |
 | Accept / decline requests, set the price, run the job, price list, availability, portfolio | | | ✅ (after approval) | |
-| Approve / reject providers (with a reason), suspend users, moderate reviews, cancel bookings, audit log | | | | ✅ |
+| Report a user / review / message, delete their own account | | ✅ | ✅ | |
+| Approve / reject providers (with a reason), suspend users, handle reports, moderate reviews, cancel bookings, audit log | | | | ✅ |
 
 * **Guests** can browse everything. Any action that needs an account sends them to *Sign in* and then continues where they were.
 * **Providers** sign up like everyone else, complete a 3-step application (about you → your work → documents) and wait
@@ -54,6 +55,7 @@ npm install
 cp .env.example .env        # fill in the three public values
 npm run web                 # or: npm run android / npm run ios (Expo Go or a dev build)
 npm run typecheck
+npm run test:e2e            # UI regression against an in-memory mock (needs Chromium: CHROMIUM_PATH or PLAYWRIGHT_BROWSERS_PATH)
 ```
 
 `.env.production` (committed, public values only) is used by `expo export` / EAS builds.
@@ -77,5 +79,5 @@ The production Worker is `https://maak.hamzamaak8.workers.dev`. Nothing in this 
 ## Release
 
 * **Web**: `npx expo export --platform web` → `dist/` (any static host; `vercel.json` and a GitHub Pages workflow are included).
-* **Stores**: `npm i -g eas-cli && eas init && eas build -p all --profile production`, then `eas submit`.
-  Before submitting, publish a privacy-policy page and (for the stores) add in-app account deletion.
+* **Stores**: see [`docs/RELEASE.md`](docs/RELEASE.md) — EAS setup, store answers, device checklist and known gaps.
+* **Legal**: `public/privacy.html`, `public/terms.html`, `public/delete-account.html` are published with the web build.

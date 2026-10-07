@@ -5,7 +5,19 @@ export const SUPABASE_KEY = (process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
 /** Public read API (Cloudflare Worker): marketplace listings and portfolio images. */
 export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? '').trim().replace(/\/$/, '');
 
+import { Platform } from 'react-native';
+
+/**
+ * Google sign-in is hidden on iOS: App Store guideline 4.8 requires "Sign in with Apple" (or an equivalent)
+ * whenever a third-party login is offered. iOS users sign in with e-mail + password until Apple sign-in is added.
+ */
+export const GOOGLE_LOGIN_ENABLED = Platform.OS !== 'ios';
+
 export const isSupabaseConfigured = /^https?:\/\//.test(SUPABASE_URL) && SUPABASE_KEY.length > 0;
 
 /** Optional public support address shown in the Help screen. */
 export const SUPPORT_EMAIL = (process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? '').trim();
+
+/** Public web address of the app (hosts the legal pages under /privacy.html, /terms.html, /delete-account.html). */
+export const WEB_URL = (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://hamzamaak8-a11y.github.io/Maak').trim().replace(/\/$/, '');
+export const legalUrl = (page: 'privacy' | 'terms' | 'delete-account') => `${WEB_URL}/${page}.html`;

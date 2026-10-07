@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button, Muted, Page, Screen } from '../../components/ui';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { LegalLinks } from '../../components/LegalLinks';
 import type { ScreenProps } from '../../navigation/types';
 
 export function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
@@ -27,6 +28,7 @@ export function WelcomeScreen({ navigation }: ScreenProps<'Welcome'>) {
           <Muted>{t('welcome.haveAccount')}</Muted>
           <Button title={t('auth.login')} variant="ghost" onPress={() => navigation.navigate('Login')} />
         </View>
+        <LegalLinks prefix={false} />
       </Page>
     </Screen>
   );

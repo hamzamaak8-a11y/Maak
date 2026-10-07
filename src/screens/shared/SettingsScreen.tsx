@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card, Chip, Header, Muted, Page, Row, Screen } from '../../components/ui';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { LegalLinks } from '../../components/LegalLinks';
 import type { ThemeMode } from '../../types';
 
 export function SettingsScreen() {
@@ -20,6 +21,7 @@ export function SettingsScreen() {
           <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15 }}>{t('settings.theme')}</Text>
           <Row style={{ flexWrap: 'wrap' }}>{modes.map(m => <Chip key={m.key} label={m.label} selected={mode === m.key} onPress={() => setMode(m.key)} />)}</Row>
         </Card>
+        <LegalLinks prefix={false} />
         <Muted style={{ textAlign: 'center' }}>Maak · v{Constants.expoConfig?.version ?? '1.0.0'}</Muted>
       </Page>
     </Screen>

@@ -11,6 +11,8 @@ import { getProviderReviews } from '../../api/reviews';
 import { openProviderConversation } from '../../api/chat';
 import { Avatar, Badge, Banner, Button, Card, EmptyState, ErrorState, H1, Header, IconButton, InfoRow, Loading, Muted, Page, Row, Screen, SectionTitle, Stars, useAsync, Chip } from '../../components/ui';
 import { categoryLabel } from '../../constants/categories';
+import { ReportSheet } from '../../components/ReportSheet';
+import type { ReportTarget } from '../../api/reports';
 import { formatDate, formatMoney, ratingNumber } from '../../lib/format';
 import { errorKey } from '../../lib/errors';
 import { useRequireAuth } from '../../lib/useRequireAuth';
@@ -25,6 +27,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
   const fav = useFavorites();
   const requireAuth = useRequireAuth();
   const [busy, setBusy] = useState(false);
+  const [report, setReport] = useState<{ type: ReportTarget; id: string } | null>(null);
 
   const provider = useAsync(() => fetchProvider(id), [id]);
   const p = provider.data;
@@ -59,7 +62,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
 
   return (
     <Screen>
-      <Header title={p.name} right={<IconButton icon={fav.isFavorite(p.id) ? 'heart' : 'heart-outline'} color={fav.isFavorite(p.id) ? colors.error : undefined} onPress={toggleFav} label={t('favorites.title')} />} />
+      <Header title={p.name} right={<Row gap={8}><IconButton icon="flag-outline" onPress={() => { if (p.provider_profile_id && !own && requireAuth(here)) setReport({ type: 'user', id: p.provider_profile_id }); }} label={t('report.title')} /><IconButton icon={fav.isFavorite(p.id) ? 'heart' : 'heart-outline'} color={fav.isFavorite(p.id) ? colors.error : undefined} onPress={toggleFav} label={t('favorites.title')} /></Row>} />
       <Page contentStyle={{ paddingBottom: 110 }}>
         <Card style={{ gap: 14, alignItems: 'center' }}>
           <Avatar name={p.name} uri={p.image} size={84} />
@@ -122,7 +125,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
           <SectionTitle title={t('provider.reviews')} />
           {reviews.loading && !reviews.data ? <Loading /> : !reviews.data || reviews.data.reviews.length === 0 ? <Muted>{t('provider.noReviews')}</Muted> : reviews.data.reviews.map(r => (
             <Card key={r.id} style={{ gap: 6 }}>
-              <Row style={{ justifyContent: 'space-between' }}><Stars value={r.rating} size={13} /><Muted>{formatDate(r.created_at, lang)}</Muted></Row>
+              <Row style={{ justifyContent: 'space-between' }}><Stars value={r.rating} size={13} /><Row gap={10}><Muted>{formatDate(r.created_at, lang)}</Muted><Ionicons name="flag-outline" size={15} color={colors.textMuted} onPress={() => { if (requireAuth(here)) setReport({ type: 'review', id: r.id }); }} /></Row></Row>
               {r.comment ? <Text style={{ color: colors.text, fontSize: 14, lineHeight: 21 }}>{r.comment}</Text> : null}
             </Card>
           ))}
@@ -134,6 +137,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
           {!own ? <Button title={t('provider.book')} icon="calendar-outline" disabled={!bookable} onPress={book} style={{ flex: 1.4 }} /> : null}
         </Row>
       </View>
+      <ReportSheet visible={!!report} onClose={() => setReport(null)} targetType={report?.type ?? 'user'} targetId={report?.id ?? null} />
     </Screen>
   );
 }
