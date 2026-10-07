@@ -21,6 +21,7 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261007120000_customer_favorites.sql` | `customer_favorites` table + owner-only RLS (powers the ♥ button) |
 | `migrations/20261007120100_public_provider_services.sql` | Public read of a published provider's *active* price list |
 | `migrations/20261007130000_bootstrap_official_admin.sql` | One-time, audited promotion of the official admin (see below) |
+| `migrations/20261007150000_demote_demo_admin.sql` | One-time, audited demotion of `maak.admin.demo@gmail.com` to `customer` (refuses unless the official admin is an active admin) |
 | `migrations/20261007140000_delete_my_account.sql` | `delete_my_account()` RPC behind *Profile → Security → Delete my account* |
 | `migrations/20261007140100_content_reports.sql` | `content_reports` table + `submit_report`, `admin_list_reports`, `admin_resolve_report` RPCs (user / review / message reports) |
 
