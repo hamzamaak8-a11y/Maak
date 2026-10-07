@@ -1,28 +1,45 @@
 {
-  "name": "maak-local-services",
-  "private": true,
+  "name": "maak",
   "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 5000",
-    "dev:api": "node scripts/dev-api.mjs",
-    "build": "tsc && vite build && mkdir -p dist/admin dist/admin/login && cp dist/index.html dist/admin/index.html && cp dist/index.html dist/admin/login/index.html && cp -R dist/assets dist/admin/assets && cp -R dist/assets dist/admin/login/assets && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/ && cp dist/manifest.webmanifest dist/sw.js dist/maak-icon.svg dist/icon-192.png dist/icon-512.png dist/admin/login/",
-    "typecheck": "tsc --noEmit",
-    "qa:smoke": "node scripts/smoke.mjs",
-    "test:e2e": "playwright test"
-  },
+  "main": "index.ts",
   "dependencies": {
-    "@supabase/supabase-js": "^2.48.1",
-    "lucide-react": "^0.468.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@expo/metro-runtime": "~57.0.14",
+    "@expo/vector-icons": "^15.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.18.18",
+    "@react-navigation/native": "^7.3.18",
+    "@react-navigation/native-stack": "^7.18.10",
+    "@supabase/supabase-js": "^2.58.0",
+    "expo": "~57.0.18",
+    "expo-asset": "~57.0.19",
+    "expo-constants": "~57.0.21",
+    "expo-document-picker": "~57.0.3",
+    "expo-font": "~57.0.4",
+    "expo-image-picker": "~57.0.20",
+    "expo-linking": "~57.0.12",
+    "expo-localization": "~57.0.2",
+    "expo-splash-screen": "~57.0.9",
+    "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-url-polyfill": "^2.0.0",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.5"
-  }
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "export:web": "expo export --platform web"
+  },
+  "private": true
 }

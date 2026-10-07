@@ -16,49 +16,71 @@ const PUBLISHED_FILTER = "listing_kind=eq.real&published_at=not.is.null&provider
 const PORTFOLIO_BUCKET = "provider-portfolio";
 const PORTFOLIO_URL_TTL_SECONDS = 3600;
 
-async function featuredProviderIds(env: Env): Promise<Set<string>> {
-  const url = new URL(env.SUPABASE_URL + "/rest/v1/provider_subscriptions");
-  url.searchParams.set("select", "provider_id");
-  url.searchParams.set("plan_id", "eq.featured");
-  url.searchParams.set("status", "eq.active");
-  url.searchParams.set("end_date", `gt.${new Date().toISOString()}`);
+async function getJson<T>(env: Env, url: URL | string, what: string): Promise<T> {
   const res = await fetch(url, { headers: headers(env), signal: UPSTREAM_TIMEOUT_SIGNAL() });
-  if (!res.ok) {
-    throw new Error("supabase featured lookup failed: " + res.status + " " + (await res.text()));
-  }
-  const rows = (await res.json()) as Array<{ provider_id?: string }>;
-  return new Set(rows.map((row) => row.provider_id).filter((id): id is string => typeof id === "string" && id.length > 0));
+  if (!res.ok) throw new Error(`supabase ${what} failed: ${res.status} ${await res.text()}`);
+  return (await res.json()) as T;
 }
 
-function withFeatured(provider: Provider, featuredIds: Set<string>): Provider {
-  return { ...provider, is_featured: provider.provider_profile_id ? featuredIds.has(provider.provider_profile_id) : false };
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+/** Adds the provider's category and the live rating/review count computed from visible reviews. */
+async function enrich(env: Env, providers: Provider[]): Promise<Provider[]> {
+  const ids = Array.from(new Set(providers.map((p) => p.provider_profile_id).filter((id): id is string => !!id)));
+  if (ids.length === 0) return providers.map((p) => ({ ...p, category: null }));
+
+  const categories = new Map<string, string | null>();
+  const stats = new Map<string, { sum: number; count: number }>();
+
+  await Promise.all(
+    chunk(ids, 50).map(async (group) => {
+      const list = `(${group.join(",")})`;
+      const profiles = await getJson<Array<{ id: string; service_category: string | null }>>(
+        env,
+        `${env.SUPABASE_URL}/rest/v1/provider_profiles?select=id,service_category&id=in.${list}`,
+        "category lookup",
+      );
+      for (const row of profiles) categories.set(row.id, row.service_category);
+
+      const reviews = await getJson<Array<{ provider_id: string; rating: number }>>(
+        env,
+        `${env.SUPABASE_URL}/rest/v1/reviews?select=provider_id,rating&is_hidden=eq.false&provider_id=in.${list}&limit=5000`,
+        "rating lookup",
+      );
+      for (const row of reviews) {
+        const current = stats.get(row.provider_id) ?? { sum: 0, count: 0 };
+        current.sum += Number(row.rating);
+        current.count += 1;
+        stats.set(row.provider_id, current);
+      }
+    }),
+  );
+
+  return providers.map((provider) => {
+    const id = provider.provider_profile_id;
+    const stat = id ? stats.get(id) : undefined;
+    return {
+      ...provider,
+      category: id ? categories.get(id) ?? null : null,
+      rating: stat && stat.count > 0 ? (stat.sum / stat.count).toFixed(1) : provider.rating,
+      reviews: stat && stat.count > 0 ? stat.count : provider.reviews,
+    };
+  });
 }
 
 export async function listProviders(env: Env): Promise<Provider[]> {
-  const res = await fetch(env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, {
-    headers: headers(env),
-    signal: UPSTREAM_TIMEOUT_SIGNAL(),
-  });
-  if (!res.ok) {
-    throw new Error("supabase list failed: " + res.status + " " + (await res.text()));
-  }
-  const providers = (await res.json()) as Provider[];
-  const featuredIds = await featuredProviderIds(env);
-  return providers.map((provider) => withFeatured(provider, featuredIds));
+  const providers = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, "list");
+  return enrich(env, providers);
 }
 
 export async function findProvider(env: Env, id: number): Promise<Provider | null> {
-  const res = await fetch(env.SUPABASE_URL + "/rest/v1/providers?id=eq." + id + "&" + PUBLISHED_FILTER, {
-    headers: headers(env),
-    signal: UPSTREAM_TIMEOUT_SIGNAL(),
-  });
-  if (!res.ok) {
-    throw new Error("supabase get failed: " + res.status);
-  }
-  const arr = (await res.json()) as Provider[];
+  const arr = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?id=eq." + id + "&" + PUBLISHED_FILTER, "get");
   if (arr.length === 0) return null;
-  const featuredIds = await featuredProviderIds(env);
-  return withFeatured(arr[0], featuredIds);
+  return (await enrich(env, [arr[0]]))[0];
 }
 
 async function signPortfolioObject(env: Env, path: string): Promise<string> {

@@ -1,142 +1,75 @@
-# Maak
+# Maak · معاك
 
-منصة لاكتشاف وحجز خدمات منزلية موثوقة، تربط العملاء بمقدّمي الخدمات المعتمدين.
+Maak is a marketplace for trusted local services (plumbing, electrical, cleaning, moving, painting…).
+Customers find verified providers, book a time slot and chat; providers receive and manage requests; an admin team
+verifies every provider before they appear in the app.
 
-## الحالة الحالية
+One Expo / React Native codebase ships **iOS, Android and Web**. Languages: العربية (RTL), Français, English. Light and dark themes.
 
-- **V1:** اكتشاف مقدّمي الخدمات، عرض الملفات، إنشاء طلبات الحجز، وإدارة دورة الحجز.
-- **Chat:** مخفية في V1 حتى تكتمل طبقة Realtime والتحقق الإنتاجي. كود واجهة الشات غير جزء من الـfrontend الحالي.
-- **Appointment conflicts:** الحجز في V1 هو **طلب موعد** وليس قفلًا صارمًا للتقويم؛ مقدم الخدمة يقبل أو يرفض الطلب يدوياً.
-- **Admin:** لوحة الإدارة محمية بالدور والحالة وتستخدم العمليات الآمنة المخصصة للتغييرات الحساسة.
+## What each side can do
+
+| | Guest (no account) | Customer | Provider | Admin |
+| --- | --- | --- | --- | --- |
+| Browse & search providers, see reviews, prices, portfolio | ✅ | ✅ | ✅ | |
+| Book, message, favourite, review | sign-in required | ✅ | | |
+| Sign up with e-mail + password, or Google | ✅ | | | |
+| Apply as provider (profile + ID + photo, then wait for approval) | ✅ | ✅ | | |
+| Accept / decline requests, set the price, run the job, price list, availability, portfolio | | | ✅ (after approval) | |
+| Approve / reject providers (with a reason), suspend users, moderate reviews, cancel bookings, audit log | | | | ✅ |
+
+* **Guests** can browse everything. Any action that needs an account sends them to *Sign in* and then continues where they were.
+* **Providers** sign up like everyone else, complete a 3-step application (about you → your work → documents) and wait
+  for approval. Their documents are private; only admins can open them.
+* **Admins** cannot sign up from the app. The admin account is created in the database (see `supabase/README.md`) and
+  signs in from the normal *Sign in* screen with its own private e-mail and password.
+* **Payments** are intentionally not handled in the app yet: the provider sets the price after accepting and is paid
+  directly. **Subscriptions / memberships** are intentionally left out for now (the database tables are untouched so they
+  can be added later).
 
 ## Architecture
 
-```text
-Browser (React/Vite/TypeScript)
-        |
-        +--> Supabase Auth / RPCs / RLS
-        |
-        +--> Cloudflare Worker --> Supabase REST (public provider reads)
-        |
-        +--> GitHub Pages (static frontend + PWA)
+```
+Expo app (iOS · Android · Web)
+   │  public publishable key only
+   ├──► Supabase  Auth · Postgres + RLS · Storage · Realtime  (all writes go through security-definer RPCs)
+   └──► Cloudflare Worker  (read-only public API: published providers + portfolio images, uses the service-role key server-side)
 ```
 
-### Frontend
-
-- React 18 + TypeScript + Vite 6
-- React Router الداخلي يعتمد History API ويدعم التشغيل من `/` أو `/Maak/`.
-- `VITE_API_URL` يحدد Worker العام في production.
-- `VITE_SUPABASE_URL` و`VITE_SUPABASE_PUBLISHABLE_KEY` مخصصان للمتصفح فقط.
-- `VITE_BASE=/Maak/` هو مسار GitHub Pages الحالي، ويمكن تغييره عند النشر تحت مسار آخر.
-- PWA assets و`404.html` وService Worker تستخدم مسارات متوافقة مع base path.
-
-### Backend / Security
-
-- Supabase للمصادقة، PostgreSQL، Storage وRLS.
-- العمليات الحساسة مثل الحجز، تغيير حالة الحجز، واعتماد مقدّم الخدمة تتم عبر RPCs بدلاً من mutations مباشرة على الجداول.
-- قراءات مقدّمي الخدمات العامة تمر عبر Cloudflare Worker.
-- لا يجب وضع `service_role` أو أي secret في كود المتصفح.
-- أسرار Worker مثل `SUPABASE_SERVICE_ROLE_KEY` و`ADMIN_TOKEN` تُضبط عبر Cloudflare/Wrangler secrets ولا تُحفظ في المستودع.
-
-### Deployment
-
-يوجد مساران في GitHub Actions:
-
-1. **Build:** `typecheck` للواجهة، `npm run build`، ثم `qa:smoke`، ثم typecheck/build للـWorker.
-2. **Deploy Pages:** يبني `dist` ثم يرفعه إلى GitHub Pages ويقوم بالنشر.
-
-البيئة الإنتاجية الحالية تستخدم Worker:
-
-```text
-https://maak.i36508871.workers.dev
+```
+App.tsx · app.config.ts          app entry, Expo config (bundle id com.maak.app, scheme maak://)
+src/api/                         typed data layer (one file per domain; every call hits Supabase / the Worker)
+src/contexts/                    Auth, Language (ar/fr/en + RTL), Theme, Favorites, Toast
+src/navigation/                  navigators per role: guest/customer · provider · admin
+src/screens/{auth,customer,provider,admin,shared}
+src/components/                  UI primitives and shared widgets
+src/i18n/                        en.ts (source of truth), ar.ts, fr.ts — typed, a missing key fails the type-check
+supabase/                        schema baseline, migrations, backend docs
+worker/                          Cloudflare Worker (public read API)
 ```
 
-وGitHub Pages تحت:
-
-```text
-https://hamzamaak8-a11y.github.io/Maak/
-```
-
-## Environment setup
-
-للتطوير المحلي:
+## Run it
 
 ```bash
-cp .env.example .env.development
-```
-
-لـproduction:
-
-```bash
-cp .env.production.example .env.production
-```
-
-ثم اضبط القيم العامة المطلوبة. استخدم `.env.example` كمرجع لأسرار Worker، لكن لا تضع الأسرار نفسها في ملفات committed.
-
-## E2E seed tool
-
-لإنشاء حساب عميل وحساب مقدم خدمة موثق ومنشور، توفر أسبوعي `09:00-17:00`، ومحادثة اختبار قابلة لإعادة التشغيل:
-
-```bash
-node scripts/seed-e2e.mjs
-```
-
-ضع القيم التالية في ملف `.env.local` أو `.env.development` محلياً فقط:
-
-```env
-SUPABASE_SERVICE_ROLE_KEY=<local-secret-only>
-VITE_SUPABASE_URL=https://<project>.supabase.co
-MAAK_E2E_PROVIDER_PASSWORD=<strong-local-password>
-MAAK_E2E_CUSTOMER_PASSWORD=<strong-local-password>
-```
-
-اختيارياً يمكن تغيير البريدين عبر:
-
-```env
-MAAK_E2E_PROVIDER_EMAIL=e2e-provider@maak.test
-MAAK_E2E_CUSTOMER_EMAIL=e2e-customer@maak.test
-```
-
-إعادة التشغيل آمنة: السكربت يتعرف على حساباته عبر `app_metadata.maak_e2e_seed` ويحدّثها بدلاً من إنشاء نسخ مكررة، ويرفض تعديل حساب موجود يحمل البريد نفسه من دون هذه العلامة.
-
-لإزالة بيانات E2E:
-
-```bash
-node scripts/seed-e2e.mjs --cleanup
-```
-
-لا يطبع السكربت كلمات المرور، ولا تُحفظ أي مفاتيح سرية في المستودع؛ `.env`, `.env.*`, و`.env.local` ضمن `.gitignore`.
-
-## Commands
-
-```bash
-npm ci
+npm install
+cp .env.example .env        # fill in the three public values
+npm run web                 # or: npm run android / npm run ios (Expo Go or a dev build)
 npm run typecheck
-npm run build
-npm run qa:smoke
 ```
 
-لـWorker:
+`.env.production` (committed, public values only) is used by `expo export` / EAS builds.
 
-```bash
-npm ci --prefix worker
-npm run typecheck --prefix worker
-npm run build --prefix worker
-```
+## Configuration checklist
 
-## Smoke test
+| What | Where |
+| --- | --- |
+| `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | `.env` / `.env.production` |
+| `EXPO_PUBLIC_API_URL` (the Worker URL) | `.env` / `.env.production` |
+| `EXPO_PUBLIC_SUPPORT_EMAIL` (optional, shows a *Contact support* button) | `.env` / `.env.production` |
+| Run the two new migrations, enable Google, add redirect URLs, create the admin | `supabase/README.md` |
+| Worker secret `SUPABASE_SERVICE_ROLE_KEY`, allowed web origins | `worker/README.md` |
 
-`scripts/smoke.mjs` يتحقق من وجود أهم artifacts الإنتاجية:
+## Release
 
-- `index.html`
-- `404.html`
-- `admin/index.html`
-- `admin/login/index.html`
-- `manifest.webmanifest`
-- `sw.js`
-
-كما يتحقق من المسارات النسبية للـPWA وService Worker وعدم اعتراض طلبات `/api/`.
-
-## Languages
-
-العربية الفصحى مع RTL، والفرنسية المهنية مع LTR.
+* **Web**: `npx expo export --platform web` → `dist/` (any static host; `vercel.json` and a GitHub Pages workflow are included).
+* **Stores**: `npm i -g eas-cli && eas init && eas build -p all --profile production`, then `eas submit`.
+  Before submitting, publish a privacy-policy page and (for the stores) add in-app account deletion.

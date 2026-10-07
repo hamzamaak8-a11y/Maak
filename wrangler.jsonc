@@ -3,7 +3,7 @@
   "main": "worker/src/index.ts",
   "compatibility_date": "2026-05-01",
   "vars": {
-    "MAAK_ALLOW_ORIGIN": "https://hamzamaak8-a11y.github.io",
+    "MAAK_ALLOW_ORIGIN": "https://hamzamaak8-a11y.github.io,http://localhost:8081,http://localhost:19006",
     "SUPABASE_URL": "https://pjvayowrmqkhmzvlhwex.supabase.co"
   }
 }
