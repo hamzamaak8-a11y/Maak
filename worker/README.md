@@ -4,6 +4,8 @@ Cloudflare Worker for the public Maak marketplace API. It reads only published, 
 
 ## Production configuration
 
+Official deployment: Cloudflare account `hamzamaak8@gmail.com`, Worker name `maak`, URL `https://maak.hamzamaak8.workers.dev`.
+
 The Wrangler configuration is at the repository root in `wrangler.jsonc` and points to `worker/src/index.ts`.
 
 Required Worker values:

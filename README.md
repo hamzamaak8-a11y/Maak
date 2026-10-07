@@ -58,6 +58,12 @@ npm run typecheck
 
 `.env.production` (committed, public values only) is used by `expo export` / EAS builds.
 
+## Official accounts
+
+Every production resource of MAAK lives under the single official account **hamzamaak8@gmail.com**:
+Supabase project, Google Cloud OAuth client, Cloudflare Workers (subdomain `hamzamaak8.workers.dev`) and the app-store accounts.
+The production Worker is `https://maak.hamzamaak8.workers.dev`. Nothing in this repository may point to any other account.
+
 ## Configuration checklist
 
 | What | Where |

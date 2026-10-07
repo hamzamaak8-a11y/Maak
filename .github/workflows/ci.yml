@@ -9,6 +9,18 @@ permissions:
   contents: read
 
 jobs:
+  guard:
+    name: No unofficial endpoints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail on references to the retired Worker account
+        run: |
+          if git grep -nI -e 'i36508871' -- . ':!.github/workflows/ci.yml'; then
+            echo "Found a reference to the retired, unofficial Worker account." >&2
+            exit 1
+          fi
+
   app:
     name: App typecheck & web build
     runs-on: ubuntu-latest
