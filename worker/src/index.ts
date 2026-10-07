@@ -5,15 +5,22 @@ const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
 const PORTFOLIO_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
 const UPSTREAM_TIMEOUT_MS = 10_000;
 
+/** MAAK_ALLOW_ORIGIN may hold several origins separated by commas. Native apps send no Origin header and need no CORS. */
+function allowedOrigin(env: Env, requestOrigin: string | null): string | null {
+  if (!requestOrigin) return null;
+  const list = (env.MAAK_ALLOW_ORIGIN ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+  return list.includes(requestOrigin) ? requestOrigin : null;
+}
+
 function cors(env: Env, requestOrigin: string | null): Record<string, string> {
-  const allowed = env.MAAK_ALLOW_ORIGIN?.trim();
+  const allowed = allowedOrigin(env, requestOrigin);
   const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "GET, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
-  if (allowed && requestOrigin === allowed) {
+  if (allowed) {
     headers["Access-Control-Allow-Origin"] = allowed;
   }
   return headers;
@@ -60,7 +67,7 @@ export default {
     const corsHeaders = cors(env, requestOrigin);
 
     if (req.method === "OPTIONS") {
-      if (env.MAAK_ALLOW_ORIGIN && requestOrigin !== env.MAAK_ALLOW_ORIGIN) {
+      if (requestOrigin && !allowedOrigin(env, requestOrigin)) {
         return new Response(null, { status: 403, headers: corsHeaders });
       }
       return new Response(null, { status: 204, headers: corsHeaders });

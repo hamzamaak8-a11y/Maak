@@ -1,0 +1,193 @@
+export const en = {
+  // common
+  'common.add': 'Add', 'common.all': 'All', 'common.back': 'Back', 'common.cancel': 'Cancel', 'common.delete': 'Delete', 'common.home': 'Home',
+  'common.next': 'Next', 'common.remove': 'Remove', 'common.retry': 'Try again', 'common.save': 'Save', 'common.saved': 'Saved', 'common.seeAll': 'See all',
+
+  // app
+  'app.notConfigured': 'The app is not configured yet. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY, then restart.',
+  'app.suspended': 'Your account has been suspended. Please contact support if you think this is a mistake.',
+
+  // tabs
+  'tabs.home': 'Home', 'tabs.discover': 'Discover', 'tabs.bookings': 'Bookings', 'tabs.messages': 'Messages', 'tabs.profile': 'Profile',
+  'tabs.dashboard': 'Dashboard', 'tabs.requests': 'Requests', 'tabs.services': 'Services',
+
+  // statuses
+  'status.pending': 'Pending', 'status.accepted': 'Accepted', 'status.rejected': 'Rejected', 'status.in_progress': 'In progress', 'status.completed': 'Completed',
+  'status.cancelled': 'Cancelled', 'status.approved': 'Approved', 'status.draft': 'Draft', 'status.suspended': 'Suspended', 'status.active': 'Active',
+  'status.unpaid': 'Unpaid', 'status.paid': 'Paid', 'status.refunded': 'Refunded',
+
+  // errors
+  'err.generic': 'Something went wrong. Please try again.',
+  'err.network': 'Connection problem. Check your internet and try again.',
+  'err.notAuthenticated': 'Please sign in to continue.',
+  'err.forbidden': 'You are not allowed to do this.',
+  'err.notFound': 'Not found.',
+  'err.invalidCredentials': 'Incorrect email or password.',
+  'err.emailNotConfirmed': 'Please confirm your email first. Check your inbox.',
+  'err.userExists': 'An account with this email already exists. Try signing in.',
+  'err.weakPassword': 'This password is too weak. Use at least 8 characters.',
+  'err.rateLimited': 'Too many attempts. Please wait a moment and try again.',
+  'err.notBookable': 'This provider cannot take bookings right now.',
+  'err.slotUnavailable': 'That time slot is no longer available. Pick another one.',
+  'err.invalidDate': 'Please choose a date and time in the future.',
+  'err.invalidTransition': 'This booking can no longer be changed this way.',
+  'err.reasonRequired': 'Please give a reason.',
+  'err.invalidPrice': 'Enter a valid price.',
+  'err.invalidCurrency': 'Enter a 3-letter currency code (e.g. MAD).',
+  'err.alreadyReviewed': 'You already reviewed this booking.',
+  'err.bookingNotCompleted': 'You can review a booking once it is completed.',
+  'err.invalidRating': 'Choose a rating from 1 to 5.',
+  'err.emptyMessage': 'Write a message first.',
+  'err.messageTooLong': 'The message is too long.',
+  'err.fileTooBig': 'The file is too large (max 5 MB).',
+  'err.fileType': 'Unsupported file type.',
+  'err.documentsRequired': 'Upload your ID and a profile photo first.',
+  'err.suspended': 'Your account is suspended.',
+  'err.config': 'The app is not configured correctly.',
+  'err.oauthCancelled': 'Sign-in was cancelled.',
+  'err.sessionExpired': 'Your session expired. Please sign in again.',
+
+  // welcome & auth
+  'welcome.tagline': 'Trusted local services, one tap away.',
+  'welcome.browse': 'Browse services', 'welcome.signupCustomer': 'Create a customer account', 'welcome.signupProvider': 'Join as a service provider',
+  'welcome.haveAccount': 'Already have an account?',
+  'auth.login': 'Sign in', 'auth.logout': 'Sign out', 'auth.createAccount': 'Create account', 'auth.noAccount': "Don't have an account?",
+  'auth.welcomeBack': 'Welcome back', 'auth.loginSubtitle': 'Sign in to book services and follow your requests.',
+  'auth.email': 'Email', 'auth.password': 'Password', 'auth.confirmPassword': 'Confirm password', 'auth.fullName': 'Full name',
+  'auth.forgot': 'Forgot password?', 'auth.or': 'or', 'auth.google': 'Continue with Google',
+  'auth.fillAll': 'Enter a valid email and your password.', 'auth.nameRequired': 'Enter your full name.', 'auth.emailInvalid': 'Enter a valid email address.',
+  'auth.passwordShort': 'Password must be at least 8 characters.', 'auth.passwordMismatch': 'Passwords do not match.',
+  'auth.resendConfirmation': 'Resend confirmation email', 'auth.confirmationSent': 'Confirmation email sent.',
+  'auth.checkEmail': 'Check your email', 'auth.checkEmailText': 'We sent a confirmation link to {email}. Open it, then sign in.',
+  'auth.joinCustomer': 'Create your customer account', 'auth.joinProvider': 'Join Maak as a provider',
+  'auth.customerHint': 'Find trusted professionals and book in minutes.', 'auth.providerHint': 'Create your account, then submit your documents for review.',
+  'auth.roleCustomer': 'Customer', 'auth.roleProvider': 'Service provider',
+  'auth.providerNextStep': 'After signing up you will complete your profile and upload your documents. Our team reviews every provider before they appear in the app.',
+  'auth.terms': 'By continuing you agree to use Maak responsibly and respect other users.',
+  'auth.resetTitle': 'Reset your password', 'auth.resetText': 'Enter your email and we will send you a link to choose a new password.',
+  'auth.sendResetLink': 'Send reset link', 'auth.resetSent': 'If an account exists for this email, a reset link is on its way.', 'auth.backToLogin': 'Back to sign in',
+  'auth.newPassword': 'New password', 'auth.newPasswordText': 'Choose a new password for your account.',
+
+  // guest
+  'guest.title': 'Sign in to continue', 'guest.text': 'You can browse freely. Create a free account to book, message providers and save favourites.',
+
+  // home & discover
+  'home.hello': 'Hello,', 'home.welcome': 'Welcome to', 'home.searchPlaceholder': 'Search a service or a provider', 'home.categories': 'Categories',
+  'home.topRated': 'Top rated', 'home.noProviders': 'No providers yet', 'home.noProvidersText': 'Verified providers will appear here as soon as they join. Check back soon.',
+  'home.applicationDraft': 'Finish your provider application to start receiving requests.',
+  'home.applicationPending': 'Your provider application is under review.',
+  'home.applicationRejected': 'Your provider application needs changes. Tap to review.',
+  'discover.title': 'Discover', 'discover.availableNow': 'Available', 'discover.topRated': 'Top rated', 'discover.results': '{n} providers',
+  'discover.empty': 'No providers found', 'discover.emptyText': 'Try another search or remove some filters.',
+
+  // provider public page
+  'provider.newBadge': 'New', 'provider.available': 'Available', 'provider.unavailable': 'Unavailable', 'provider.verified': 'Verified',
+  'provider.from': 'From {price}', 'provider.city': 'City', 'provider.experience': 'Experience', 'provider.priceFrom': 'Starting price', 'provider.about': 'About',
+  'provider.services': 'Services', 'provider.priceList': 'Price list', 'provider.portfolio': 'Portfolio', 'provider.reviews': 'Reviews', 'provider.noReviews': 'No reviews yet.',
+  'provider.notFound': 'Provider not found', 'provider.notBookable': 'This provider is not taking bookings at the moment.',
+  'provider.message': 'Message', 'provider.book': 'Book now',
+  'provider.marketplaceProfile': 'Public profile', 'provider.availability': 'Availability', 'provider.myReviews': 'My reviews', 'provider.currency': 'Currency',
+  'provider.accept': 'Accept', 'provider.reject': 'Decline', 'provider.start': 'Start service', 'provider.complete': 'Mark as completed',
+  'provider.setPrice': 'Set price', 'provider.changePrice': 'Change price', 'provider.priceSaved': 'Price saved',
+  'provider.rejectTitle': 'Decline this request', 'provider.rejectPlaceholder': 'Tell the customer why you cannot take it',
+
+  // booking
+  'booking.title': 'Book a service', 'booking.details': 'Booking details', 'booking.stepService': 'Service', 'booking.stepWhen': 'When', 'booking.stepWhere': 'Where', 'booking.stepReview': 'Review',
+  'booking.service': 'Service', 'booking.describe': 'Describe what you need', 'booking.describePlaceholder': 'What needs to be done?',
+  'booking.chooseDay': 'Choose a day', 'booking.chooseTime': 'Choose a time', 'booking.noSlots': 'No free time slots on this day.',
+  'booking.utcNote': 'Times are shown exactly as the provider published them.',
+  'booking.location': 'Address', 'booking.locationPlaceholder': 'Neighbourhood, street, city', 'booking.note': 'Note for the provider', 'booking.notePlaceholder': 'Access code, floor, anything useful…',
+  'booking.pickService': 'Pick a service.', 'booking.pickSlot': 'Pick a day and a time.', 'booking.pickLocation': 'Enter the address where the service is needed.',
+  'booking.provider': 'Provider', 'booking.customer': 'Customer', 'booking.when': 'Date & time',
+  'booking.priceNote': 'The provider will confirm the price after accepting your request. You pay the provider directly.',
+  'booking.confirm': 'Send request', 'booking.sentTitle': 'Request sent', 'booking.sentText': '{name} will review your request and answer soon. You will be notified.',
+  'booking.viewBooking': 'View booking', 'booking.price': 'Price', 'booking.pricePending': 'To be confirmed', 'booking.payment': 'Payment',
+  'booking.payDirect': 'Pay the provider directly once the service is done.',
+  'booking.rejectionReason': 'Reason', 'booking.message': 'Message', 'booking.cancel': 'Cancel booking', 'booking.cancelTitle': 'Cancel this booking?',
+  'booking.cancelText': 'The provider will be notified. You can only cancel requests that are still pending.', 'booking.cancelled': 'Booking cancelled',
+  'booking.accepted': 'Request accepted', 'booking.rejected': 'Request declined', 'booking.started': 'Service started', 'booking.completed': 'Service completed',
+  'booking.leaveReview': 'Leave a review', 'booking.reviewPlaceholder': 'Share your experience (optional)', 'booking.sendReview': 'Send review',
+  'booking.reviewThanks': 'Thanks for your review!', 'booking.reviewed': 'Reviewed',
+  'bookings.title': 'My bookings', 'bookings.active': 'Active', 'bookings.past': 'Past', 'bookings.empty': 'No bookings here yet',
+  'bookings.emptyText': 'Find a provider and send your first request.', 'bookings.findProvider': 'Find a provider',
+
+  // requests (provider)
+  'requests.title': 'Requests', 'requests.new': 'New', 'requests.accepted': 'Accepted', 'requests.inProgress': 'In progress', 'requests.completed': 'Completed', 'requests.closed': 'Closed',
+  'requests.empty': 'Nothing here', 'requests.emptyText': 'Requests from customers will show up here.',
+
+  // chat
+  'chat.title': 'Messages', 'chat.empty': 'No conversations yet', 'chat.emptyText': 'Start a conversation from a provider page or a booking.',
+  'chat.noMessages': 'No messages yet', 'chat.startHint': 'Say hello and describe what you need.', 'chat.placeholder': 'Write a message…', 'chat.user': 'User',
+
+  // notifications
+  'notifications.title': 'Notifications', 'notifications.empty': 'No notifications', 'notifications.emptyText': 'You are all caught up.', 'notifications.generic': 'Update',
+  'notifications.bookingNewTitle': 'New booking request', 'notifications.bookingNewBody': 'A customer sent you a new request.',
+  'notifications.bookingAcceptedTitle': 'Request accepted', 'notifications.bookingAcceptedBody': 'The provider accepted your request.',
+  'notifications.bookingRejectedTitle': 'Request declined', 'notifications.bookingRejectedBody': 'The provider declined your request.',
+  'notifications.bookingCancelledTitle': 'Booking cancelled', 'notifications.bookingCancelledBody': 'A booking was cancelled.',
+  'notifications.bookingStartedTitle': 'Service started', 'notifications.bookingStartedBody': 'The provider has started your service.',
+  'notifications.bookingCompletedTitle': 'Service completed', 'notifications.bookingCompletedBody': 'Your service is complete. You can now leave a review.',
+  'notifications.newMessageTitle': 'New message', 'notifications.newMessageBody': 'You received a new message.',
+  'notifications.reviewReceivedTitle': 'New review', 'notifications.reviewReceivedBody': 'A customer reviewed your work.',
+
+  // favourites & reviews
+  'favorites.title': 'Favourites', 'favorites.empty': 'No favourites yet', 'favorites.emptyText': 'Tap the heart on a provider to save them here.',
+  'reviews.mine': 'My reviews', 'reviews.empty': 'No reviews yet', 'reviews.emptyText': 'Reviews you write after a completed service appear here.',
+  'reviews.hidden': 'Hidden', 'reviews.visible': 'Visible', 'reviews.count': '{n} reviews',
+  'reviews.providerEmpty': 'No reviews yet', 'reviews.providerEmptyText': 'Customer reviews will appear here after completed services.',
+
+  // profile & settings
+  'profile.title': 'Profile', 'profile.edit': 'Edit profile', 'profile.phone': 'Phone', 'profile.phoneInvalid': 'Enter a valid phone number.', 'profile.becomeProvider': 'Become a provider',
+  'settings.title': 'Settings', 'settings.language': 'Language', 'settings.theme': 'Appearance', 'settings.themeSystem': 'System', 'settings.themeLight': 'Light', 'settings.themeDark': 'Dark',
+  'security.title': 'Security', 'security.text': 'Signed in as {email}. Choose a new password to change or set one.', 'security.update': 'Update password', 'security.updated': 'Password updated',
+  'help.title': 'Help', 'help.contact': 'Contact support',
+  'help.q1': 'How do I book a service?', 'help.a1': 'Open a provider, tap "Book now", choose the service, a free time slot and the address, then send your request. The provider accepts or declines it.',
+  'help.q2': 'How does payment work?', 'help.a2': 'Maak does not process payments. The provider sets the price after accepting your request and you pay them directly when the service is done.',
+  'help.q3': 'Can I cancel a booking?', 'help.a3': 'Yes, while the request is still pending. Once a provider has accepted it, message them to agree on changes.',
+  'help.q4': 'How do I become a provider?', 'help.a4': 'Create an account as a service provider, fill in your profile and upload your ID and a photo. Our team reviews every application before you appear in the app.',
+  'help.q5': 'Why was my provider application declined?', 'help.a5': 'You will see the reason in your application screen. Fix the point mentioned and submit again.',
+  'help.q6': 'How do I leave a review?', 'help.a6': 'When a service is marked as completed, open the booking and tap "Leave a review".',
+
+  // provider application
+  'application.title': 'Provider application', 'application.stepPersonal': 'About you', 'application.stepWork': 'Your work', 'application.stepDocs': 'Documents',
+  'application.introText': 'Tell us who you are. This information is checked by our team.', 'application.cityRequired': 'Enter your city.',
+  'application.profession': 'Profession', 'application.professionPlaceholder': 'e.g. Plumber', 'application.professionRequired': 'Enter your profession.',
+  'application.category': 'Main category', 'application.categoryRequired': 'Choose a category.', 'application.years': 'Years of experience', 'application.yearsInvalid': 'Enter a number between 0 and 99.',
+  'application.bio': 'Presentation', 'application.bioPlaceholder': 'Describe your experience and how you work', 'application.bioRequired': 'Write a short presentation.',
+  'application.services': 'Services you offer', 'application.servicePlaceholder': 'Type a service and press add', 'application.servicesRequired': 'Add at least one service.',
+  'application.priceFrom': 'Starting price (optional)', 'application.priceInvalid': 'Enter a valid price.', 'application.radius': 'Service radius in km (optional)', 'application.radiusInvalid': 'Enter a valid distance.',
+  'application.docsText': 'Upload a clear photo or PDF (max 5 MB each).', 'application.documents': 'Documents', 'application.required': 'Required', 'application.optional': 'Optional',
+  'application.pickImage': 'Choose a photo', 'application.pickPdf': 'Choose a PDF', 'application.docsPrivacy': 'Your documents are private. Only the Maak review team can see them.',
+  'application.submit': 'Submit for review', 'application.submitted': 'Application submitted', 'application.rejectedReason': 'Reason',
+  'application.pendingTitle': 'Under review', 'application.pendingText': 'Our team is reviewing your documents. You will be notified as soon as a decision is made.',
+  'application.approvedTitle': 'You are approved!', 'application.approvedText': 'Welcome to Maak. You can now receive requests.',
+  'application.suspendedTitle': 'Application suspended', 'application.suspendedText': 'Your provider profile is currently suspended. Contact support for details.',
+  'application.enterProvider': 'Open my provider space',
+  'doc.national_id': 'National ID', 'doc.profile_photo': 'Profile photo', 'doc.professional_document': 'Professional document',
+  'marketplace.hint': 'This is what customers see on your public page.', 'marketplace.photoPublic': 'Show my profile photo publicly',
+
+  // provider tools
+  'dashboard.completed': 'Completed jobs', 'dashboard.earnings': 'Paid earnings', 'dashboard.rating': 'Average rating', 'dashboard.reviews': 'Reviews', 'dashboard.upcoming': 'Upcoming',
+  'dashboard.noUpcoming': 'No upcoming bookings.', 'dashboard.noListing': 'Your public listing is not published yet. Add at least one service in your public profile.',
+  'services.title': 'My price list', 'services.hint': 'Your price list is shown on your public page so customers know what to expect.', 'services.add': 'Add a service', 'services.edit': 'Edit service',
+  'services.empty': 'No services yet', 'services.emptyText': 'Add the services you offer with their prices.', 'services.name': 'Service name', 'services.description': 'Description',
+  'services.duration': 'Duration in minutes (optional)', 'services.durationInvalid': 'Enter a whole number of minutes.', 'services.nameRequired': 'Enter a service name.',
+  'services.active': 'Active', 'services.inactive': 'Hidden', 'services.minutes': '{n} min',
+  'availability.hint': 'Set the hours when customers can book you. Hours are shown to customers exactly as you enter them (24h, HH:MM).', 'availability.from': 'From', 'availability.to': 'To',
+  'availability.off': 'Not available', 'availability.invalid': 'Use the HH:MM format and make sure the end is after the start.',
+  'portfolio.add': 'Add a photo', 'portfolio.empty': 'No photos yet', 'portfolio.hint': 'Show your best work. JPG, PNG or WebP, up to 5 MB.',
+
+  // admin
+  'admin.title': 'Administration', 'admin.customers': 'Customers', 'admin.providers': 'Providers', 'admin.approved': 'Approved providers', 'admin.bookings': 'Bookings',
+  'admin.manage': 'Manage', 'admin.applications': 'Provider applications', 'admin.users': 'Users', 'admin.reviews': 'Reviews', 'admin.audit': 'Audit log',
+  'admin.noApplications': 'No applications here', 'admin.noUsers': 'No users found', 'admin.noBookings': 'No bookings', 'admin.noReviews': 'No reviews', 'admin.noAudit': 'No actions recorded yet',
+  'admin.showDetails': 'Show details', 'admin.hideDetails': 'Hide details', 'admin.openDocument': 'Open', 'admin.noDocuments': 'No documents uploaded.', 'admin.submitted': 'Last update: {date}',
+  'admin.approve': 'Approve', 'admin.reject': 'Reject', 'admin.rejectTitle': 'Reject application', 'admin.rejectPlaceholder': 'Tell the applicant what to fix',
+  'admin.approvedToast': 'Provider approved', 'admin.rejectedToast': 'Application rejected',
+  'admin.searchUsers': 'Search users', 'admin.suspend': 'Suspend account', 'admin.activate': 'Reactivate account',
+  'admin.role.all': 'All', 'admin.role.customer': 'Customers', 'admin.role.provider': 'Providers', 'admin.role.admin': 'Admins',
+  'admin.markPaid': 'Mark as paid', 'admin.paymentMethod': 'Payment method', 'admin.cancelBooking': 'Cancel booking', 'admin.cancelReason': 'Reason (optional)',
+  'admin.show': 'Show', 'admin.hide': 'Hide',
+} as const satisfies Record<string, string>;
+
+export type TKey = keyof typeof en;
