@@ -7,6 +7,7 @@ import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { ToastProvider } from './src/contexts/ToastContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 
 function Direction({ children }: { children: React.ReactNode }) {
   const { isRTL } = useLanguage();
@@ -22,7 +23,9 @@ export default function App() {
             <AuthProvider>
               <FavoritesProvider>
                 <Direction>
-                  <RootNavigator />
+                  <AppErrorBoundary>
+                    <RootNavigator />
+                  </AppErrorBoundary>
                 </Direction>
               </FavoritesProvider>
             </AuthProvider>

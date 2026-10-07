@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Banner, Button, Form, H1, Header, Muted, Page, Row, Screen, TextField } from '../../components/ui';
 import { GoogleButton } from '../../components/GoogleButton';
+import { GOOGLE_LOGIN_ENABLED } from '../../config/env';
 import { errorKey } from '../../lib/errors';
 import type { ScreenProps } from '../../navigation/types';
 
@@ -51,10 +52,14 @@ export function LoginScreen({ navigation }: ScreenProps<'Login'>) {
             <Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }}>{t('auth.forgot')}</Text>
           </Pressable>
           <Button title={t('auth.login')} onPress={submit} loading={busy} />
-          <Row style={{ alignItems: 'center' }} gap={10}>
-            <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} /><Muted>{t('auth.or')}</Muted><View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-          </Row>
-          <GoogleButton intent="customer" />
+          {GOOGLE_LOGIN_ENABLED ? (
+            <>
+              <Row style={{ alignItems: 'center' }} gap={10}>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} /><Muted>{t('auth.or')}</Muted><View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+              </Row>
+              <GoogleButton intent="customer" />
+            </>
+          ) : null}
           <Row style={{ justifyContent: 'center' }} gap={6}>
             <Muted>{t('auth.noAccount')}</Muted>
             <Pressable onPress={() => navigation.navigate('Signup', { intent: 'customer' })}><Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>{t('auth.createAccount')}</Text></Pressable>

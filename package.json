@@ -31,7 +31,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "playwright-core": "^1.49.0"
   },
   "scripts": {
     "start": "expo start",
@@ -39,7 +40,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "build:web": "expo export --platform web",
+    "eas:build:preview": "eas build --profile preview --platform all",
+    "eas:build:production": "eas build --profile production --platform all",
+    "test:e2e": "node e2e/run.mjs"
   },
   "private": true
 }

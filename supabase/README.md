@@ -20,6 +20,9 @@ Apply only the migrations that are new for the app rebuild:
 | --- | --- |
 | `migrations/20261007120000_customer_favorites.sql` | `customer_favorites` table + owner-only RLS (powers the ♥ button) |
 | `migrations/20261007120100_public_provider_services.sql` | Public read of a published provider's *active* price list |
+| `migrations/20261007130000_bootstrap_official_admin.sql` | One-time, audited promotion of the official admin (see below) |
+| `migrations/20261007140000_delete_my_account.sql` | `delete_my_account()` RPC behind *Profile → Security → Delete my account* |
+| `migrations/20261007140100_content_reports.sql` | `content_reports` table + `submit_report`, `admin_list_reports`, `admin_resolve_report` RPCs (user / review / message reports) |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
 

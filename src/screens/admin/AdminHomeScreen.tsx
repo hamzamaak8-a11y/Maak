@@ -26,11 +26,12 @@ export function AdminHomeScreen() {
     { icon: 'shield-checkmark-outline', label: t('admin.approved'), value: data.approved_providers, color: colors.success },
     { icon: 'calendar-outline', label: t('admin.bookings'), value: data.total_bookings, color: colors.accent },
   ] : [];
-  const links: Array<{ icon: keyof typeof Ionicons.glyphMap; label: string; screen: 'AdminApplications' | 'AdminUsers' | 'AdminBookings' | 'AdminReviews' | 'AdminAudit'; badge?: number }> = [
+  const links: Array<{ icon: keyof typeof Ionicons.glyphMap; label: string; screen: 'AdminApplications' | 'AdminUsers' | 'AdminBookings' | 'AdminReviews' | 'AdminAudit' | 'AdminReports'; badge?: number }> = [
     { icon: 'document-text-outline', label: t('admin.applications'), screen: 'AdminApplications', badge: pending },
     { icon: 'people-outline', label: t('admin.users'), screen: 'AdminUsers' },
     { icon: 'calendar-outline', label: t('admin.bookings'), screen: 'AdminBookings' },
     { icon: 'star-outline', label: t('admin.reviews'), screen: 'AdminReviews' },
+    { icon: 'flag-outline', label: t('admin.reports'), screen: 'AdminReports' },
     { icon: 'list-outline', label: t('admin.audit'), screen: 'AdminAudit' },
   ];
 

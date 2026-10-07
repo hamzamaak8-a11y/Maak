@@ -5,6 +5,7 @@ import { SUPPORT_EMAIL } from '../../config/env';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Button, Card, Header, Page, Screen } from '../../components/ui';
+import { LegalLinks } from '../../components/LegalLinks';
 import type { TKey } from '../../i18n/en';
 
 const FAQ: Array<[TKey, TKey]> = [
@@ -31,6 +32,7 @@ export function HelpScreen() {
           ))}
         </View>
         {SUPPORT_EMAIL ? <Button title={t('help.contact')} icon="mail-outline" onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)} /> : null}
+        <LegalLinks prefix={false} />
       </Page>
     </Screen>
   );

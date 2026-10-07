@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Image, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createNavigationContainerRef, DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
@@ -33,6 +33,8 @@ import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { SettingsScreen } from '../screens/shared/SettingsScreen';
 import { HelpScreen } from '../screens/shared/HelpScreen';
 import { SecurityScreen } from '../screens/shared/SecurityScreen';
+import { DeleteAccountScreen } from '../screens/shared/DeleteAccountScreen';
+import { AdminReportsScreen } from '../screens/admin/AdminReportsScreen';
 import { ProviderApplicationScreen } from '../screens/provider/ProviderApplicationScreen';
 import { ProviderDashboardScreen } from '../screens/provider/ProviderDashboardScreen';
 import { ProviderRequestsScreen } from '../screens/provider/ProviderRequestsScreen';
@@ -106,6 +108,7 @@ const shared = () => (
     <Stack.Screen name="Settings" component={SettingsScreen} />
     <Stack.Screen name="Help" component={HelpScreen} />
     <Stack.Screen name="Security" component={SecurityScreen} />
+    <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
   </>
 );
 
@@ -164,6 +167,9 @@ function AdminNavigator() {
       <Stack.Screen name="AdminBookings" component={AdminBookingsScreen} />
       <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} />
       <Stack.Screen name="AdminAudit" component={AdminAuditScreen} />
+      <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
+      <Stack.Screen name="Security" component={SecurityScreen} />
+      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
@@ -196,6 +202,18 @@ export function RootNavigator() {
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, role, wantsProvider]);
+
+  // Signing out (or deleting the account) must never leave the user on a stale account screen.
+  const previousUser = useRef<string | null>(null);
+  useEffect(() => {
+    const id = user?.id ?? null;
+    if (previousUser.current && !id) {
+      const timer = setTimeout(() => { if (navRef.isReady()) navRef.resetRoot({ index: 0, routes: [{ name: 'Welcome' }] }); }, 0);
+      previousUser.current = id;
+      return () => clearTimeout(timer);
+    }
+    previousUser.current = id;
+  }, [user?.id]);
 
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = { ...base, colors: { ...base.colors, background: colors.background, card: colors.surface, text: colors.text, border: colors.border, primary: colors.primary } };

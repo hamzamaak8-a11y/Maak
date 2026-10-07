@@ -7,6 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { getMessages, markConversationRead, openBookingConversation, openProviderConversation, sendMessage, subscribeToConversation } from '../../api/chat';
 import { EmptyState, ErrorState, Header, Loading, Screen } from '../../components/ui';
+import { ReportSheet } from '../../components/ReportSheet';
 import { formatTime } from '../../lib/format';
 import { errorKey } from '../../lib/errors';
 import type { ChatMessage } from '../../types';
@@ -23,6 +24,7 @@ export function ChatScreen({ route }: ScreenProps<'Chat'>) {
   const [error, setError] = useState<unknown>(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const [reporting, setReporting] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   const addMessage = useCallback((m: ChatMessage) => setMessages(prev => (prev.some(x => x.id === m.id) ? prev : [...prev, m])), []);
@@ -74,11 +76,12 @@ export function ChatScreen({ route }: ScreenProps<'Chat'>) {
             renderItem={({ item }) => {
               const mine = item.sender_id === user?.id;
               return (
-                <View style={{ alignItems: mine ? 'flex-end' : 'flex-start' }}>
+                <View style={{ alignItems: mine ? 'flex-end' : 'flex-start', flexDirection: 'row', justifyContent: mine ? 'flex-end' : 'flex-start', gap: 6 }}>
                   <View style={{ maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 9, borderRadius: 16, backgroundColor: mine ? colors.primary : colors.surface, borderWidth: mine ? 0 : 1, borderColor: colors.border }}>
                     <Text style={{ color: mine ? colors.onPrimary : colors.text, fontSize: 15, lineHeight: 21 }}>{item.body}</Text>
                     <Text style={{ color: mine ? colors.onPrimary : colors.textMuted, opacity: 0.75, fontSize: 10, marginTop: 3, alignSelf: 'flex-end' }}>{formatTime(item.created_at, lang)}</Text>
                   </View>
+                  {!mine ? <Pressable onPress={() => setReporting(item.id)} hitSlop={8} accessibilityLabel={t('report.title')} style={{ alignSelf: 'center' }}><Ionicons name="flag-outline" size={16} color={colors.textMuted} /></Pressable> : null}
                 </View>
               );
             }}
@@ -93,6 +96,7 @@ export function ChatScreen({ route }: ScreenProps<'Chat'>) {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <ReportSheet visible={!!reporting} onClose={() => setReporting(null)} targetType="message" targetId={reporting} />
     </Screen>
   );
 }

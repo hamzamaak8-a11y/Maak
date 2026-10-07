@@ -5,6 +5,8 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Banner, Button, Chip, EmptyState, Form, H1, Header, Muted, Page, Row, Screen, TextField } from '../../components/ui';
 import { GoogleButton } from '../../components/GoogleButton';
+import { GOOGLE_LOGIN_ENABLED } from '../../config/env';
+import { LegalLinks } from '../../components/LegalLinks';
 import { errorKey } from '../../lib/errors';
 import type { ScreenProps } from '../../navigation/types';
 
@@ -71,11 +73,15 @@ export function SignupScreen({ navigation, route }: ScreenProps<'Signup'>) {
           <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" onSubmitEditing={submit} />
           {intent === 'provider' ? <Banner kind="info" text={t('auth.providerNextStep')} /> : null}
           <Button title={t('auth.createAccount')} onPress={submit} loading={busy} />
-          <Row style={{ alignItems: 'center' }} gap={10}>
-            <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} /><Muted>{t('auth.or')}</Muted><View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-          </Row>
-          <GoogleButton intent={intent} />
-          <Muted style={{ textAlign: 'center' }}>{t('auth.terms')}</Muted>
+          {GOOGLE_LOGIN_ENABLED ? (
+            <>
+              <Row style={{ alignItems: 'center' }} gap={10}>
+                <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} /><Muted>{t('auth.or')}</Muted><View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+              </Row>
+              <GoogleButton intent={intent} />
+            </>
+          ) : null}
+          <LegalLinks />
           <Row style={{ justifyContent: 'center' }} gap={6}>
             <Muted>{t('welcome.haveAccount')}</Muted>
             <Pressable onPress={() => navigation.navigate('Login')}><Text style={{ color: colors.primary, fontWeight: '800', fontSize: 13 }}>{t('auth.login')}</Text></Pressable>

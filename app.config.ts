@@ -25,6 +25,9 @@ const config: ExpoConfig = {
       monochromeImage: './assets/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Session tokens must not leak into cloud/ADB backups.
+    allowBackup: false,
+    blockedPermissions: ['android.permission.RECORD_AUDIO', 'android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE', 'android.permission.SYSTEM_ALERT_WINDOW'],
   },
   web: { favicon: './assets/favicon.png', bundler: 'metro', output: 'single' },
   plugins: [

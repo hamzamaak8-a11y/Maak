@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import type { Nav } from '../../navigation/types';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useToast } from '../../contexts/ToastContext';
 import { Banner, Button, Form, Header, Muted, Page, Screen, TextField } from '../../components/ui';
@@ -9,6 +11,7 @@ export function SecurityScreen() {
   const { t } = useLanguage();
   const { changePassword, user } = useAuth();
   const toast = useToast();
+  const nav = useNavigation<Nav>();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [busy, setBusy] = useState(false);
@@ -33,6 +36,7 @@ export function SecurityScreen() {
           <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" />
           <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" />
           <Button title={t('security.update')} onPress={save} loading={busy} />
+          <Button title={t('delete.entry')} variant="ghost" icon="trash-outline" onPress={() => nav.navigate('DeleteAccount')} />
         </Page>
       </Form>
     </Screen>
