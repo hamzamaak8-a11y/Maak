@@ -54,12 +54,23 @@ Reference order, inferred from the file headers — review before use:
 
 ## Creating the admin account
 
-Admins cannot sign up from the app. Create the account normally (sign up with a private email + password, confirm the
-email), then promote it once in the SQL editor:
+Admins cannot sign up from the app, and **a plain `update public.profiles set role = 'admin'` is rejected on purpose**
+(`guard_role_change()` / `guard_profile_security_fields()` protect `role`). Do not disable those triggers.
+
+The official administrator is `hamzamaak8@gmail.com`. It is promoted by the one-time, audited migration
+`migrations/20261007130000_bootstrap_official_admin.sql`, which uses the project's internal service-role mechanism
+(the same one `admin_approve_provider` uses) inside a single transaction, verifies the result and writes
+`admin_audit_log`. If the guard still refuses, the migration raises and changes nothing.
+
+1. The account must exist (sign in once with Google or e-mail) and be confirmed.
+2. Run the migration file in the SQL editor.
+3. Verify: `select p.role from public.profiles p join auth.users u on u.id = p.id where u.email = 'hamzamaak8@gmail.com';`
+4. Sign out and back in in the app; it opens the administration area.
+
+If step 2 fails with `role change not allowed`, the deployed guard differs from `baseline/profiles.sql`. Read it (read-only)
+and share the result so the migration can be aligned with the real guard:
 
 ```sql
-update public.profiles set role = 'admin'
-where id = (select id from auth.users where email = 'admin@your-domain.com');
+select pg_get_functiondef('public.guard_role_change()'::regprocedure);
+select tgname, tgenabled, pg_get_triggerdef(oid) from pg_trigger where tgrelid = 'public.profiles'::regclass and not tgisinternal;
 ```
-
-The admin signs in from the normal *Sign in* screen and is taken straight to the administration area.
