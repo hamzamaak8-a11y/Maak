@@ -341,6 +341,18 @@ export const en = {
   'err.invalidProvider': 'Missing provider details (name, profession, category, presentation, services).',
   'err.invalidTarget': 'You cannot do this to your own account.',
   'err.serverError': 'The server could not complete this request. Try again.',
+  'provider.statRating': "Rating",
+  'portfolio.addMany': "Add photos",
+  'portfolio.limit': "Up to {n} photos. The first photo is your cover and appears on your cards.",
+  'portfolio.full': "You reached the maximum of {n} photos. Delete one to add another.",
+  'portfolio.count': "{n} / {max} photos",
+  'portfolio.cover': "Cover",
+  'dashboard.quick': "Grow your page",
+  'dashboard.addService': "Add a service",
+  'dashboard.addPhotos': "Add photos",
+  'dashboard.viewPage': "See my public page",
+  'dashboard.availability': "Working hours",
+  'home.moreProviders': "More professionals",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

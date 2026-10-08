@@ -55,8 +55,8 @@ const problems = [];
 const passed = [];
 let n = 0;
 
-async function newPage(locale = 'en-US') {
-  const ctx = await browser.newContext({ viewport: { width: 420, height: 860 }, locale });
+async function newPage(locale = 'en-US', size = { width: 420, height: 860 }) {
+  const ctx = await browser.newContext({ viewport: size, locale });
   const page = await ctx.newPage();
   page.on('console', m => { if (m.type() === 'error' && !/WebSocket|status of 400/.test(m.text())) problems.push('console.error: ' + m.text().slice(0, 300)); });
   page.on('pageerror', e => problems.push('PAGEERROR: ' + e.message.slice(0, 400)));
@@ -111,6 +111,7 @@ try {
   await open(page);
   await login(page, 'customer@t.co');
   await must(page, 'Top rated');
+  await page.waitForTimeout(800); await shot(page, 'home');
   await vis(page, 'Karim Benali').click();
   await must(page, 'Book now');
   await vis(page, 'Book now').click();
@@ -129,6 +130,8 @@ try {
   await must(page, 'Top rated');
   await vis(page, 'Karim Benali').click();
   await must(page, 'Book now');
+  await shot(page, 'provider-top');
+  await page.mouse.move(200, 500); await page.mouse.wheel(0, 650); await shot(page, 'provider-scrolled');
   await page.locator('[aria-label="Report"] >> visible=true').first().click();
   await must(page, 'Why', 1500).catch(() => {});
   await vis(page, 'Spam', true).click();
@@ -187,6 +190,14 @@ try {
   await page.getByRole('button', { name: 'Resolve' }).last().click();
   await must(page, 'No reports');
   ok('admin portal: sign in, see and resolve reports');
+  await page.context().close();
+
+  // admin portal on a desktop-sized screen
+  page = await newPage('en-US', { width: 1360, height: 860 });
+  await adminLogin(page, 'admin@t.co');
+  await must(page, 'Provider applications');
+  await page.waitForTimeout(600);
+  await shot(page, 'admin-desktop');
   await page.context().close();
 
   // the admin portal refuses non-admins; the app refuses admins

@@ -35,7 +35,9 @@ export function makeBackend() {
     const u = new URL(route.request().url());
     if (u.pathname === '/api/providers') return json(route, providers);
     const m = u.pathname.match(/^\/api\/providers\/(\d+)(\/portfolio)?$/);
-    if (m) return json(route, m[2] ? [] : providers.find(p => p.id === Number(m[1])) ?? null, providers.find(p => p.id === Number(m[1])) || m[2] ? 200 : 404);
+    const svg = (a, b) => 'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><circle cx="560" cy="200" r="110" fill="rgba(255,255,255,.18)"/></svg>`).toString('base64');
+    const photos = [['#0B2F7A', '#1D8FE0'], ['#9A3412', '#FF9A3C'], ['#0F766E', '#34D3A6'], ['#4C1D95', '#8B5CF6']].map(([a, b], i) => ({ id: 'ph' + i, path: 'p/' + i, url: svg(a, b), created_at: null }));
+    if (m) return json(route, m[2] ? photos : providers.find(p => p.id === Number(m[1])) ?? null, providers.find(p => p.id === Number(m[1])) || m[2] ? 200 : 404);
     return json(route, {}, 404);
   }
 

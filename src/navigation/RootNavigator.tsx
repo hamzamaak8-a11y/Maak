@@ -164,6 +164,7 @@ function ProviderNavigator() {
       <Stack.Screen name="ProviderReviews" component={ProviderReviewsScreen} />
       <Stack.Screen name="ProviderMarketplace" component={ProviderMarketplaceScreen} />
       <Stack.Screen name="ProviderApplication" component={ProviderApplicationScreen} />
+      <Stack.Screen name="ProviderDetail" component={ProviderDetailScreen} />
       {shared()}
     </Stack.Navigator>
   );

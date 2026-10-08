@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
 import { ChevronIcon } from './ui';
 
@@ -9,11 +10,12 @@ type IconName = keyof typeof Ionicons.glyphMap;
 export function StatTile({ icon, label, value, hint, color, onPress, wide }: { icon: IconName; label: string; value: string | number; hint?: string; color: string; onPress?: () => void; wide?: boolean }) {
   const { colors, isDark } = useTheme();
   const body = (
-    <View style={{ backgroundColor: colors.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.border, padding: 18, gap: 10, minHeight: 124, boxShadow: isDark ? '0 1px 2px rgba(0,0,0,.4)' : '0 1px 2px rgba(15,23,42,.05), 0 6px 18px rgba(15,23,42,.06)' }}>
-      <View style={{ width: 40, height: 40, borderRadius: 13, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border, padding: 18, gap: 10, minHeight: 132, overflow: 'hidden', boxShadow: isDark ? '0 1px 2px rgba(0,0,0,.4)' : '0 1px 2px rgba(15,23,42,.05), 0 6px 18px rgba(15,23,42,.06)' }}>
+      <View pointerEvents="none" style={{ position: 'absolute', top: -34, end: -34, width: 110, height: 110, borderRadius: 55, backgroundColor: color + '14' }} />
+      <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}>
         <Ionicons name={icon} size={22} color={color} />
       </View>
-      <Text style={{ color: colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 }}>{value}</Text>
+      <Text style={{ color: colors.text, fontSize: 32, fontWeight: '900', letterSpacing: -0.8 }}>{value}</Text>
       <View>
         <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '700' }}>{label}</Text>
         {hint ? <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{hint}</Text> : null}
@@ -63,7 +65,7 @@ export function MiniBars({ data, color, labelFor }: { data: Array<{ key: string;
         {data.map(d => (
           <View key={d.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
             <Text style={{ color: colors.textMuted, fontSize: 10, marginBottom: 2 }}>{d.value > 0 ? d.value : ''}</Text>
-            <View style={{ width: '100%', maxWidth: 22, height: Math.max(4, (d.value / max) * 84), borderRadius: 6, backgroundColor: d.value > 0 ? color : colors.surfaceAlt }} />
+            <LinearGradient colors={d.value > 0 ? [color, color + '99'] : [colors.surfaceAlt, colors.surfaceAlt]} style={{ width: '100%', maxWidth: 22, height: Math.max(4, (d.value / max) * 84), borderRadius: 8 }} />
           </View>
         ))}
       </View>

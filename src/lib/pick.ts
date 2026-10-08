@@ -10,6 +10,13 @@ export async function pickImage(): Promise<PickedFile | null> {
   return { uri: a.uri, name: a.fileName ?? 'image', mimeType: mime, size: a.fileSize ?? null };
 }
 
+/** Lets the user choose several photos at once (up to `limit`). */
+export async function pickImages(limit: number): Promise<PickedFile[]> {
+  const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, allowsMultipleSelection: true, selectionLimit: Math.max(1, limit) });
+  if (res.canceled) return [];
+  return res.assets.slice(0, limit).map(a => ({ uri: a.uri, name: a.fileName ?? 'image', mimeType: a.mimeType ?? (/\.png$/i.test(a.uri) ? 'image/png' : 'image/jpeg'), size: a.fileSize ?? null }));
+}
+
 export async function pickDocument(): Promise<PickedFile | null> {
   const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/jpeg', 'image/png'], copyToCacheDirectory: true, multiple: false });
   if (res.canceled || !res.assets[0]) return null;

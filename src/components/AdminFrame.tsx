@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,7 +8,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { navRef } from '../navigation/ref';
 import type { AllParams } from '../navigation/types';
-import { BrandMark } from './AuthShell';
 import { Avatar, Sheet } from './ui';
 import type { TKey } from '../i18n/en';
 
@@ -58,22 +58,24 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
   if (wide) {
     return (
       <View style={{ flex: 1, flexDirection: 'row', backgroundColor: colors.background }}>
-        <View style={{ width: 272, backgroundColor: colors.surface, borderEndWidth: 1, borderEndColor: colors.border, paddingTop: Math.max(insets.top, 18), paddingBottom: 18 }}>
-          <View style={{ paddingHorizontal: 20, paddingBottom: 18, alignItems: 'flex-start' }}><SidebarBrand /></View>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 12, gap: 4 }}>
+        <LinearGradient colors={['#071A47', '#051236', '#030B24']} start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} style={{ width: 280, paddingTop: Math.max(insets.top, 22), paddingBottom: 18 }}>
+          <View style={{ position: 'absolute', top: -70, start: -60, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(29,95,224,0.28)' }} />
+          <View style={{ position: 'absolute', bottom: 60, end: -90, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(255,138,31,0.10)' }} />
+          <View style={{ paddingHorizontal: 22, paddingBottom: 26 }}><SidebarBrand /></View>
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 14, gap: 4 }}>
             {ITEMS.map(i => <SideLink key={i.route} item={i} active={current === i.route || (i.route === 'AdminUsers' && current.startsWith('AdminUser') ) || (i.route === 'AdminUsers' && current === 'AdminCreateUser')} />)}
           </ScrollView>
-          <View style={{ paddingHorizontal: 16, paddingTop: 14, gap: 12, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8 }}>
+          <View style={{ marginHorizontal: 14, marginTop: 10, padding: 12, gap: 12, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Avatar name={profile?.full_name ?? 'A'} uri={profile?.avatar_url} size={40} />
               <View style={{ flex: 1 }}>
-                <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{profile?.full_name ?? 'Admin'}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('admin.badge')}</Text>
+                <Text numberOfLines={1} style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>{profile?.full_name ?? 'Admin'}</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{t('admin.badge')}</Text>
               </View>
-              <Pressable onPress={() => { void signOut(); }} accessibilityRole="button" accessibilityLabel={t('auth.logout')} hitSlop={8}><Ionicons name="log-out-outline" size={22} color={colors.textSecondary} /></Pressable>
+              <Pressable onPress={() => { void signOut(); }} accessibilityRole="button" accessibilityLabel={t('auth.logout')} hitSlop={8}><Ionicons name="log-out-outline" size={22} color="rgba(255,255,255,0.75)" /></Pressable>
             </View>
           </View>
-        </View>
+        </LinearGradient>
         <View style={{ flex: 1 }}>{children}</View>
       </View>
     );
@@ -108,17 +110,32 @@ export function AdminFrame({ children }: { children: React.ReactNode }) {
 
 function SidebarBrand() {
   const { t } = useLanguage();
-  return <BrandMark size={44} wordmark={false} label={undefined} />;
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Image source={require('../../assets/logo-mark.png')} style={{ width: 50, height: 50 }} resizeMode="contain" accessibilityLabel="Maak" />
+      <View>
+        <Text style={{ color: '#fff', fontSize: 26, fontWeight: '900', letterSpacing: -0.8, lineHeight: 30 }}>Maak</Text>
+        <Text style={{ color: '#FF9A3C', fontSize: 11, fontWeight: '800', letterSpacing: 2.4, textTransform: 'uppercase' }}>{t('admin.badge')}</Text>
+      </View>
+    </View>
+  );
 }
 
 function SideLink({ item, active }: { item: Item; active: boolean }) {
-  const { colors } = useTheme();
   const { t } = useLanguage();
+  const row = { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14, paddingVertical: 13, paddingHorizontal: 16, borderRadius: 16 };
+  const inner = (
+    <>
+      <Ionicons name={item.icon} size={21} color={active ? '#fff' : 'rgba(255,255,255,0.72)'} />
+      <Text style={{ color: active ? '#fff' : 'rgba(255,255,255,0.8)', fontSize: 15, fontWeight: active ? '800' : '600', flex: 1 }}>{t(item.label)}</Text>
+      {active ? <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#FF9A3C' }} /> : null}
+    </>
+  );
   return (
-    <Pressable onPress={() => go(item.route)} accessibilityRole="button" accessibilityLabel={t(item.label)}
-      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 13, paddingHorizontal: 14, borderRadius: 14, backgroundColor: active ? colors.primaryLight : pressed ? colors.surfaceAlt : 'transparent' })}>
-      <Ionicons name={item.icon} size={22} color={active ? colors.primary : colors.textSecondary} />
-      <Text style={{ color: active ? colors.primary : colors.text, fontSize: 15, fontWeight: active ? '800' : '600' }}>{t(item.label)}</Text>
+    <Pressable onPress={() => go(item.route)} accessibilityRole="button" accessibilityLabel={t(item.label)}>
+      {({ pressed }) => active
+        ? <LinearGradient colors={['#2F7CF0', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[row, { boxShadow: '0 8px 20px rgba(29,95,224,0.45)' }]}>{inner}</LinearGradient>
+        : <View style={[row, { backgroundColor: pressed ? 'rgba(255,255,255,0.10)' : 'transparent' }]}>{inner}</View>}
     </Pressable>
   );
 }

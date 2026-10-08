@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -12,6 +12,7 @@ import { fetchProviders } from '../../api/providers';
 import { BellButton, ProviderCard } from '../../components/Common';
 import { Banner, Card, ErrorState, EmptyState, Loading, Muted, Page, Row, Screen, SectionTitle, TextField, useAsync } from '../../components/ui';
 import { CATEGORIES } from '../../constants/categories';
+import { PAGE_MAX_WIDTH } from '../../config/env';
 import { ratingNumber } from '../../lib/format';
 import { errorKey } from '../../lib/errors';
 import { useRequireAuth } from '../../lib/useRequireAuth';
@@ -39,6 +40,9 @@ export function HomeScreen() {
 
   const providers = data ?? [];
   const top = [...providers].sort((a, b) => (ratingNumber(b.rating) ?? 0) - (ratingNumber(a.rating) ?? 0) || b.reviews - a.reviews).slice(0, 6);
+  const rest = providers.filter(p => !top.includes(p)).slice(0, 8);
+  const { width } = useWindowDimensions();
+  const cardW = Math.min(Math.round((Math.min(width, PAGE_MAX_WIDTH) - 36) * 0.84), 340);
   const first = (profile?.full_name ?? user?.email ?? '').split(/[\s@]/)[0];
   const applicationOpen = providerProfile ? providerProfile.verification_status !== 'approved' : wantsProvider;
 
@@ -67,25 +71,33 @@ export function HomeScreen() {
         ) : null}
 
         <SectionTitle title={t('home.categories')} />
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 18 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -18 }} contentContainerStyle={{ paddingHorizontal: 18, gap: 12 }}>
           {CATEGORIES.map(c => (
-            <Pressable key={c.value} style={{ width: '25%', alignItems: 'center', gap: 8 }} onPress={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab', params: { category: c.value } })} accessibilityRole="button" accessibilityLabel={c.label[lang]}>
-              <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(15,23,42,0.07)' }}>
-                <Ionicons name={c.icon} size={28} color={c.color} />
+            <Pressable key={c.value} style={{ width: 82, alignItems: 'center', gap: 8 }} onPress={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab', params: { category: c.value } })} accessibilityRole="button" accessibilityLabel={c.label[lang]}>
+              <View style={{ width: 66, height: 66, borderRadius: 22, backgroundColor: c.color + '1A', borderWidth: 1, borderColor: c.color + '33', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={c.icon} size={30} color={c.color} />
               </View>
-              <Text numberOfLines={2} style={{ color: colors.text, fontSize: 13, fontWeight: '700', textAlign: 'center', lineHeight: 17 }}>{c.label[lang]}</Text>
+              <Text numberOfLines={2} style={{ color: colors.text, fontSize: 12.5, fontWeight: '700', textAlign: 'center', lineHeight: 16 }}>{c.label[lang]}</Text>
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
 
         {loading && !data ? <Loading /> : error && !data ? <ErrorState error={error} onRetry={reload} /> : providers.length === 0 ? (
           <Card><EmptyState icon="people-outline" title={t('home.noProviders')} text={t('home.noProvidersText')} /></Card>
         ) : (
           <>
             <SectionTitle title={t('home.topRated')} action={t('common.seeAll')} onAction={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab' })} />
-            <View style={{ gap: 12 }}>
-              {top.map(p => <ProviderCard key={p.id} provider={p} onPress={() => nav.navigate('ProviderDetail', { id: p.id })} favorite={fav.isFavorite(p.id)} onToggleFavorite={() => toggleFav(p)} />)}
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardW + 14} decelerationRate="fast" style={{ marginHorizontal: -18 }} contentContainerStyle={{ paddingHorizontal: 18, gap: 14, paddingBottom: 6 }}>
+              {top.map(p => <ProviderCard key={p.id} style={{ width: cardW }} provider={p} onPress={() => nav.navigate('ProviderDetail', { id: p.id })} favorite={fav.isFavorite(p.id)} onToggleFavorite={() => toggleFav(p)} />)}
+            </ScrollView>
+            {rest.length ? (
+              <>
+                <SectionTitle title={t('home.moreProviders')} />
+                <View style={{ gap: 14 }}>
+                  {rest.map(p => <ProviderCard key={p.id} provider={p} onPress={() => nav.navigate('ProviderDetail', { id: p.id })} favorite={fav.isFavorite(p.id)} onToggleFavorite={() => toggleFav(p)} />)}
+                </View>
+              </>
+            ) : null}
           </>
         )}
       </Page>

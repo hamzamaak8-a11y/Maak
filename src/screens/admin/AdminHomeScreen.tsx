@@ -1,5 +1,7 @@
 import React from 'react';
-import { RefreshControl, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, RefreshControl, Text, View, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -7,7 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { overviewStats } from '../../api/admin';
 import { BellButton } from '../../components/Common';
 import { ActionTile, AttentionRow, MiniBars, StatTile } from '../../components/AdminWidgets';
-import { Button, Card, ErrorState, Loading, Muted, Page, Row, Screen, SectionTitle, useAsync } from '../../components/ui';
+import { Card, ErrorState, Loading, Muted, Page, Row, Screen, SectionTitle, useAsync } from '../../components/ui';
 import { formatMoney } from '../../lib/format';
 import type { Nav } from '../../navigation/types';
 
@@ -22,6 +24,7 @@ export function AdminHomeScreen() {
   const { data: s, loading, error, reload } = useAsync(() => overviewStats(), []);
   useFocusEffect(React.useCallback(() => { void reload(); }, [reload]));
 
+  const today = new Date().toLocaleDateString(lang, { weekday: 'long', day: 'numeric', month: 'long' });
   const paid = s ? Object.entries(s.paid_30d) : [];
   const paidLabel = paid.length ? paid.map(([cur, v]) => formatMoney(Number(v), cur, lang)).join(' · ') : '—';
   const dayLabel = (key: string) => new Date(key + 'T00:00:00Z').getUTCDate().toString();
@@ -29,15 +32,22 @@ export function AdminHomeScreen() {
   return (
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={colors.primary} />}>
-        <Row style={{ justifyContent: 'space-between', alignItems: 'center' }} gap={12}>
-          <View style={{ flex: 1 }}>
-            <Muted>{t('admin.welcomeBack')}</Muted>
-            <Text accessibilityRole="header" numberOfLines={1} style={{ color: colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 }}>{profile?.full_name || t('admin.title')}</Text>
-          </View>
-          {wide ? <Button title={t('admin.addUser')} icon="person-add-outline" size="sm" onPress={() => nav.navigate('AdminCreateUser')} /> : null}
-          <BellButton />
-        </Row>
-        {!wide ? <Button title={t('admin.addUser')} icon="person-add-outline" onPress={() => nav.navigate('AdminCreateUser')} /> : null}
+        <LinearGradient colors={['#071A47', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 28, padding: wide ? 30 : 22, gap: 20, overflow: 'hidden', boxShadow: '0 18px 44px rgba(29,95,224,0.32)' }}>
+          <View style={{ position: 'absolute', top: -60, end: -40, width: 240, height: 240, borderRadius: 120, backgroundColor: 'rgba(255,138,31,0.30)' }} />
+          <View style={{ position: 'absolute', bottom: -90, start: '35%', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(77,163,255,0.22)' }} />
+          <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }} gap={12}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13, fontWeight: '700', letterSpacing: 0.4 }}>{today}</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: '600', marginTop: 6 }}>{t('admin.welcomeBack')}</Text>
+              <Text accessibilityRole="header" numberOfLines={1} style={{ color: '#fff', fontSize: wide ? 34 : 28, fontWeight: '900', letterSpacing: -0.8 }}>{profile?.full_name || t('admin.title')}</Text>
+            </View>
+            <BellButton />
+          </Row>
+          <Row gap={10} style={{ flexWrap: 'wrap' }}>
+            <HeroButton icon="person-add" title={t('admin.addUser')} solid onPress={() => nav.navigate('AdminCreateUser')} />
+            <HeroButton icon="cloud-upload-outline" title={t('admin.importCsv')} onPress={() => nav.navigate('AdminCreateUser', { mode: 'csv' })} />
+          </Row>
+        </LinearGradient>
 
         {loading && !s ? <Loading /> : error && !s ? <ErrorState error={error} onRetry={reload} /> : s ? (
           <>
@@ -78,5 +88,14 @@ export function AdminHomeScreen() {
         ) : null}
       </Page>
     </Screen>
+  );
+}
+
+function HeroButton({ icon, title, solid, onPress }: { icon: keyof typeof Ionicons.glyphMap; title: string; solid?: boolean; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 18, height: 46, borderRadius: 14, backgroundColor: solid ? '#FFFFFF' : 'rgba(255,255,255,0.14)', borderWidth: solid ? 0 : 1, borderColor: 'rgba(255,255,255,0.35)', opacity: pressed ? 0.9 : 1 })}>
+      <Ionicons name={icon} size={19} color={solid ? '#0B2F7A' : '#fff'} />
+      <Text style={{ color: solid ? '#0B2F7A' : '#fff', fontWeight: '800', fontSize: 15 }}>{title}</Text>
+    </Pressable>
   );
 }
