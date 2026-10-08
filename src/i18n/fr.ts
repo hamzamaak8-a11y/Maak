@@ -336,4 +336,10 @@ export const fr: Record<TKey, string> = {
   'dashboard.viewPage': "Voir ma page publique",
   'dashboard.availability': "Horaires",
   'home.moreProviders': "Plus de professionnels",
+  'admin.providerDraftNote': "Les prestataires démarrent en brouillon. Ils se connectent, envoient leur pièce d'identité et une photo, puis vous les vérifiez et les approuvez dans Candidatures. Rien n'est publié avant.",
+  'admin.csvHelpDraft': "Importez un CSV pour créer de nombreux clients et prestataires d'un coup. Chacun reçoit un mot de passe généré. Les prestataires sont créés en brouillon : ils doivent envoyer leurs documents d'identité, puis vous les approuvez. 100 lignes maximum par import.",
+  'admin.createdDraft': "Créé · documents requis",
+  'admin.docsMissing': "Impossible d'approuver : pièce d'identité et photo de profil requises.",
+  'err.backendOutdated': "Le serveur n'est pas encore à jour pour cette fonction. Demandez au responsable technique de déployer la dernière version (migration et Worker).",
+  'admin.announcementNone': "Rien n'a été envoyé : aucune personne active dans cette audience. Vérifiez l'audience ou ajoutez d'abord des personnes.",
 };

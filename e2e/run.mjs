@@ -8,9 +8,10 @@ import http from 'node:http';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { makeBackend } from './mock.mjs';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = fs.mkdtempSync(path.join(os.tmpdir(), 'maak-e2e-'));
 const shots = process.env.E2E_SHOTS_DIR;
 
@@ -19,7 +20,7 @@ function chromePath() {
   const base = process.env.PLAYWRIGHT_BROWSERS_PATH;
   if (base && fs.existsSync(base)) {
     for (const d of fs.readdirSync(base).filter(n => n.startsWith('chromium')).sort().reverse()) {
-      for (const rel of ['chrome-linux/chrome', 'chrome-linux64/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium']) {
+      for (const rel of ['chrome-linux/chrome', 'chrome-linux64/chrome', 'chrome-mac/Chromium.app/Contents/MacOS/Chromium', 'chrome-win/chrome.exe', 'chrome-win64/chrome.exe']) {
         const f = path.join(base, d, rel);
         if (fs.existsSync(f)) return f;
       }
@@ -31,8 +32,10 @@ function chromePath() {
 const outAdmin = fs.mkdtempSync(path.join(os.tmpdir(), 'maak-e2e-admin-'));
 function build(dir, target) {
   console.log(`Building the ${target} web bundle with mock endpoints…`);
-  execFileSync('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', dir], {
-    cwd: root, stdio: 'ignore',
+  // On Windows `npx` is `npx.cmd`, which Node only starts through a shell.
+  const win = process.platform === 'win32';
+  execFileSync(win ? 'npx.cmd' : 'npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', dir], {
+    cwd: root, stdio: 'ignore', shell: win,
     env: { ...process.env, EXPO_NO_DOTENV: '1', EXPO_OFFLINE: '1', CI: '1', EXPO_NO_TELEMETRY: '1', EXPO_PUBLIC_APP_TARGET: target, EXPO_PUBLIC_SUPABASE_URL: 'https://sb.test', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test-key', EXPO_PUBLIC_API_URL: 'https://workers.test', EXPO_PUBLIC_WEB_URL: 'http://localhost:4173' },
   });
 }
@@ -118,7 +121,7 @@ try {
   await vis(page, 'Book now').click();
   await must(page, 'Book a service');
   await vis(page, 'Next', true).click();
-  await page.getByText(/^[A-Z][a-z]{2}, \d+ [A-Z][a-z]{2}$/).nth(1).click(); // tomorrow: today may have no future slots
+  await page.getByText(/^[A-Z][a-z]{2,3}\.?,? \d+ [A-Za-z]{3,5}\.?$/).nth(1).click(); // tomorrow: today may have no future slots
   await page.waitForSelector('text=09:00', { timeout: 15000 });
   await vis(page, '09:00', true).click();
   await vis(page, 'Next', true).click();
@@ -183,6 +186,23 @@ try {
   await adminLogin(page, 'admin@t.co');
   await must(page, 'Provider applications');
   await shot(page, 'admin-home');
+  // a pending provider without identity documents cannot be approved from the UI (the database refuses it too)
+  await vis(page, 'Provider applications to review').click();
+  await must(page, 'Cannot approve yet');
+  if (await page.locator('[aria-disabled="true"]:has-text("Approve")').count() === 0) throw new Error('Approve must be disabled without documents');
+  ok('admin: approval blocked while identity documents are missing');
+  await vis(page, 'Dashboard', true).click();
+  // an announcement that reaches nobody is reported as such, not as a success
+  await vis(page, 'More', true).click();
+  await page.locator('text="Announcements" >> visible=true').last().click(); // the More sheet is on top of the dashboard tile
+  await page.locator('input:visible').first().fill('Maintenance');
+  await page.locator('textarea:visible').first().fill('Short downtime tonight');
+  await vis(page, 'Send announcement', true).click();
+  await vis(page, 'Send now', true).click();
+  await must(page, 'Nothing was sent');
+  if (await page.getByText(/delivered to/).count() > 0) throw new Error('zero recipients must not look like success');
+  ok('admin: announcement with zero recipients is a warning, not a success');
+  await vis(page, 'Dashboard', true).click();
   await vis(page, 'More', true).click();
   await vis(page, 'Reports', true).click();
   await must(page, 'Reported: Karim Benali');

@@ -75,7 +75,7 @@ export default {
     }
 
     if (url.pathname === "/health" && req.method === "GET") {
-      return json(env, requestOrigin, 200, { ok: true });
+      return json(env, requestOrigin, 200, { ok: true, features: ["providers", "admin"] }, { "Cache-Control": "no-store" });
     }
 
     const parts = url.pathname.split("/").filter(Boolean);

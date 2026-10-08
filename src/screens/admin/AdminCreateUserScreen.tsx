@@ -145,7 +145,7 @@ export function AdminCreateUserScreen({ route }: ScreenProps<'AdminCreateUser'>)
                 <TextField label={t('provider.city')} icon="location-outline" value={city} onChangeText={setCity} />
                 {role === 'provider' ? (
                   <View style={{ gap: 14 }}>
-                    <Banner kind="info" text={t('admin.providerAutoApproved')} />
+                    <Banner kind="info" text={t('admin.providerDraftNote')} />
                     <TextField label={t('application.profession')} icon="briefcase-outline" value={profession} onChangeText={setProfession} />
                     <View><Label>{t('application.category')}</Label><Row style={{ flexWrap: 'wrap' }}>{CATEGORIES.map(c => <Chip key={c.value} label={c.label[lang]} icon={c.icon} selected={category === c.value} onPress={() => setCategory(c.value)} />)}</Row></View>
                     <TextField label={t('application.bio')} value={bio} onChangeText={setBio} multiline />
@@ -172,7 +172,7 @@ export function AdminCreateUserScreen({ route }: ScreenProps<'AdminCreateUser'>)
             )
           ) : (
             <Card style={{ gap: 14 }}>
-              <Muted>{t('admin.csvHelp')}</Muted>
+              <Muted>{t('admin.csvHelpDraft')}</Muted>
               <Row style={{ flexWrap: 'wrap' }}>
                 <Button title={t('admin.csvTemplate')} icon="download-outline" variant="outline" size="sm" onPress={() => saveTextFile('maak-users-template.csv', TEMPLATE)} />
                 <Button title={t('admin.csvChoose')} icon="document-attach-outline" size="sm" onPress={pick} />
@@ -192,7 +192,7 @@ export function AdminCreateUserScreen({ route }: ScreenProps<'AdminCreateUser'>)
                   {results.map(r => (
                     <Row key={r.email} style={{ justifyContent: 'space-between' }}>
                       <Text numberOfLines={1} style={{ color: colors.text, flex: 1, fontSize: 14 }}>{r.email}</Text>
-                      <Badge text={r.ok ? t('admin.created') : t(errorKey(new Error(r.error ?? 'err.generic')))} tone={r.ok ? 'success' : 'error'} />
+                      <Badge text={r.ok ? (r.status === 'draft' ? t('admin.createdDraft') : t('admin.created')) : t(errorKey(new Error(r.error ?? 'err.generic')))} tone={r.ok ? (r.status === 'draft' ? 'warning' : 'success') : 'error'} />
                     </Row>
                   ))}
                   <Banner kind="warning" text={t('admin.passwordShownOnce')} />

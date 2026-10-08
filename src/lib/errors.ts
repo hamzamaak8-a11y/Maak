@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -52,6 +52,7 @@ export function errorKey(error: unknown): ErrorKey {
   if (/active_bookings/i.test(m)) return 'err.activeBookings';
   if (/admin_cannot_delete/i.test(m)) return 'err.adminCannotDelete';
   if (/invalid_report/i.test(m)) return 'err.invalidReport';
+  if (/PGRST202|PGRST205|could not find the function|schema cache/i.test(m)) return 'err.backendOutdated';
   if (/not_found|booking_not_found|review_not_found/i.test(m)) return 'err.notFound';
   if (/forbidden|permission denied|row-level security/i.test(m)) return 'err.forbidden';
   return 'err.generic';

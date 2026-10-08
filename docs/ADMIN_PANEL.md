@@ -39,3 +39,17 @@ Required once, in the Supabase SQL editor: `supabase/migrations/20261008100000_a
   `SUPABASE_SERVICE_ROLE_KEY` (`npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`); the Worker verifies that the caller is an active admin first.
 - **Supabase → Auth → URL configuration**: add the admin-panel URL (`<site>/<MAAK_ADMIN_PATH>`) to the redirect URLs.
 - The panel works on phones (bottom bar + "More") and desktop (sidebar).
+
+## Provider approval needs identity documents (migration `20261008110000_provider_approval_requires_documents.sql`)
+
+Run it in the Supabase SQL editor after `20261008100000_admin_tools.sql`.
+
+- A provider can only become `approved` when a national ID and a profile photo were submitted (status `pending` or `approved`, never `rejected`).
+  The rule is enforced by the database: in `admin_approve_provider` and by a trigger on `provider_profiles`, so the Worker, a CSV import or any
+  future code path cannot bypass it. Approving also marks the reviewed documents as approved.
+- Providers added by an admin (form or CSV) are created as **drafts**: they sign in, upload their documents, and an admin approves them from
+  *Provider applications*. They keep the customer role until then.
+- Check that the new Worker is live: `curl https://<worker>/health` must answer `{"ok":true,"features":["providers","admin"]}`.
+  A `404` on `POST /admin/users` or on the RPC `admin_list_users` means the Worker or the migration `20261008100000_admin_tools.sql` is not deployed yet.
+- Tests: `npm run test:unit` (realtime hub, Worker admin authorization 401/403/200, draft providers), `psql -f supabase/ci/provider-approval-documents-test.sql`
+  against a scratch database (document rules), `npm run test:e2e` (UI flows).

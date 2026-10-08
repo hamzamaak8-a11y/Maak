@@ -22,8 +22,12 @@ export function AdminAnnouncementsScreen() {
   const valid = title.trim().length > 0 && title.length <= 80 && body.trim().length > 0 && body.length <= 500;
   const send = async () => {
     setBusy(true); setError(null);
-    try { const n = await sendAnnouncement(audience, title, body); setSent(n); setConfirm(false); setTitle(''); setBody(''); }
-    catch (e) { setError(t(errorKey(e))); setConfirm(false); } finally { setBusy(false); }
+    setSent(null);
+    try {
+      const n = await sendAnnouncement(audience, title, body);
+      setSent(n); setConfirm(false);
+      if (n > 0) { setTitle(''); setBody(''); } // with 0 recipients nothing happened: keep the draft so it can be fixed and retried
+    } catch (e) { setError(t(errorKey(e))); setConfirm(false); } finally { setBusy(false); }
   };
 
   return (
@@ -32,7 +36,8 @@ export function AdminAnnouncementsScreen() {
       <Form>
         <Page>
           <Muted>{t('admin.announcementsText')}</Muted>
-          {sent !== null ? <Banner kind="success" text={t('admin.announcementSent', { n: sent })} /> : null}
+          {sent !== null && sent > 0 ? <Banner kind="success" text={t('admin.announcementSent', { n: sent })} /> : null}
+          {sent === 0 ? <Banner kind="warning" text={t('admin.announcementNone')} /> : null}
           {error ? <Banner kind="error" text={error} /> : null}
           <Card style={{ gap: 14 }}>
             <Text style={{ color: colors.text, fontWeight: '800' }}>{t('admin.audience')}</Text>

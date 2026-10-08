@@ -17,7 +17,7 @@ export type NewUserInput = {
   email?: string; fullName?: string; phone?: string; city?: string; role?: string;
   mode?: "invite" | "password"; password?: string; provider?: ProviderInput;
 };
-export type CreatedUser = { email: string; ok: boolean; id?: string; password?: string; error?: string };
+export type CreatedUser = { email: string; ok: boolean; id?: string; password?: string; error?: string; status?: "draft" };
 
 export class HttpError extends Error {
   status: number;
@@ -112,7 +112,7 @@ async function createOne(env: Env, adminId: string, input: NewUserInput): Promis
 
     const patch = await call(env, `/rest/v1/profiles?id=eq.${id}`, {
       method: "PATCH", headers: svcHeaders(env, { Prefer: "return=minimal" }),
-      body: JSON.stringify({ full_name: v.fullName, phone: v.phone || null, city: v.city || null, ...(v.role === "provider" ? { role: "provider" } : {}) }),
+      body: JSON.stringify({ full_name: v.fullName, phone: v.phone || null, city: v.city || null }),
     });
     if (!patch.ok) throw new Error("profile_update_failed");
 
@@ -122,7 +122,7 @@ async function createOne(env: Env, adminId: string, input: NewUserInput): Promis
         method: "POST", headers: svcHeaders(env, { Prefer: "resolution=merge-duplicates,return=minimal" }),
         body: JSON.stringify({
           id, profession: p.profession, service_category: p.category, bio: p.bio, experience_years: p.experienceYears ?? null,
-          services: p.services, price_from: p.priceFrom ?? null, service_radius_km: p.radiusKm ?? null, verification_status: "approved",
+          services: p.services, price_from: p.priceFrom ?? null, service_radius_km: p.radiusKm ?? null, verification_status: "draft",
         }),
       });
       if (!up.ok) throw new Error("provider_profile_failed");
@@ -132,7 +132,8 @@ async function createOne(env: Env, adminId: string, input: NewUserInput): Promis
       method: "POST", headers: svcHeaders(env, { Prefer: "return=minimal" }),
       body: JSON.stringify({ admin_id: adminId, action: "user_created_by_admin", target_type: "profile", target_id: id, metadata: { email: v.email, role: v.role, mode: v.mode } }),
     });
-    return { email: v.email, ok: true, id, password: v.mode === "password" ? password : undefined };
+    // Providers start as drafts: they must upload their identity documents, then an admin reviews and approves them.
+    return { email: v.email, ok: true, id, password: v.mode === "password" ? password : undefined, ...(v.provider ? { status: "draft" as const } : {}) };
   } catch (e) {
     return { email: v.email, ok: false, id, error: e instanceof Error ? e.message : "failed" };
   }

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { createRealtimeHub, type HubClient } from '../lib/realtimeHub';
 import type { AppNotification } from '../types';
 
 export async function listNotifications(limit = 50, offset = 0): Promise<AppNotification[]> {
@@ -17,10 +18,8 @@ export async function markAllNotificationsRead(): Promise<void> {
   if (error) throw error;
 }
 
+const subscribe = createRealtimeHub(supabase as unknown as HubClient);
+
 export function subscribeToNotifications(userId: string, onInsert: (n: AppNotification) => void): () => void {
-  const channel = supabase
-    .channel(`user:${userId}:notifications`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, p => onInsert(p.new as AppNotification))
-    .subscribe();
-  return () => { void supabase.removeChannel(channel); };
+  return subscribe<AppNotification>(`user:${userId}:notifications`, { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, onInsert);
 }

@@ -24,6 +24,8 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261007150000_demote_demo_admin.sql` | One-time, audited demotion of `maak.admin.demo@gmail.com` to `customer` (refuses unless the official admin is an active admin) |
 | `migrations/20261007140000_delete_my_account.sql` | `delete_my_account()` RPC behind *Profile → Security → Delete my account* |
 | `migrations/20261007140100_content_reports.sql` | `content_reports` table + `submit_report`, `admin_list_reports`, `admin_resolve_report` RPCs (user / review / message reports) |
+| `migrations/20261008100000_admin_tools.sql` | Admin panel back-end: `admin_list_users`, `admin_user_overview`, `admin_overview_stats`, `admin_send_announcement`, `admin_delete_user` (all re-check that the caller is an active admin) |
+| `migrations/20261008110000_provider_approval_requires_documents.sql` | A provider can only be approved with a national ID and a profile photo on file: enforced in `admin_approve_provider` and by a trigger, so no code path (Worker, CSV) can bypass it. Test: `supabase/ci/provider-approval-documents-test.sql` |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
 

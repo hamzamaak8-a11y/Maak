@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { createRealtimeHub, type HubClient } from '../lib/realtimeHub';
 import type { ChatMessage, Conversation } from '../types';
 
 export async function listConversations(): Promise<Conversation[]> {
@@ -36,10 +37,8 @@ export async function markConversationRead(conversationId: string): Promise<void
   if (error) throw error;
 }
 
+const subscribe = createRealtimeHub(supabase as unknown as HubClient);
+
 export function subscribeToConversation(conversationId: string, onMessage: (m: ChatMessage) => void): () => void {
-  const channel = supabase
-    .channel(`conversation:${conversationId}:messages`)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, p => onMessage(p.new as ChatMessage))
-    .subscribe();
-  return () => { void supabase.removeChannel(channel); };
+  return subscribe<ChatMessage>(`conversation:${conversationId}:messages`, { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` }, onMessage);
 }

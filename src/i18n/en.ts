@@ -353,6 +353,12 @@ export const en = {
   'dashboard.viewPage': "See my public page",
   'dashboard.availability': "Working hours",
   'home.moreProviders': "More professionals",
+  'admin.providerDraftNote': "Providers start as drafts. They sign in, upload their ID and a profile photo, then you review and approve them in Provider applications. Nothing is published before that.",
+  'admin.csvHelpDraft': "Upload a CSV to create many customers and providers at once. Each person gets an auto-generated password. Providers are created as drafts: they must upload their identity documents and you approve them afterwards. Up to 100 rows per import.",
+  'admin.createdDraft': "Created · awaiting documents",
+  'admin.docsMissing': "Cannot approve yet: a national ID and a profile photo are required.",
+  'err.backendOutdated': "The server is not updated for this feature yet. Ask the technical owner to deploy the latest backend (database migration and Worker).",
+  'admin.announcementNone': "Nothing was sent: there are no active people in this audience. Check the audience, or add people first.",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;
