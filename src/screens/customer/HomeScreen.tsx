@@ -64,7 +64,7 @@ export function HomeScreen() {
           </Row>
           <Pressable onPress={search} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.97)', borderRadius: 16, paddingHorizontal: 16, minHeight: 54 }}>
             <Ionicons name="search" size={20} color="#475569" />
-            <TextInput value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} placeholderTextColor="#64748B" returnKeyType="search" onSubmitEditing={search}
+            <TextInput accessibilityLabel={t('home.searchPlaceholder')} value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} placeholderTextColor="#64748B" returnKeyType="search" onSubmitEditing={search}
               style={[{ flex: 1, fontSize: 16, color: '#0B1220', paddingVertical: 12 }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]} textAlign={isRTL ? 'right' : 'left'} />
           </Pressable>
         </LinearGradient>

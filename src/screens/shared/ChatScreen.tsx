@@ -81,14 +81,14 @@ export function ChatScreen({ route }: ScreenProps<'Chat'>) {
                     <Text style={{ color: mine ? colors.onPrimary : colors.text, fontSize: 15, lineHeight: 21 }}>{item.body}</Text>
                     <Text style={{ color: mine ? colors.onPrimary : colors.textMuted, opacity: 0.75, fontSize: 10, marginTop: 3, alignSelf: 'flex-end' }}>{formatTime(item.created_at, lang)}</Text>
                   </View>
-                  {!mine ? <Pressable onPress={() => setReporting(item.id)} hitSlop={8} accessibilityLabel={t('report.title')} style={{ alignSelf: 'center' }}><Ionicons name="flag-outline" size={16} color={colors.textMuted} /></Pressable> : null}
+                  {!mine ? <Pressable onPress={() => setReporting(item.id)} accessibilityRole="button" accessibilityLabel={t('report.title')} style={{ alignSelf: 'center', width: 44, height: 44, alignItems: 'center', justifyContent: 'center', margin: -12 }}><Ionicons name="flag-outline" size={16} color={colors.textMuted} /></Pressable> : null}
                 </View>
               );
             }}
           />
         )}
         <View style={{ flexDirection: 'row', gap: 10, padding: 12, borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.surface, alignItems: 'flex-end' }}>
-          <TextInput value={text} onChangeText={setText} placeholder={t('chat.placeholder')} placeholderTextColor={colors.textMuted} multiline maxLength={4000}
+          <TextInput accessibilityLabel={t('chat.placeholder')} value={text} onChangeText={setText} placeholder={t('chat.placeholder')} placeholderTextColor={colors.textMuted} multiline maxLength={4000}
             textAlign={isRTL ? 'right' : 'left'}
             style={[{ flex: 1, maxHeight: 110, minHeight: 44, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: colors.background, color: colors.text, fontSize: 15, borderWidth: 1, borderColor: colors.border }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]} />
           <Pressable onPress={send} disabled={!text.trim() || sending || !conversationId} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', opacity: !text.trim() || sending ? 0.5 : 1 }}>

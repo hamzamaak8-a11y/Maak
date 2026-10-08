@@ -39,7 +39,7 @@ export function AdminLoginScreen() {
         </Row>
         {error ? <Banner kind="error" text={error} /> : null}
         <TextField label={t('auth.email')} icon="mail-outline" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" placeholder="name@example.com" />
-        <TextField label={t('auth.password')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="password" onSubmitEditing={submit} returnKeyType="go" />
+        <TextField label={t('auth.password')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="current-password" onSubmitEditing={submit} returnKeyType="go" />
         <Button gradient title={t('auth.login')} icon="log-in-outline" onPress={submit} loading={busy} />
         {GOOGLE_LOGIN_ENABLED ? (
           <>

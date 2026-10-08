@@ -61,11 +61,12 @@ export function ChevronIcon({ size = 18, color }: { size?: number; color?: strin
 
 export function Header({ title, onBack, right, noBack }: { title: string; onBack?: () => void; right?: React.ReactNode; noBack?: boolean }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const nav = useNavigation();
   return (
     <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
       {noBack ? <View style={styles.headerSide} /> : (
-        <Pressable accessibilityRole="button" onPress={onBack ?? (() => (nav.canGoBack() ? nav.goBack() : undefined))} style={styles.headerSide} hitSlop={8}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('common.back')} onPress={onBack ?? (() => (nav.canGoBack() ? nav.goBack() : undefined))} style={styles.headerSide} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <BackIcon />
         </Pressable>
       )}
@@ -193,7 +194,7 @@ type FieldProps = TextInputProps & { label?: string; error?: string | null; icon
 
 export function TextField({ label, error, icon, secure, multiline, style, ...rest }: FieldProps) {
   const { colors } = useTheme();
-  const { isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [hidden, setHidden] = useState(!!secure);
   return (
     <View style={style}>
@@ -205,11 +206,12 @@ export function TextField({ label, error, icon, secure, multiline, style, ...res
           secureTextEntry={hidden}
           multiline={multiline}
           textAlign={isRTL ? 'right' : 'left'}
+          accessibilityLabel={rest.accessibilityLabel ?? label ?? rest.placeholder}
           {...rest}
           style={[styles.input, { color: colors.text, minHeight: multiline ? 104 : 52, textAlignVertical: multiline ? 'top' : 'center' }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]}
         />
         {secure ? (
-          <Pressable onPress={() => setHidden(h => !h)} hitSlop={8}>
+          <Pressable accessibilityRole="button" accessibilityLabel={hidden ? t('auth.showPassword') : t('auth.hidePassword')} onPress={() => setHidden(h => !h)} style={{ width: 44, height: 44, marginVertical: -8, marginEnd: -10, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={18} color={colors.textMuted} />
           </Pressable>
         ) : null}
@@ -343,6 +345,7 @@ export function InfoRow({ icon, label, value }: { icon: IconName; label: string;
 
 export function Sheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay }}>
@@ -350,7 +353,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
         <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
           <Row style={{ justifyContent: 'space-between', marginBottom: 12 }}>
             <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', flex: 1 }}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={8}><Ionicons name="close" size={24} color={colors.textSecondary} /></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('common.close')} onPress={onClose} style={{ width: 44, height: 44, margin: -10, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="close" size={24} color={colors.textSecondary} /></Pressable>
           </Row>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 14, paddingBottom: 12, maxWidth: 560, width: '100%', alignSelf: 'center' }}>{children}</ScrollView>
         </View>
@@ -377,7 +380,7 @@ export function ReasonSheet({ visible, title, placeholder, confirmLabel, require
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 58 },
-  headerSide: { width: 44, height: 40, justifyContent: 'center' },
+  headerSide: { width: 44, height: 44, justifyContent: 'center' },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: '800', textAlign: 'center' },
   card: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
   sectionTitle: { fontSize: 19, fontWeight: '800', letterSpacing: -0.2 },

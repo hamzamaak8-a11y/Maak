@@ -344,4 +344,7 @@ export const fr: Record<TKey, string> = {
   'admin.announcementNone': "Rien n'a été envoyé : aucune personne active dans cette audience. Vérifiez l'audience ou ajoutez d'abord des personnes.",
   'provider.notOpenYet': "Réservations pas encore ouvertes",
   'home.newProviders': "Nouveaux sur Maak",
+  'common.close': "Fermer",
+  'auth.showPassword': "Afficher le mot de passe",
+  'auth.hidePassword': "Masquer le mot de passe",
 };

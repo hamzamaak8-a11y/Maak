@@ -35,7 +35,7 @@ export function GlassCard({ children, style }: { children: React.ReactNode; styl
 export function AuthShell({ heading, subheading, children, footer, onBack, badge, hideLanguage }: {
   heading: string; subheading?: string; children: React.ReactNode; footer?: React.ReactNode; onBack?: () => void; badge?: string; hideLanguage?: boolean;
 }) {
-  const { isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   return (
     <ForceTheme colors={authColors}>
       <View style={{ flex: 1, backgroundColor: authColors.background, overflow: 'hidden' }}>
@@ -47,7 +47,7 @@ export function AuthShell({ heading, subheading, children, footer, onBack, badge
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 36, gap: 22, width: '100%', maxWidth: 520, alignSelf: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
               {onBack ? (
-                <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button" style={styles.back}>
+                <Pressable onPress={onBack} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('common.back')} style={styles.back}>
                   <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={22} color="#F4F8FF" />
                 </Pressable>
               ) : <View style={{ width: 44 }} />}

@@ -27,8 +27,8 @@ export function ResetPasswordScreen() {
     <AuthShell heading={t('auth.newPassword')} subheading={t('auth.newPasswordText')}>
       <GlassCard>
         {error ? <Banner kind="error" text={error} /> : null}
-        <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" />
-        <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" onSubmitEditing={submit} />
+        <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" />
+        <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" onSubmitEditing={submit} />
         <Button gradient title={t('common.save')} onPress={submit} loading={busy} />
       </GlassCard>
     </AuthShell>

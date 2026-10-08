@@ -361,6 +361,9 @@ export const en = {
   'admin.announcementNone': "Nothing was sent: there are no active people in this audience. Check the audience, or add people first.",
   'provider.notOpenYet': "Bookings not open yet",
   'home.newProviders': "New on Maak",
+  'common.close': "Close",
+  'auth.showPassword': "Show password",
+  'auth.hidePassword': "Hide password",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

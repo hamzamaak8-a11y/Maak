@@ -344,4 +344,7 @@ export const ar: Record<TKey, string> = {
   'admin.announcementNone': "لم يُرسل شيء: لا يوجد أشخاص نشطون في هذه الفئة. تحقق من الفئة أو أضف أشخاصًا أولًا.",
   'provider.notOpenYet': "الحجز غير متاح بعد",
   'home.newProviders': "جديد على معاك",
+  'common.close': "إغلاق",
+  'auth.showPassword': "إظهار كلمة المرور",
+  'auth.hidePassword': "إخفاء كلمة المرور",
 };

@@ -164,7 +164,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
               <SectionTitle title={t('provider.reviews')} />
               {reviews.loading && !reviews.data ? <Loading /> : !reviews.data || reviews.data.reviews.length === 0 ? <Muted>{t('provider.noReviews')}</Muted> : reviews.data.reviews.map(r => (
                 <Card key={r.id} style={{ gap: 6, borderRadius: 18 }}>
-                  <Row style={{ justifyContent: 'space-between' }}><Stars value={r.rating} size={13} /><Row gap={10}><Muted>{formatDate(r.created_at, lang)}</Muted><Ionicons name="flag-outline" size={15} color={colors.textMuted} onPress={() => { if (requireAuth(here)) setReport({ type: 'review', id: r.id }); }} /></Row></Row>
+                  <Row style={{ justifyContent: 'space-between' }}><Stars value={r.rating} size={13} /><Row gap={10}><Muted>{formatDate(r.created_at, lang)}</Muted><Pressable accessibilityRole="button" accessibilityLabel={t('report.title')} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', margin: -14 }} onPress={() => { if (requireAuth(here)) setReport({ type: 'review', id: r.id }); }}><Ionicons name="flag-outline" size={16} color={colors.textMuted} /></Pressable></Row></Row>
                   {r.comment ? <Text style={{ color: colors.text, fontSize: 14.5, lineHeight: 22 }}>{r.comment}</Text> : null}
                 </Card>
               ))}
@@ -198,7 +198,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
 
 function GlassButton({ icon, onPress, label, color }: { icon: keyof typeof Ionicons.glyphMap; onPress: () => void; label: string; color?: string }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} hitSlop={6} style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
       <Ionicons name={icon} size={21} color={color ?? '#0A1633'} />
     </Pressable>
   );

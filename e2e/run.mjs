@@ -89,6 +89,30 @@ async function adminLogin(page, email, password = 'password123') {
 }
 const open = async page => { await page.goto('http://localhost:4173/'); await must(page, 'Browse services'); };
 
+
+// ---- accessibility helpers -------------------------------------------------------------------------------------------------
+const accessibleName = el => (el.getAttribute('aria-label') || [...(el.labels ?? [])].map(l => l.textContent).join(' ') || el.getAttribute('aria-labelledby') || el.getAttribute('title') || '').trim();
+/** Every visible text field must have a programmatic name and the right autocomplete token. */
+async function auditFields(page, where, expected) {
+  const fields = await page.$$eval('input:not([type=hidden]), textarea', els => els.filter(e => e.offsetParent !== null).map(e => ({ type: e.type, name: (e.getAttribute('aria-label') || [...(e.labels ?? [])].map(l => l.textContent).join(' ') || e.getAttribute('aria-labelledby') || '').trim(), ac: e.getAttribute('autocomplete') || '', ph: e.placeholder })));
+  const issues = fields.filter(f => !f.name).map(f => `${where}: field "${f.ph || f.type}" has no accessible name`);
+  for (const [type, ac] of expected) { const f = fields.find(x => x.type === type); if (f && f.ac !== ac) issues.push(`${where}: ${type} field has autocomplete="${f.ac}", expected "${ac}"`); }
+  return issues;
+}
+/** A control counts as finger-sized when a 44x44 square around its centre still hits it (size + hitSlop). */
+async function hitArea(page, locator, label, issues, size = 44) {
+  const el = (await locator.count()) ? await locator.first().elementHandle() : null;
+  if (el) await el.scrollIntoViewIfNeeded();
+  if (!el) { issues.push(`${label}: control not found (missing accessible name?)`); return; }
+  const ok = await el.evaluate((node, half) => {
+    const r = node.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const bad = [[-1, 0], [1, 0], [0, -1], [0, 1], [0, 0]].map(([dx, dy]) => { const x = cx + dx * (half - 1), y = cy + dy * (half - 1); const e = document.elementFromPoint(x, y); return !!e && node.contains(e) ? null : `${dx},${dy}@${Math.round(x)},${Math.round(y)} hits ${e ? e.tagName + '.' + String(e.className).slice(0, 20) : 'nothing'}`; }).filter(Boolean);
+    if (r.left < -1 || r.right > window.innerWidth + 1) bad.push(`outside the ${window.innerWidth}px viewport (x ${Math.round(r.left)}..${Math.round(r.right)})`);
+    return bad.length ? `box ${Math.round(r.width)}x${Math.round(r.height)} ${bad.join('; ')}` : '';
+  }, size / 2);
+  if (ok) issues.push(`${label}: touch area is smaller than ${size}x${size} (${ok})`);
+}
+
 try {
   // legal pages are shipped with the web build
   for (const [file, text] of [['privacy.html', 'Privacy policy'], ['terms.html', 'Terms of use'], ['delete-account.html', 'Delete your MAAK account']]) {
@@ -163,6 +187,44 @@ try {
   if (await page.locator('text="Verified" >> visible=true').count() > 0) throw new Error('unverified provider shows the Verified badge');
   ok('home sections, currency, closed-booking experience and verified badge are correct');
   await page.context().close();
+
+  // accessibility + touch targets on a 320px phone
+  {
+    const issues = [];
+    page = await newPage('en-US', { width: 320, height: 640 });
+    await open(page);
+    await vis(page, 'Sign in', true).click();
+    await must(page, 'Welcome back');
+    issues.push(...await auditFields(page, 'login', [['password', 'current-password']]));
+    await shot(page, 'login-320');
+    await hitArea(page, page.locator('[aria-label="Back"]:visible'), 'login: back button', issues);
+    await hitArea(page, page.locator('[aria-label="Show password"]:visible'), 'login: show-password toggle', issues);
+    await page.context().close();
+    page = await newPage('en-US', { width: 320, height: 640 });
+    await open(page);
+    await vis(page, 'Create a customer account').click();
+    await must(page, 'Full name');
+    issues.push(...await auditFields(page, 'signup', [['password', 'new-password']]));
+    await page.context().close();
+    page = await newPage('en-US', { width: 320, height: 640 });
+    await page.goto('http://localhost:4174/');
+    await must(page, 'Administration panel');
+    issues.push(...await auditFields(page, 'admin login', [['password', 'current-password']]));
+    await page.context().close();
+    page = await newPage('en-US', { width: 320, height: 640 });
+    await open(page);
+    await login(page, 'customer@t.co');
+    await must(page, 'Top rated');
+    await vis(page, 'Karim Benali').click();
+    await must(page, 'Book now');
+    for (const [name, label] of [['Back', 'provider: back'], ['Report', 'provider: report'], ['Favourites', 'provider: favourite']]) await hitArea(page, page.locator(`[aria-label="${name}"]:visible`), label, issues);
+    await page.locator('[aria-label="Report"]:visible').first().click();
+    await must(page, 'Spam');
+    await hitArea(page, page.locator('[aria-label="Close"]:visible'), 'report sheet: close', issues);
+    await page.context().close();
+    if (issues.length) throw new Error('accessibility issues:\n  - ' + issues.join('\n  - '));
+    ok('accessibility: field names, autocomplete tokens and 44px touch areas at 320px');
+  }
 
   // customer: book, report, delete-blocked
   page = await newPage();
