@@ -163,7 +163,7 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
     return (
       <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={off} onPress={onPress}
         style={({ pressed }) => [{ borderRadius: 16, opacity: off ? 0.55 : pressed ? 0.9 : 1, boxShadow: '0 10px 26px rgba(45,212,191,0.32)' }, style]}>
-        <LinearGradient colors={['#34EBD0', '#14B8A6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        <LinearGradient colors={['#4DB8FF', '#1D6FF2']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
           style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 56, paddingHorizontal: 22, borderRadius: 16 }}>
           {inner}
         </LinearGradient>

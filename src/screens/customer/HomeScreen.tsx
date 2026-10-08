@@ -45,7 +45,7 @@ export function HomeScreen() {
   return (
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}>
-        <LinearGradient colors={['#062A3D', '#0B4F5C', '#0D9488']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, boxShadow: '0 14px 34px rgba(13,148,136,0.28)' }}>
+        <LinearGradient colors={['#061A44', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, boxShadow: '0 14px 34px rgba(29,95,224,0.30)' }}>
           <Row style={{ justifyContent: 'space-between' }}>
             <View style={{ flex: 1 }}>
               <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 14, fontWeight: '600' }}>{user ? t('home.hello') : t('home.welcome')}</Text>

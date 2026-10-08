@@ -21,7 +21,7 @@ const config: ExpoConfig = {
   android: {
     package: 'com.maak.app',
     adaptiveIcon: {
-      backgroundColor: '#0F766E',
+      backgroundColor: '#04112F',
       foregroundImage: './assets/android-icon-foreground.png',
       backgroundImage: './assets/android-icon-background.png',
       monochromeImage: './assets/android-icon-monochrome.png',
@@ -34,7 +34,7 @@ const config: ExpoConfig = {
   web: { favicon: './assets/favicon.png', bundler: 'metro', output: 'single' },
   plugins: [
     'expo-font',
-    ['expo-splash-screen', { image: './assets/splash-icon.png', imageWidth: 160, resizeMode: 'contain', backgroundColor: '#F8FAFC', dark: { backgroundColor: '#020617' } }],
+    ['expo-splash-screen', { image: './assets/splash-icon.png', imageWidth: 160, resizeMode: 'contain', backgroundColor: '#04112F', dark: { backgroundColor: '#04112F' } }],
     'expo-localization',
     'expo-web-browser',
     [
