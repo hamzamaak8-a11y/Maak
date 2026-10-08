@@ -104,6 +104,8 @@ export function makeBackend() {
           const r = { id: 'r' + (state.reports.length + 1), target_type: body.p_target_type, target_id: body.p_target_id, reason: body.p_reason, details: body.p_details, status: 'open', resolution_note: null, created_at: now(), reporter_id: user.id, reporter_name: user.name, reported_user_id: uid.provider, reported_name: 'Karim Benali', reported_account_status: 'active', content: null };
           state.reports.push(r); return json(route, r.id);
         }
+        case 'admin_overview_stats': return json(route, { customers: 12, providers: 3, approved_providers: 2, pending_applications: 1, open_reports: state.reports.filter(r => r.status === 'open').length, suspended_accounts: 0, total_bookings: state.bookings.length, open_bookings: 1, bookings_7d: 2, bookings_30d: 3, completed_30d: 1, new_users_7d: 4, new_users_30d: 9, unpaid_completed: 0, paid_30d: {}, reviews: 2, daily: [{ day: '2026-10-01', bookings: 1, users: 2 }, { day: '2026-10-02', bookings: 2, users: 1 }] });
+        case 'admin_list_users': return json(route, []);
         case 'admin_list_reports': return json(route, state.reports.filter(r => r.status === body.p_status));
         case 'admin_resolve_report': { const r = state.reports.find(x => x.id === body.p_id); r.status = body.p_status; return json(route, null, 204); }
         case 'delete_my_account': {

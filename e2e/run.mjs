@@ -179,6 +179,7 @@ try {
   await adminLogin(page, 'admin@t.co');
   await must(page, 'Provider applications');
   await shot(page, 'admin-home');
+  await vis(page, 'More', true).click();
   await vis(page, 'Reports', true).click();
   await must(page, 'Reported: Karim Benali');
   await shot(page, 'admin-reports');

@@ -53,6 +53,9 @@ export type AllParams = {
   AdminReviews: undefined;
   AdminAudit: undefined;
   AdminReports: undefined;
+  AdminUserDetail: { id: string };
+  AdminCreateUser: { mode?: 'single' | 'csv' } | undefined;
+  AdminAnnouncements: undefined;
 };
 
 export type Nav = NativeStackNavigationProp<AllParams>;

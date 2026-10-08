@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { ActivityIndicator, Image, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { createNavigationContainerRef, DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import { navRef } from './ref';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
@@ -38,6 +39,10 @@ import { DeleteAccountScreen } from '../screens/shared/DeleteAccountScreen';
 import { AdminReportsScreen } from '../screens/admin/AdminReportsScreen';
 import { AdminLoginScreen } from '../screens/admin/AdminLoginScreen';
 import { AccessBlockedScreen } from '../screens/shared/AccessBlockedScreen';
+import { AdminFrame } from '../components/AdminFrame';
+import { AdminUserDetailScreen } from '../screens/admin/AdminUserDetailScreen';
+import { AdminCreateUserScreen } from '../screens/admin/AdminCreateUserScreen';
+import { AdminAnnouncementsScreen } from '../screens/admin/AdminAnnouncementsScreen';
 import { ProviderApplicationScreen } from '../screens/provider/ProviderApplicationScreen';
 import { ProviderDashboardScreen } from '../screens/provider/ProviderDashboardScreen';
 import { ProviderRequestsScreen } from '../screens/provider/ProviderRequestsScreen';
@@ -56,7 +61,6 @@ import { AdminAuditScreen } from '../screens/admin/AdminAuditScreen';
 const Stack = createNativeStackNavigator<AllParams>();
 const CTabs = createBottomTabNavigator<CustomerTabParams>();
 const PTabs = createBottomTabNavigator<ProviderTabParams>();
-export const navRef = createNavigationContainerRef<AllParams>();
 
 type IconPair = [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap];
 
@@ -176,6 +180,9 @@ function AdminNavigator() {
       <Stack.Screen name="AdminReviews" component={AdminReviewsScreen} />
       <Stack.Screen name="AdminAudit" component={AdminAuditScreen} />
       <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
+      <Stack.Screen name="AdminUserDetail" component={AdminUserDetailScreen} />
+      <Stack.Screen name="AdminCreateUser" component={AdminCreateUserScreen} />
+      <Stack.Screen name="AdminAnnouncements" component={AdminAnnouncementsScreen} />
       <Stack.Screen name="Security" component={SecurityScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
@@ -235,7 +242,7 @@ export function RootNavigator() {
     // Standalone administration panel: only administrators get in, nothing of the customer app is reachable.
     if (!user) body = <AdminLoginScreen />;
     else if (role === 'suspended') body = <Splash message={t('app.suspended')}><Button title={t('auth.logout')} onPress={() => { void signOut(); }} /></Splash>;
-    else if (role === 'admin') body = <AdminNavigator />;
+    else if (role === 'admin') body = <AdminFrame><AdminNavigator /></AdminFrame>;
     else body = <AccessBlockedScreen kind="not-admin" />;
   }
   else if (role === 'admin') body = <AccessBlockedScreen kind="admin-in-app" />;

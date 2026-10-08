@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -43,6 +43,12 @@ export function errorKey(error: unknown): ErrorKey {
   if (/empty_message/i.test(m)) return 'err.emptyMessage';
   if (/message_too_long/i.test(m)) return 'err.messageTooLong';
   if (/documents_required/i.test(m)) return 'err.documentsRequired';
+  if (/invalid_target/i.test(m)) return 'err.invalidTarget';
+  if (/email_exists/i.test(m)) return 'err.emailExists';
+  if (/invalid_email/i.test(m)) return 'err.invalidEmail';
+  if (/invalid_provider|invalid_name|invalid_role/i.test(m)) return 'err.invalidProvider';
+  if (/batch_too_large|empty_batch/i.test(m)) return 'err.batchTooLarge';
+  if (/server_error|create_failed|invite_failed|profile_|link_failed/i.test(m)) return 'err.serverError';
   if (/active_bookings/i.test(m)) return 'err.activeBookings';
   if (/admin_cannot_delete/i.test(m)) return 'err.adminCannotDelete';
   if (/invalid_report/i.test(m)) return 'err.invalidReport';

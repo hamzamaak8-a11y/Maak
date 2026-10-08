@@ -16,3 +16,13 @@ export async function pickDocument(): Promise<PickedFile | null> {
   const a = res.assets[0];
   return { uri: a.uri, name: a.name, mimeType: a.mimeType ?? 'application/pdf', size: a.size ?? null };
 }
+
+/** Lets the admin choose a .csv file and returns its text. */
+export async function pickCsvText(): Promise<string | null> {
+  const res = await DocumentPicker.getDocumentAsync({ type: ['text/csv', 'text/comma-separated-values', 'text/plain', 'application/vnd.ms-excel'], copyToCacheDirectory: true, multiple: false });
+  if (res.canceled || !res.assets[0]) return null;
+  const a = res.assets[0];
+  const text = await (await fetch(a.uri)).text();
+  if (text.length > 1_000_000) throw new Error('err.fileTooBig');
+  return text;
+}

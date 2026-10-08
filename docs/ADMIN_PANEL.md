@@ -30,3 +30,12 @@ The phone apps (EAS builds) are always the **app** target, so the admin UI never
   For stronger isolation later, serve the panel from its own sub-domain (e.g. `admin.<your-domain>`) via Cloudflare Pages
   and set `EXPO_BASE_URL` empty for that build.
 * Keep a single admin (the official account) and review *Audit log* regularly.
+
+## Admin tools v2 (dashboard, people, announcements)
+
+Required once, in the Supabase SQL editor: `supabase/migrations/20261008100000_admin_tools.sql`.
+
+- **Worker**: redeploy `worker/` (`npx wrangler deploy`). The new admin endpoints (create user, CSV import) need the secret
+  `SUPABASE_SERVICE_ROLE_KEY` (`npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`); the Worker verifies that the caller is an active admin first.
+- **Supabase → Auth → URL configuration**: add the admin-panel URL (`<site>/<MAAK_ADMIN_PATH>`) to the redirect URLs.
+- The panel works on phones (bottom bar + "More") and desktop (sidebar).
