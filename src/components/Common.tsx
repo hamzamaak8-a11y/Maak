@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { listNotifications, subscribeToNotifications } from '../api/notifications';
 import { Avatar, Button, Card, EmptyState, IconButton, Row } from './ui';
 import { CoverPhoto, useCover } from './ProviderVisual';
-import { ratingNumber } from '../lib/format';
+import { formatStartingPrice, ratingNumber } from '../lib/format';
 import { categoryLabel } from '../constants/categories';
 import type { Nav } from '../navigation/types';
 import type { Provider } from '../types';
@@ -47,12 +47,14 @@ export function ProviderCard({ provider, onPress, favorite, onToggleFavorite, st
   const { t, lang } = useLanguage();
   const rating = ratingNumber(provider.rating);
   const cover = useCover(provider);
+  const startPrice = formatStartingPrice(provider.price, provider.currency, lang);
   return (
     <Card onPress={onPress} padded={false} style={[{ overflow: 'hidden', borderRadius: 24 }, style]}>
       <CoverPhoto provider={provider} uri={cover} height={188}>
-        <View style={{ position: 'absolute', top: 12, start: 12, flexDirection: 'row', gap: 6 }}>
-          <View style={styles.pill}><Ionicons name="shield-checkmark" size={13} color="#1D5FE0" /><Text style={styles.pillText}>{t('provider.verified')}</Text></View>
+        <View style={{ position: 'absolute', top: 12, start: 12, end: 60, flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {provider.verified ? <View style={styles.pill}><Ionicons name="shield-checkmark" size={13} color="#1D5FE0" /><Text style={styles.pillText}>{t('provider.verified')}</Text></View> : null}
           {provider.category ? <View style={styles.pill}><Text style={styles.pillText}>{categoryLabel(provider.category, lang)}</Text></View> : null}
+          {provider.available !== true ? <View style={[styles.pill, { backgroundColor: 'rgba(10,22,51,0.72)' }]}><Text style={[styles.pillText, { color: '#fff' }]}>{t('provider.notOpenYet')}</Text></View> : null}
         </View>
         {onToggleFavorite ? (
           <Pressable onPress={onToggleFavorite} hitSlop={10} accessibilityLabel={t('favorites.title')} style={{ position: 'absolute', top: 10, end: 10, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center' }}>
@@ -73,7 +75,7 @@ export function ProviderCard({ provider, onPress, favorite, onToggleFavorite, st
             : <View style={{ backgroundColor: colors.primaryLight, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 99 }}><Text style={{ color: colors.primary, fontSize: 12, fontWeight: '800' }}>{t('provider.newBadge')}</Text></View>}
           <Ionicons name="location-outline" size={15} color={colors.textMuted} style={{ marginStart: 8 }} /><Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '500', flexShrink: 1 }}>{provider.city}</Text>
         </Row>
-        {provider.price ? <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '800' }}>{t('provider.from', { price: provider.price })}</Text> : null}
+        {startPrice ? <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '800' }}>{t('provider.from', { price: startPrice })}</Text> : null}
       </View>
     </Card>
   );

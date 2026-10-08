@@ -23,6 +23,8 @@ function normalize(raw: Record<string, unknown>): Provider {
     intro: raw.intro == null ? null : String(raw.intro),
     provider_profile_id: typeof raw.provider_profile_id === 'string' ? raw.provider_profile_id : null,
     category: typeof raw.category === 'string' ? raw.category : null,
+    verified: raw.verified === true,
+    currency: typeof raw.currency === 'string' && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
   };
 }
 

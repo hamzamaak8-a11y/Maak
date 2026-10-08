@@ -84,7 +84,7 @@ export const en = {
   'provider.newBadge': 'New', 'provider.available': 'Available', 'provider.unavailable': 'Unavailable', 'provider.verified': 'Verified',
   'provider.from': 'From {price}', 'provider.city': 'City', 'provider.experience': 'Experience', 'provider.priceFrom': 'Starting price', 'provider.about': 'About',
   'provider.services': 'Services', 'provider.priceList': 'Price list', 'provider.portfolio': 'Portfolio', 'provider.reviews': 'Reviews', 'provider.noReviews': 'No reviews yet.',
-  'provider.notFound': 'Provider not found', 'provider.notBookable': 'This provider is not taking bookings at the moment.',
+  'provider.notFound': 'Provider not found', 'provider.notBookable': 'This professional has not opened their working hours yet, so online booking is closed. You can still send a message.',
   'provider.message': 'Message', 'provider.book': 'Book now',
   'provider.marketplaceProfile': 'Public profile', 'provider.availability': 'Availability', 'provider.myReviews': 'My reviews', 'provider.currency': 'Currency',
   'provider.accept': 'Accept', 'provider.reject': 'Decline', 'provider.start': 'Start service', 'provider.complete': 'Mark as completed',
@@ -359,6 +359,8 @@ export const en = {
   'admin.docsMissing': "Cannot approve yet: a national ID and a profile photo are required.",
   'err.backendOutdated': "The server is not updated for this feature yet. Ask the technical owner to deploy the latest backend (database migration and Worker).",
   'admin.announcementNone': "Nothing was sent: there are no active people in this audience. Check the audience, or add people first.",
+  'provider.notOpenYet': "Bookings not open yet",
+  'home.newProviders': "New on Maak",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

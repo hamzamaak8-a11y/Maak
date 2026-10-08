@@ -23,8 +23,10 @@ export function makeBackend() {
     log: [],
   };
   const providers = [
-    { id: 1, name: 'Karim Benali', job: 'Plombier', city: 'Casablanca', price: '150', rating: '4.8', reviews: 12, image: null, available: true, services: ['تسريب الماء', 'تركيب صنابير'], experience: '10 سنوات', intro: 'Plombier professionnel.', provider_profile_id: uid.provider, category: 'سباكة' },
-    { id: 2, name: 'Fatima Zahra', job: 'Agent de nettoyage', city: 'Rabat', price: null, rating: null, reviews: 0, image: null, available: true, services: ['تنظيف منزل'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000009', category: 'تنظيف' },
+    { id: 1, name: 'Karim Benali', job: 'Plombier', city: 'Casablanca', price: '150', rating: '4.8', reviews: 12, image: null, available: true, services: ['تسريب الماء', 'تركيب صنابير'], experience: '10 سنوات', intro: 'Plombier professionnel.', provider_profile_id: uid.provider, verified: true, currency: 'MAD', category: 'سباكة' },
+    { id: 2, name: 'Fatima Zahra', job: 'Agent de nettoyage', city: 'Rabat', price: null, rating: null, reviews: 0, image: null, available: true, services: ['تنظيف منزل'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000009', verified: true, currency: null, category: 'تنظيف' },
+    { id: 3, name: 'Mustapha Alami', job: 'Electricien', city: 'Ouazzane', price: '120.00', rating: null, reviews: 0, image: null, available: false, services: ['إصلاح'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000010', verified: true, currency: null, category: 'كهرباء' },
+    { id: 4, name: 'Unverified Uri', job: 'Peintre', city: 'Fès', price: null, rating: null, reviews: 0, image: null, available: false, services: ['دهان'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000011', verified: false, currency: null, category: 'دهان وديكور' },
   ];
   const profileFor = u => ({ id: u.id, role: u.role, full_name: u.name, phone: '+212600000000', city: 'Casablanca', avatar_url: null, account_status: 'active', created_at: '2026-01-01', updated_at: '2026-01-01' });
   const userByToken = req => { const t = (req.headers()['authorization'] || '').replace('Bearer ', ''); return state.token.get(t) ? users[state.token.get(t)] : null; };

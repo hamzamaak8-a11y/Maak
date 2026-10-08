@@ -53,3 +53,10 @@ Run it in the Supabase SQL editor after `20261008100000_admin_tools.sql`.
   A `404` on `POST /admin/users` or on the RPC `admin_list_users` means the Worker or the migration `20261008100000_admin_tools.sql` is not deployed yet.
 - Tests: `npm run test:unit` (realtime hub, Worker admin authorization 401/403/200, draft providers), `psql -f supabase/ci/provider-approval-documents-test.sql`
   against a scratch database (document rules), `npm run test:e2e` (UI flows).
+
+## Public marketplace rules (Worker + migration `20261008120000_bookable_from_working_hours.sql`)
+
+- The Worker reads with the service-role key, so it re-checks what RLS would: only providers with `verification_status = 'approved'` **and** an active account are returned, each with `verified: true`. The app shows the "Verified" badge only from that flag.
+- `available` = not paused by the provider AND at least one working-hours window. Providers with no hours show "Bookings not open yet" and a disabled Book button; messaging stays possible.
+- Starting prices show a currency: the provider's price-list currency when it is a single one, otherwise `EXPO_PUBLIC_DEFAULT_CURRENCY` (default `MAD`).
+- Check before running the migration: `select id, name, published_at, available, (select count(*) from provider_availability a where a.provider_id = p.id and a.is_available) as windows from providers p where listing_kind = 'real';`

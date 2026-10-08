@@ -110,6 +110,60 @@ try {
   ok('guest can browse; bookings require sign-in');
   await page.context().close();
 
+  // browser tab titles stay meaningful after the JS loads (React Navigation used to overwrite them with "undefined")
+  page = await newPage();
+  await open(page);
+  await page.waitForTimeout(500);
+  if ((await page.title()) !== 'Maak') throw new Error(`app tab title is "${await page.title()}"`);
+  await vis(page, 'Browse services').click();
+  await must(page, 'Top rated');
+  if ((await page.title()) !== 'Maak') throw new Error(`app tab title after navigating is "${await page.title()}"`);
+  await page.context().close();
+  page = await newPage();
+  await page.goto('http://localhost:4174/');
+  await must(page, 'Administration panel');
+  await page.waitForTimeout(500);
+  if ((await page.title()) !== 'Maak Admin') throw new Error(`admin tab title is "${await page.title()}"`);
+  await page.context().close();
+  ok('browser tab titles are "Maak" and "Maak Admin" (never "undefined")');
+
+  // home sections, verified badge, currency and "bookings not open" experience
+  page = await newPage();
+  await open(page);
+  await vis(page, 'Browse services').click();
+  await must(page, 'Top rated');
+  await must(page, 'New on Maak');
+  const topSection = await page.evaluate(() => { const t = [...document.querySelectorAll('div')].find(d => d.textContent === 'Top rated'); return t ? 'found' : ''; });
+  if (!topSection) throw new Error('Top rated heading missing');
+  // "Top rated" carries only rated providers; unrated newcomers are listed under "New on Maak" (never hidden)
+  const order = await page.evaluate(() => { const txt = document.body.innerText; return { top: txt.indexOf('Top rated'), neu: txt.indexOf('New on Maak'), karim: txt.indexOf('Karim Benali'), must: txt.indexOf('Mustapha Alami') }; });
+  if (!(order.top < order.karim && order.karim < order.neu && order.neu < order.must)) throw new Error('Home sections are not consistent: ' + JSON.stringify(order));
+  const cardPrice = await page.locator('text=/From (MAD|\\u00a0)?\\s?150/').count();
+  if (!cardPrice) throw new Error('starting price must show a currency, e.g. "From MAD 150"');
+  if (await page.getByText('120.00', { exact: false }).count()) throw new Error('raw price "120.00" without currency is shown');
+  if (!(await vis(page, 'Bookings not open yet').count())) throw new Error('closed listing must be labelled on its card');
+  await shot(page, 'home-sections');
+  await vis(page, 'Mustapha Alami').click();
+  await must(page, 'has not opened their working hours');
+  const bookDisabled = await page.locator('[aria-disabled="true"]:has-text("Book now")').count();
+  if (!bookDisabled) throw new Error('Book now must be disabled when the provider has no working hours');
+  if (await page.locator('text="Verified" >> visible=true').count() === 0) throw new Error('approved provider must show the verified badge');
+  const msgEnabled = await page.locator('[aria-label="Message"][aria-disabled="true"]').count();
+  if (msgEnabled) throw new Error('messaging must stay possible when booking is closed');
+  await shot(page, 'provider-closed');
+  await page.goBack().catch(() => {});
+  await page.context().close();
+  // a listing the server did not confirm as verified never gets the badge
+  page = await newPage();
+  await open(page);
+  await vis(page, 'Browse services').click();
+  await must(page, 'New on Maak');
+  await vis(page, 'Unverified Uri').click();
+  await must(page, 'Peintre');
+  if (await page.locator('text="Verified" >> visible=true').count() > 0) throw new Error('unverified provider shows the Verified badge');
+  ok('home sections, currency, closed-booking experience and verified badge are correct');
+  await page.context().close();
+
   // customer: book, report, delete-blocked
   page = await newPage();
   await open(page);

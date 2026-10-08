@@ -16,7 +16,7 @@ import { PAGE_MAX_WIDTH } from '../../config/env';
 import { categoryLabel } from '../../constants/categories';
 import { ReportSheet } from '../../components/ReportSheet';
 import type { ReportTarget } from '../../api/reports';
-import { formatDate, formatMoney, ratingNumber } from '../../lib/format';
+import { formatDate, formatMoney, formatStartingPrice, ratingNumber } from '../../lib/format';
 import { errorKey } from '../../lib/errors';
 import { useRequireAuth } from '../../lib/useRequireAuth';
 import type { ScreenProps } from '../../navigation/types';
@@ -65,6 +65,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
   const rating = reviews.data && reviews.data.total_count > 0 ? reviews.data.average_rating : ratingNumber(p.rating);
   const count = reviews.data?.total_count ?? p.reviews;
   const bookable = isBookable(p);
+  const startPrice = formatStartingPrice(p.price, p.currency, lang);
   const slides = (portfolio.data ?? []).map(i => i.url);
   if (!slides.length && p.image) slides.push(p.image);
   const galleryW = Math.min(width, PAGE_MAX_WIDTH);
@@ -100,7 +101,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
             </Row>
             <Row gap={8} style={{ flexWrap: 'wrap' }}>
               <Badge text={bookable ? t('provider.available') : t('provider.unavailable')} tone={bookable ? 'success' : 'neutral'} />
-              <Badge text={t('provider.verified')} tone="primary" />
+              {p.verified ? <Badge text={t('provider.verified')} tone="primary" /> : null}
               {p.category ? <Badge text={categoryLabel(p.category, lang)} /> : null}
             </Row>
 
@@ -175,10 +176,10 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
       {!own ? (
         <View style={{ position: 'absolute', start: 0, end: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: Math.max(insets.bottom, 12) + 4, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border, boxShadow: '0 -10px 30px rgba(10,22,51,0.10)' }}>
           <Row gap={12} style={{ maxWidth: PAGE_MAX_WIDTH, width: '100%', alignSelf: 'center' }}>
-            {p.price ? (
+            {startPrice ? (
               <View style={{ flexShrink: 1 }}>
                 <Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: '700' }}>{t('provider.priceFrom')}</Text>
-                <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{p.price}</Text>
+                <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '800' }}>{startPrice}</Text>
               </View>
             ) : null}
             {p.provider_profile_id ? (

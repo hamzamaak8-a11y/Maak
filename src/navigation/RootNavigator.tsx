@@ -252,7 +252,7 @@ export function RootNavigator() {
   else body = <CustomerNavigator />;
 
   return (
-    <NavigationContainer ref={navRef} theme={theme} direction={isRTL ? 'rtl' : 'ltr'}>
+    <NavigationContainer ref={navRef} theme={theme} direction={isRTL ? 'rtl' : 'ltr'} documentTitle={{ formatter: () => (IS_ADMIN_PORTAL ? 'Maak Admin' : 'Maak') }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {body}
     </NavigationContainer>

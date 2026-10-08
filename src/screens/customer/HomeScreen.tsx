@@ -39,8 +39,11 @@ export function HomeScreen() {
   };
 
   const providers = data ?? [];
-  const top = [...providers].sort((a, b) => (ratingNumber(b.rating) ?? 0) - (ratingNumber(a.rating) ?? 0) || b.reviews - a.reviews).slice(0, 6);
-  const rest = providers.filter(p => !top.includes(p)).slice(0, 8);
+  // "Top rated" only lists providers that actually have a rating; newcomers are never hidden, they get their own section.
+  const rated = providers.filter(p => ratingNumber(p.rating) != null).sort((a, b) => (ratingNumber(b.rating) ?? 0) - (ratingNumber(a.rating) ?? 0) || b.reviews - a.reviews);
+  const top = rated.slice(0, 6);
+  const newcomers = providers.filter(p => ratingNumber(p.rating) == null).sort((a, b) => b.id - a.id);
+  const rest = rated.slice(6, 14);
   const { width } = useWindowDimensions();
   const cardW = Math.min(Math.round((Math.min(width, PAGE_MAX_WIDTH) - 36) * 0.84), 340);
   const first = (profile?.full_name ?? user?.email ?? '').split(/[\s@]/)[0];
@@ -88,10 +91,18 @@ export function HomeScreen() {
           <Card><EmptyState icon="people-outline" title={t('home.noProviders')} text={t('home.noProvidersText')} /></Card>
         ) : (
           <>
-            <SectionTitle title={t('home.topRated')} action={t('common.seeAll')} onAction={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab' })} />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardW + 14} decelerationRate="fast" style={{ marginHorizontal: -18 }} contentContainerStyle={{ paddingHorizontal: 18, gap: 14, paddingBottom: 6 }}>
-              {top.map(p => <ProviderCard key={p.id} style={{ width: cardW }} provider={p} onPress={() => nav.navigate('ProviderDetail', { id: p.id })} favorite={fav.isFavorite(p.id)} onToggleFavorite={() => toggleFav(p)} />)}
-            </ScrollView>
+            {top.length ? (
+              <>
+                <SectionTitle title={t('home.topRated')} action={t('common.seeAll')} onAction={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab' })} />
+                <Carousel items={top} cardW={cardW} onOpen={id => nav.navigate('ProviderDetail', { id })} isFavorite={fav.isFavorite} onFavorite={toggleFav} />
+              </>
+            ) : null}
+            {newcomers.length ? (
+              <>
+                <SectionTitle title={t('home.newProviders')} action={top.length ? undefined : t('common.seeAll')} onAction={top.length ? undefined : () => nav.navigate('CustomerTabs', { screen: 'DiscoverTab' })} />
+                <Carousel items={newcomers.slice(0, 8)} cardW={cardW} onOpen={id => nav.navigate('ProviderDetail', { id })} isFavorite={fav.isFavorite} onFavorite={toggleFav} />
+              </>
+            ) : null}
             {rest.length ? (
               <>
                 <SectionTitle title={t('home.moreProviders')} />
@@ -104,5 +115,13 @@ export function HomeScreen() {
         )}
       </Page>
     </Screen>
+  );
+}
+
+function Carousel({ items, cardW, onOpen, isFavorite, onFavorite }: { items: Provider[]; cardW: number; onOpen: (id: number) => void; isFavorite: (id: number) => boolean; onFavorite: (p: Provider) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={cardW + 14} decelerationRate="fast" style={{ marginHorizontal: -18 }} contentContainerStyle={{ paddingHorizontal: 18, gap: 14, paddingBottom: 6 }}>
+      {items.map(p => <ProviderCard key={p.id} style={{ width: cardW }} provider={p} onPress={() => onOpen(p.id)} favorite={isFavorite(p.id)} onToggleFavorite={() => onFavorite(p)} />)}
+    </ScrollView>
   );
 }

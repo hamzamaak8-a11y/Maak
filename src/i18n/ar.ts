@@ -77,7 +77,7 @@ export const ar: Record<TKey, string> = {
   'provider.newBadge': 'جديد', 'provider.available': 'متاح', 'provider.unavailable': 'غير متاح', 'provider.verified': 'موثّق',
   'provider.from': 'ابتداءً من {price}', 'provider.city': 'المدينة', 'provider.experience': 'الخبرة', 'provider.priceFrom': 'السعر الابتدائي', 'provider.about': 'نبذة',
   'provider.services': 'الخدمات', 'provider.priceList': 'قائمة الأسعار', 'provider.portfolio': 'معرض الأعمال', 'provider.reviews': 'التقييمات', 'provider.noReviews': 'لا توجد تقييمات بعد.',
-  'provider.notFound': 'المزوّد غير موجود', 'provider.notBookable': 'هذا المزوّد لا يقبل الحجوزات حاليًا.',
+  'provider.notFound': 'المزوّد غير موجود', 'provider.notBookable': 'لم يفتح هذا المحترف ساعات عمله بعد، لذلك الحجز عبر التطبيق مغلق. يمكنك مراسلته.',
   'provider.message': 'مراسلة', 'provider.book': 'احجز الآن',
   'provider.marketplaceProfile': 'الملف العام', 'provider.availability': 'أوقات التوفّر', 'provider.myReviews': 'تقييماتي', 'provider.currency': 'العملة',
   'provider.accept': 'قبول', 'provider.reject': 'رفض', 'provider.start': 'بدء الخدمة', 'provider.complete': 'تحديد كمكتملة',
@@ -342,4 +342,6 @@ export const ar: Record<TKey, string> = {
   'admin.docsMissing': "لا يمكن الاعتماد بعد: الهوية الوطنية والصورة الشخصية مطلوبتان.",
   'err.backendOutdated': "الخادم لم يُحدَّث لهذه الميزة بعد. اطلب من المسؤول التقني نشر آخر نسخة من الخلفية (ترحيل قاعدة البيانات والـWorker).",
   'admin.announcementNone': "لم يُرسل شيء: لا يوجد أشخاص نشطون في هذه الفئة. تحقق من الفئة أو أضف أشخاصًا أولًا.",
+  'provider.notOpenYet': "الحجز غير متاح بعد",
+  'home.newProviders': "جديد على معاك",
 };

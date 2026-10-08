@@ -77,7 +77,7 @@ export const fr: Record<TKey, string> = {
   'provider.newBadge': 'Nouveau', 'provider.available': 'Disponible', 'provider.unavailable': 'Indisponible', 'provider.verified': 'Vérifié',
   'provider.from': 'À partir de {price}', 'provider.city': 'Ville', 'provider.experience': 'Expérience', 'provider.priceFrom': 'Prix de départ', 'provider.about': 'À propos',
   'provider.services': 'Services', 'provider.priceList': 'Tarifs', 'provider.portfolio': 'Réalisations', 'provider.reviews': 'Avis', 'provider.noReviews': "Pas encore d'avis.",
-  'provider.notFound': 'Prestataire introuvable', 'provider.notBookable': "Ce prestataire n'accepte pas de réservations pour le moment.",
+  'provider.notFound': 'Prestataire introuvable', 'provider.notBookable': "Ce professionnel n'a pas encore ouvert ses horaires : la réservation en ligne est fermée. Vous pouvez quand même lui écrire.",
   'provider.message': 'Écrire', 'provider.book': 'Réserver',
   'provider.marketplaceProfile': 'Profil public', 'provider.availability': 'Disponibilités', 'provider.myReviews': 'Mes avis', 'provider.currency': 'Devise',
   'provider.accept': 'Accepter', 'provider.reject': 'Refuser', 'provider.start': 'Démarrer la prestation', 'provider.complete': 'Marquer comme terminée',
@@ -342,4 +342,6 @@ export const fr: Record<TKey, string> = {
   'admin.docsMissing': "Impossible d'approuver : pièce d'identité et photo de profil requises.",
   'err.backendOutdated': "Le serveur n'est pas encore à jour pour cette fonction. Demandez au responsable technique de déployer la dernière version (migration et Worker).",
   'admin.announcementNone': "Rien n'a été envoyé : aucune personne active dans cette audience. Vérifiez l'audience ou ajoutez d'abord des personnes.",
+  'provider.notOpenYet': "Réservations pas encore ouvertes",
+  'home.newProviders': "Nouveaux sur Maak",
 };

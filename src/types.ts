@@ -34,6 +34,10 @@ export type Provider = {
   intro: string | null;
   provider_profile_id: string | null;
   category: string | null;
+  /** Server-confirmed: approved provider with an active account. Never assume it. */
+  verified: boolean;
+  /** Currency of the provider's price list; null when unknown. */
+  currency: string | null;
 };
 
 export type ProviderProfile = {

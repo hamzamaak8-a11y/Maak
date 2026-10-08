@@ -28,4 +28,7 @@ export const legalUrl = (page: 'privacy' | 'terms' | 'delete-account') => `${WEB
  */
 export const APP_TARGET: 'app' | 'admin' = process.env.EXPO_PUBLIC_APP_TARGET === 'admin' ? 'admin' : 'app';
 export const IS_ADMIN_PORTAL = APP_TARGET === 'admin';
+/** Shown next to a starting price when the provider's own price list does not tell the currency. */
+export const DEFAULT_CURRENCY = /^[A-Z]{3}$/.test(process.env.EXPO_PUBLIC_DEFAULT_CURRENCY ?? '') ? (process.env.EXPO_PUBLIC_DEFAULT_CURRENCY as string) : 'MAD';
+
 export const PAGE_MAX_WIDTH = IS_ADMIN_PORTAL ? 980 : 720;

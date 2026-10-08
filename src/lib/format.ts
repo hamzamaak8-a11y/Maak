@@ -1,3 +1,4 @@
+import { DEFAULT_CURRENCY } from '../config/env';
 import type { Lang } from '../types';
 
 const LOCALES: Record<Lang, string> = { ar: 'ar-MA', fr: 'fr-FR', en: 'en-GB' };
@@ -34,10 +35,19 @@ export function formatTime(iso: string | null | undefined, lang: Lang): string {
 export function formatMoney(value: number | null | undefined, currency: string, lang: Lang): string {
   if (value == null) return '—';
   try {
-    return new Intl.NumberFormat(LOCALES[lang], { style: 'currency', currency }).format(value);
+    const whole = Number.isInteger(value) ? { minimumFractionDigits: 0, maximumFractionDigits: 0 } : {};
+    return new Intl.NumberFormat(LOCALES[lang], { style: 'currency', currency, ...whole }).format(value);
   } catch {
     return `${value.toFixed(2)} ${currency}`;
   }
+}
+
+/** A provider's starting price: numeric values get a currency (the provider's own, else the app default); free text is shown untouched. */
+export function formatStartingPrice(raw: string | null | undefined, currency: string | null | undefined, lang: Lang): string | null {
+  const text = (raw ?? '').trim();
+  if (!text) return null;
+  if (!/^\d+([.,]\d+)?$/.test(text)) return text;
+  return formatMoney(Number(text.replace(',', '.')), currency || DEFAULT_CURRENCY, lang);
 }
 
 export function ratingNumber(value: string | null | undefined): number | null {
