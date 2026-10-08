@@ -8,6 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IS_ADMIN_PORTAL, isSupabaseConfigured } from '../config/env';
+import { PushManager } from '../components/PushManager';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -255,6 +256,7 @@ export function RootNavigator() {
     <NavigationContainer ref={navRef} theme={theme} direction={isRTL ? 'rtl' : 'ltr'} documentTitle={{ formatter: () => (IS_ADMIN_PORTAL ? 'Maak Admin' : 'Maak') }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {body}
+      {!IS_ADMIN_PORTAL && (role === 'customer' || role === 'provider') ? <PushManager /> : null}
     </NavigationContainer>
   );
 }

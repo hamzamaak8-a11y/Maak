@@ -7,6 +7,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { fetchProfile } from '../api/profile';
 import { fetchProviderProfile } from '../api/provider';
+import { disablePush } from '../lib/push';
 import type { Profile, ProviderProfile } from '../types';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -171,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [handleAuthUrl, rememberIntent]);
 
   const signOut = useCallback(async () => {
+    await disablePush(); // this phone must stop receiving the account's notifications (needs the session, so before sign-out)
     await supabase.auth.signOut();
     setProfile(null);
     setProviderProfile(null);

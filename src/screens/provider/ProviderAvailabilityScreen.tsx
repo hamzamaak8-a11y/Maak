@@ -54,6 +54,7 @@ export function ProviderAvailabilityScreen() {
       {loading && !data ? <Loading /> : error && !data ? <ErrorState error={error} onRetry={reload} /> : data?.listingId == null ? <EmptyState icon="calendar-clear-outline" title={t('dashboard.noListing')} /> : (
         <Page>
           <Banner kind="info" text={t('availability.hint')} />
+          <Muted>{t('booking.utcNote')}</Muted>
           {ORDER.map(d => {
             const v = days[d];
             if (!v) return null;

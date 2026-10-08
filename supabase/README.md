@@ -27,8 +27,15 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261008100000_admin_tools.sql` | Admin panel back-end: `admin_list_users`, `admin_user_overview`, `admin_overview_stats`, `admin_send_announcement`, `admin_delete_user` (all re-check that the caller is an active admin) |
 | `migrations/20261008110000_provider_approval_requires_documents.sql` | A provider can only be approved with a national ID and a profile photo on file: enforced in `admin_approve_provider` and by a trigger, so no code path (Worker, CSV) can bypass it. Test: `supabase/ci/provider-approval-documents-test.sql` |
 | `migrations/20261008120000_bookable_from_working_hours.sql` | A listing is bookable when it is published, not paused and has working hours (before, the app waited for `providers.available = true`, which nothing in the repo sets). No data is changed. Test: `supabase/ci/bookable-from-working-hours-test.sql` |
+| `migrations/20261008130000_booking_money_rules.sql` | Price / payment / refund rules enforced in SQL (`set_booking_price`, `mark_booking_paid`, `admin_refund_booking`) and `admin_cancel_booking` now frees the time slot and notifies both people. Test: `supabase/ci/booking-money-rules-test.sql` |
+| `migrations/20261008140000_push_notifications.sql` | `push_tokens` + register/unregister RPCs and a dormant trigger for push notifications (see `docs/PUSH_NOTIFICATIONS.md`). Test: `supabase/ci/push-notifications-test.sql` |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
+
+## Testing the SQL locally
+
+`bash supabase/ci/replay.sh maak_replay` rebuilds the whole schema from this repository on a throw-away Postgres (set `PSQL="psql -h <host> -U <user>"`),
+then run any `supabase/ci/*-test.sql` file against it. They end with a rollback, so they can be repeated.
 
 ## Fresh project (staging / new environment)
 

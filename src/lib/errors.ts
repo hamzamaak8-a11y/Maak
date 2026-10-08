@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -53,6 +53,11 @@ export function errorKey(error: unknown): ErrorKey {
   if (/admin_cannot_delete/i.test(m)) return 'err.adminCannotDelete';
   if (/invalid_report/i.test(m)) return 'err.invalidReport';
   if (/PGRST202|PGRST205|could not find the function|schema cache/i.test(m)) return 'err.backendOutdated';
+  if (/price_locked/i.test(m)) return 'err.priceLocked';
+  if (/booking_not_payable/i.test(m)) return 'err.notPayable';
+  if (/already_paid/i.test(m)) return 'err.alreadyPaid';
+  if (/payment_locked/i.test(m)) return 'err.paymentLocked';
+  if (/booking_not_refundable/i.test(m)) return 'err.notRefundable';
   if (/not_found|booking_not_found|review_not_found/i.test(m)) return 'err.notFound';
   if (/forbidden|permission denied|row-level security/i.test(m)) return 'err.forbidden';
   return 'err.generic';

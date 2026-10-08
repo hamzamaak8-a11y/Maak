@@ -302,6 +302,32 @@ try {
   await adminLogin(page, 'admin@t.co');
   await must(page, 'Provider applications');
   await shot(page, 'admin-home');
+  // bookings: pagination past 40 rows, search, filters, and the money rules (mark paid / refund) mirrored from the database
+  await vis(page, 'Dashboard', true).click().catch(() => {});
+  await vis(page, 'Bookings', true).click();
+  await must(page, 'Showing 40 of 95');
+  await vis(page, 'Load more', true).click(); await must(page, 'Showing 80 of 95');
+  await vis(page, 'Load more', true).click(); await must(page, 'Showing 95 of 95');
+  if (await page.locator('text="Load more" >> visible=true').count()) throw new Error('"Load more" must disappear when everything is loaded');
+  await page.locator('input:visible').first().fill('Client 77'); await must(page, 'Showing 1 of 1');
+  await page.locator('input:visible').first().fill(''); await must(page, 'Showing 40 of 95');
+  const history = Array.from({ length: 95 }, (_, i) => { const n = i + 1; const status = ['completed', 'pending', 'cancelled', 'accepted', 'completed', 'rejected'][i % 6]; return { n, status, paid: status === 'completed' && n % 5 === 0 }; });
+  const closed = history.filter(h => ['cancelled', 'rejected'].includes(h.status)).length;
+  const toCollect = history.filter(h => h.status === 'completed' && !h.paid).length;
+  await vis(page, 'To collect', true).click(); await must(page, `of ${toCollect}`);
+  const shown = Math.min(40, toCollect);
+  const paidButtons = await page.locator('text="Mark as paid" >> visible=true').count();
+  if (paidButtons !== shown) throw new Error(`every collectable booking must offer "Mark as paid" (buttons ${paidButtons}, expected ${shown})`);
+  if (await page.locator('text="Cancel booking" >> visible=true').count()) throw new Error('a completed booking must not offer cancellation');
+  await vis(page, 'Cancelled / declined', true).click(); await must(page, `Showing ${Math.min(40, closed)} of ${closed}`);
+  if (await page.locator('text="Mark as paid" >> visible=true').count() || await page.locator('text="Mark refunded" >> visible=true').count()) throw new Error('cancelled or declined bookings must not offer any payment action');
+  await vis(page, 'Completed', true).click(); await must(page, 'Mark refunded');
+  await vis(page, 'To collect', true).click(); await must(page, `of ${toCollect}`);
+  await vis(page, 'Mark as paid', true).click();
+  await vis(page, 'Save', true).click();
+  await must(page, `of ${toCollect - 1}`);
+  ok('admin: bookings paginate, search, filter, and payment actions follow the money rules');
+  await vis(page, 'Dashboard', true).click();
   // a pending provider without identity documents cannot be approved from the UI (the database refuses it too)
   await vis(page, 'Provider applications to review').click();
   await must(page, 'Cannot approve yet');
@@ -363,6 +389,18 @@ try {
   await vis(page, 'Accept', true).click();
   await must(page, 'Start service');
   ok('provider accepts a request');
+  // price rules: set after accepting, change freely before work starts, locked once the service starts
+  await must(page, 'Set price');
+  await vis(page, 'Set price', true).click();
+  await page.locator('input:visible').first().fill('150');
+  await vis(page, 'Save', true).click();
+  await must(page, 'Change price');
+  await must(page, 'need to change the time or cancel'.replace(/^n/, 'N'));
+  await vis(page, 'Start service', true).click();
+  await must(page, 'Mark as completed');
+  if (await page.locator('text="Change price" >> visible=true').count()) throw new Error('an agreed price must not be editable once the service started');
+  await must(page, 'can no longer be changed');
+  ok('provider price rules: editable until work starts, then locked');
   await page.context().close();
 
   // wrong password + Arabic RTL

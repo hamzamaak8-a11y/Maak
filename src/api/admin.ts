@@ -80,24 +80,43 @@ export async function listUsers(): Promise<{ rows: AdminUser[]; total: number }>
   return { rows: (data ?? []) as AdminUser[], total: count ?? 0 };
 }
 
-export async function listAdminBookings(): Promise<AdminBooking[]> {
-  const { data, error } = await supabase
+export type BookingFilter = 'all' | 'open' | 'completed' | 'unpaid' | 'closed';
+const BOOKINGS_PAGE = 40;
+
+/** One page of bookings (newest first) with an exact total, an optional status filter and a text search. */
+export async function listAdminBookings(opts: { filter?: BookingFilter; search?: string; offset?: number } = {}): Promise<{ rows: AdminBooking[]; total: number }> {
+  const offset = Math.max(0, opts.offset ?? 0);
+  let q = supabase
     .from('bookings')
-    .select('id,customer_id,provider_id,service_category,service_date,location_text,status,rejection_reason,created_at,customer_name,price,currency,payment_status,payment_method,paid_at')
-    .order('created_at', { ascending: false })
-    .limit(PAGE);
+    .select('id,customer_id,provider_id,service_category,service_date,location_text,status,rejection_reason,created_at,customer_name,price,currency,payment_status,payment_method,paid_at', { count: 'exact' })
+    .order('created_at', { ascending: false });
+  switch (opts.filter) {
+    case 'open': q = q.in('status', ['pending', 'accepted', 'in_progress']); break;
+    case 'completed': q = q.eq('status', 'completed'); break;
+    case 'unpaid': q = q.eq('status', 'completed').not('price', 'is', null).in('payment_status', ['unpaid', 'pending']); break;
+    case 'closed': q = q.in('status', ['cancelled', 'rejected']); break;
+    default: break;
+  }
+  const term = (opts.search ?? '').replace(/[,%()\\*]/g, ' ').trim();
+  if (term) q = q.or(`customer_name.ilike.%${term}%,service_category.ilike.%${term}%,location_text.ilike.%${term}%`);
+  const { data, error, count } = await q.range(offset, offset + BOOKINGS_PAGE - 1);
   if (error) throw error;
   const rows = (data ?? []) as Array<Omit<AdminBooking, 'provider_name'>>;
-  if (!rows.length) return [];
+  if (!rows.length) return { rows: [], total: count ?? 0 };
   const ids = Array.from(new Set(rows.flatMap(r => [r.customer_id, r.provider_id])));
   const { data: profs, error: pErr } = await supabase.from('profiles').select('id,full_name').in('id', ids);
   if (pErr) throw pErr;
   const names = new Map((profs ?? []).map(p => [p.id as string, (p.full_name as string | null) ?? null]));
-  return rows.map(r => ({ ...r, customer_name: r.customer_name || names.get(r.customer_id) || null, provider_name: names.get(r.provider_id) ?? null }));
+  return { rows: rows.map(r => ({ ...r, customer_name: r.customer_name || names.get(r.customer_id) || null, provider_name: names.get(r.provider_id) ?? null })), total: count ?? rows.length };
 }
 
 export async function adminCancelBooking(id: string, reason: string): Promise<void> {
   const { error } = await supabase.rpc('admin_cancel_booking', { target: id, reason: reason.trim() || null });
+  if (error) throw error;
+}
+
+export async function adminRefundBooking(id: string, reason: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_refund_booking', { p_booking_id: id, p_reason: reason.trim() });
   if (error) throw error;
 }
 

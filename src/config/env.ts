@@ -16,7 +16,7 @@ export const GOOGLE_LOGIN_ENABLED = Platform.OS !== 'ios';
 export const isSupabaseConfigured = /^https?:\/\//.test(SUPABASE_URL) && SUPABASE_KEY.length > 0;
 
 /** Optional public support address shown in the Help screen. */
-export const SUPPORT_EMAIL = (process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? '').trim();
+export const SUPPORT_EMAIL = (process.env.EXPO_PUBLIC_SUPPORT_EMAIL ?? '').trim() || 'hamzamaak8@gmail.com';
 
 /** Public web address of the app (hosts the legal pages under /privacy.html, /terms.html, /delete-account.html). */
 export const WEB_URL = (process.env.EXPO_PUBLIC_WEB_URL ?? 'https://hamzamaak8-a11y.github.io/Maak').trim().replace(/\/$/, '');

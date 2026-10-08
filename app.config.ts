@@ -27,6 +27,8 @@ const config: ExpoConfig = {
       monochromeImage: './assets/android-icon-monochrome.png',
     },
     predictiveBackGestureEnabled: false,
+    // Optional: set GOOGLE_SERVICES_JSON (an EAS file variable) to the Firebase google-services.json to enable Android push.
+    ...(process.env.GOOGLE_SERVICES_JSON ? { googleServicesFile: process.env.GOOGLE_SERVICES_JSON } : {}),
     // Session tokens must not leak into cloud/ADB backups.
     allowBackup: false,
     blockedPermissions: ['android.permission.RECORD_AUDIO', 'android.permission.READ_EXTERNAL_STORAGE', 'android.permission.WRITE_EXTERNAL_STORAGE', 'android.permission.SYSTEM_ALERT_WINDOW'],
@@ -37,6 +39,8 @@ const config: ExpoConfig = {
     ['expo-splash-screen', { image: './assets/splash-icon.png', imageWidth: 160, resizeMode: 'contain', backgroundColor: '#04112F', dark: { backgroundColor: '#04112F' } }],
     'expo-localization',
     'expo-web-browser',
+    // Push notifications for a closed app. Android needs the owner's free Firebase file (see docs/PUSH_NOTIFICATIONS.md).
+    ['expo-notifications', { color: '#1D5FE0', defaultChannel: 'default' }],
     [
       'expo-image-picker',
       {

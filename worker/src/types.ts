@@ -36,4 +36,6 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   MAAK_ALLOW_ORIGIN: string;
+  /** Optional. Shared secret of the database webhook that triggers push notifications; without it /push/notify is disabled. */
+  PUSH_WEBHOOK_SECRET?: string;
 }

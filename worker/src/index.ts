@@ -1,5 +1,6 @@
 import type { Env } from "./types";
 import { findProvider, getProviderPortfolio, listProviders } from "./supabase";
+import { sendPush } from "./push";
 import { HttpError, createUser, createUsersBulk, recoveryLink, requireAdmin } from "./admin";
 
 const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
@@ -148,6 +149,18 @@ export default {
       } catch (error) {
         safeError("get provider", error);
         return json(env, requestOrigin, 503, { error: "service_unavailable" });
+      }
+    }
+
+    // ---- push notifications (called by the database trigger; protected by a shared secret) ----
+    if (parts.length === 2 && parts[0] === "push" && parts[1] === "notify" && req.method === "POST") {
+      try {
+        const payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+        return json(env, requestOrigin, 200, await sendPush(env, req, payload), { "Cache-Control": "no-store" });
+      } catch (error) {
+        if (error instanceof HttpError) return json(env, requestOrigin, error.status, { error: error.message }, { "Cache-Control": "no-store" });
+        safeError("push notify", error);
+        return json(env, requestOrigin, 502, { error: "push_failed" }, { "Cache-Control": "no-store" });
       }
     }
 
