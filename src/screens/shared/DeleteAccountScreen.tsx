@@ -52,7 +52,7 @@ export function DeleteAccountScreen() {
               <Button title={t('delete.confirm')} variant="danger" disabled={!matches} loading={busy} onPress={remove} />
             </>
           )}
-          <View style={{ alignItems: 'center' }}><Text style={{ color: colors.primary, fontWeight: '700', fontSize: 13 }} onPress={() => Linking.openURL(legalUrl('privacy'))}>{t('legal.privacy')}</Text></View>
+          <View style={{ alignItems: 'center' }}><Text style={{ color: colors.primary, fontWeight: '700', fontSize: 14 }} onPress={() => Linking.openURL(legalUrl('privacy'))}>{t('legal.privacy')}</Text></View>
         </Page>
       </Form>
     </Screen>

@@ -10,7 +10,7 @@ export function LegalLinks({ prefix = true }: { prefix?: boolean }) {
   const { t } = useLanguage();
   const link = { color: colors.primary, fontWeight: '700' as const };
   return (
-    <Text style={{ color: colors.textSecondary, fontSize: 12, lineHeight: 19, textAlign: 'center' }}>
+    <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19, textAlign: 'center' }}>
       {prefix ? `${t('legal.agree')} ` : ''}
       <Text style={link} onPress={() => Linking.openURL(legalUrl('terms'))}>{t('legal.terms')}</Text>
       {` ${t('legal.and')} `}

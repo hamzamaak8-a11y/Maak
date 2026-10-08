@@ -46,32 +46,35 @@ export function ProviderCard({ provider, onPress, favorite, onToggleFavorite }: 
   const { t, lang } = useLanguage();
   const rating = ratingNumber(provider.rating);
   return (
-    <Card onPress={onPress} style={{ gap: 12 }}>
-      <Row gap={12} style={{ alignItems: 'flex-start' }}>
-        <Avatar name={provider.name} uri={provider.image} size={56} />
-        <View style={{ flex: 1, gap: 3 }}>
-          <Text numberOfLines={1} style={{ color: colors.text, fontSize: 16, fontWeight: '800' }}>{provider.name}</Text>
-          <Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 13 }}>{provider.job}</Text>
+    <Card onPress={onPress} style={{ gap: 14 }}>
+      <Row gap={14} style={{ alignItems: 'flex-start' }}>
+        <Avatar name={provider.name} uri={provider.image} size={64} />
+        <View style={{ flex: 1, gap: 4 }}>
           <Row gap={6}>
-            {rating ? <><Stars value={rating} size={13} /><Text style={{ color: colors.textSecondary, fontSize: 12 }}>{rating.toFixed(1)} · {provider.reviews}</Text></>
-              : <Text style={{ color: colors.textMuted, fontSize: 12 }}>{t('provider.newBadge')}</Text>}
+            <Text numberOfLines={1} style={{ color: colors.text, fontSize: 18, fontWeight: '800', flexShrink: 1, letterSpacing: -0.2 }}>{provider.name}</Text>
+            <Ionicons name="shield-checkmark" size={17} color={colors.primary} />
+          </Row>
+          <Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 15, fontWeight: '500' }}>{provider.job}</Text>
+          <Row gap={6}>
+            {rating ? <><Stars value={rating} size={15} /><Text style={{ color: colors.text, fontSize: 14, fontWeight: '700' }}>{rating.toFixed(1)}</Text><Text style={{ color: colors.textMuted, fontSize: 14 }}>({provider.reviews})</Text></>
+              : <View style={{ backgroundColor: colors.primaryLight, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 99 }}><Text style={{ color: colors.primary, fontSize: 12, fontWeight: '800' }}>{t('provider.newBadge')}</Text></View>}
           </Row>
         </View>
         {onToggleFavorite ? (
-          <Pressable onPress={onToggleFavorite} hitSlop={10} accessibilityLabel={t('favorites.title')}>
-            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={22} color={favorite ? colors.error : colors.textMuted} />
+          <Pressable onPress={onToggleFavorite} hitSlop={12} accessibilityLabel={t('favorites.title')} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: favorite ? colors.errorLight : colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={favorite ? 'heart' : 'heart-outline'} size={22} color={favorite ? colors.error : colors.textSecondary} />
           </Pressable>
         ) : null}
       </Row>
       <View style={[styles.footer, { borderTopColor: colors.border }]}>
-        <Row gap={4} style={{ flex: 1 }}><Ionicons name="location-outline" size={14} color={colors.textMuted} /><Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 12 }}>{provider.city}</Text></Row>
-        {provider.category ? <Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 12 }}>{categoryLabel(provider.category, lang)}</Text> : null}
-        {provider.price ? <Text style={{ color: colors.primary, fontSize: 12, fontWeight: '800' }}>{t('provider.from', { price: provider.price })}</Text> : null}
+        <Row gap={5} style={{ flex: 1 }}><Ionicons name="location-outline" size={16} color={colors.textMuted} /><Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '500' }}>{provider.city}</Text></Row>
+        {provider.category ? <Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 14, flexShrink: 1 }}>{categoryLabel(provider.category, lang)}</Text> : null}
+        {provider.price ? <Text style={{ color: colors.primary, fontSize: 14, fontWeight: '800' }}>{t('provider.from', { price: provider.price })}</Text> : null}
       </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  footer: { flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 },
+  footer: { flexDirection: 'row', alignItems: 'center', gap: 14, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 12 },
 });

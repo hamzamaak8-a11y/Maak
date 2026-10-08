@@ -5,7 +5,8 @@ import { createNavigationContainerRef, DarkTheme, DefaultTheme, NavigationContai
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { isSupabaseConfigured } from '../config/env';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { IS_ADMIN_PORTAL, isSupabaseConfigured } from '../config/env';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -35,6 +36,8 @@ import { HelpScreen } from '../screens/shared/HelpScreen';
 import { SecurityScreen } from '../screens/shared/SecurityScreen';
 import { DeleteAccountScreen } from '../screens/shared/DeleteAccountScreen';
 import { AdminReportsScreen } from '../screens/admin/AdminReportsScreen';
+import { AdminLoginScreen } from '../screens/admin/AdminLoginScreen';
+import { AccessBlockedScreen } from '../screens/shared/AccessBlockedScreen';
 import { ProviderApplicationScreen } from '../screens/provider/ProviderApplicationScreen';
 import { ProviderDashboardScreen } from '../screens/provider/ProviderDashboardScreen';
 import { ProviderRequestsScreen } from '../screens/provider/ProviderRequestsScreen';
@@ -59,12 +62,17 @@ type IconPair = [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]
 
 function useTabOptions() {
   const { colors } = useTheme();
+  // Never fix the bar height: it must grow by the bottom inset (gesture bar / home indicator / browser chrome),
+  // otherwise the lower half of the bar is drawn under the system UI.
+  const insets = useSafeAreaInsets();
+  const bottom = Math.max(insets.bottom, 10);
   return {
     headerShown: false,
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.textMuted,
-    tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, height: 64, paddingTop: 6, paddingBottom: 8 },
-    tabBarLabelStyle: { fontSize: 10.5, fontWeight: '700' as const },
+    tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1, height: 66 + bottom, paddingTop: 10, paddingBottom: bottom, boxShadow: '0 -4px 18px rgba(15,23,42,0.06)' },
+    tabBarItemStyle: { paddingVertical: 0 },
+    tabBarLabelStyle: { fontSize: 11, lineHeight: 14, fontWeight: '700' as const, marginTop: 3 },
     tabBarAllowFontScaling: false,
   };
 }
@@ -169,7 +177,6 @@ function AdminNavigator() {
       <Stack.Screen name="AdminAudit" component={AdminAuditScreen} />
       <Stack.Screen name="AdminReports" component={AdminReportsScreen} />
       <Stack.Screen name="Security" component={SecurityScreen} />
-      <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
     </Stack.Navigator>
@@ -224,8 +231,15 @@ export function RootNavigator() {
   else if (passwordRecovery) body = (
     <Stack.Navigator screenOptions={{ headerShown: false }}><Stack.Screen name="ResetPassword" component={ResetPasswordScreen} /></Stack.Navigator>
   );
+  else if (IS_ADMIN_PORTAL) {
+    // Standalone administration panel: only administrators get in, nothing of the customer app is reachable.
+    if (!user) body = <AdminLoginScreen />;
+    else if (role === 'suspended') body = <Splash message={t('app.suspended')}><Button title={t('auth.logout')} onPress={() => { void signOut(); }} /></Splash>;
+    else if (role === 'admin') body = <AdminNavigator />;
+    else body = <AccessBlockedScreen kind="not-admin" />;
+  }
+  else if (role === 'admin') body = <AccessBlockedScreen kind="admin-in-app" />;
   else if (role === 'suspended') body = <Splash message={t('app.suspended')}><Button title={t('auth.logout')} onPress={() => { void signOut(); }} /></Splash>;
-  else if (role === 'admin') body = <AdminNavigator />;
   else if (role === 'provider') body = <ProviderNavigator />;
   else body = <CustomerNavigator />;
 

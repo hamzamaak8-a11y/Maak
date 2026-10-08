@@ -70,7 +70,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
             <H1 style={{ fontSize: 22, textAlign: 'center' }}>{p.name}</H1>
             <Muted>{p.job}</Muted>
             <Row gap={6}>
-              {rating ? <><Stars value={rating} /><Text style={{ color: colors.textSecondary, fontSize: 13 }}>{rating.toFixed(1)} ({count})</Text></> : <Badge text={t('provider.newBadge')} tone="primary" />}
+              {rating ? <><Stars value={rating} /><Text style={{ color: colors.textSecondary, fontSize: 14 }}>{rating.toFixed(1)} ({count})</Text></> : <Badge text={t('provider.newBadge')} tone="primary" />}
             </Row>
           </View>
           <Row gap={8} style={{ flexWrap: 'wrap', justifyContent: 'center' }}>

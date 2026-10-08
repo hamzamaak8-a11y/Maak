@@ -48,7 +48,7 @@ export function AdminHomeScreen() {
               <View key={tile.label} style={{ flexBasis: '47%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, gap: 6 }}>
                 <Ionicons name={tile.icon} size={22} color={tile.color} />
                 <Text style={{ color: colors.text, fontSize: 24, fontWeight: '900' }}>{tile.value}</Text>
-                <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '600' }}>{tile.label}</Text>
+                <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '600' }}>{tile.label}</Text>
               </View>
             ))}
           </View>
@@ -59,7 +59,7 @@ export function AdminHomeScreen() {
             <Pressable key={l.screen} onPress={() => nav.navigate(l.screen)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }}>
               <Ionicons name={l.icon} size={22} color={colors.primary} />
               <Text style={{ flex: 1, color: colors.text, fontWeight: '700', fontSize: 15 }}>{l.label}</Text>
-              {l.badge ? <View style={{ minWidth: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}><Text style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>{l.badge}</Text></View> : null}
+              {l.badge ? <View style={{ minWidth: 24, height: 24, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}><Text style={{ color: '#fff', fontWeight: '800', fontSize: 13 }}>{l.badge}</Text></View> : null}
             </Pressable>
           ))}
         </View>

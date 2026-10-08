@@ -153,7 +153,7 @@ export function ProviderApplicationScreen({ navigation }: ScreenProps<'ProviderA
             {stepTitles.map((l, i) => (
               <View key={l} style={{ flex: 1, gap: 4 }}>
                 <View style={{ height: 4, borderRadius: 2, backgroundColor: i <= step ? colors.primary : colors.border }} />
-                <Text numberOfLines={1} style={{ color: i === step ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: '700' }}>{l}</Text>
+                <Text numberOfLines={1} style={{ color: i === step ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '700' }}>{l}</Text>
               </View>
             ))}
           </Row>

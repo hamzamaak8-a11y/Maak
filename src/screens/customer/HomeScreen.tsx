@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { Platform, Pressable, RefreshControl, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -20,7 +21,7 @@ import type { Provider } from '../../types';
 export function HomeScreen() {
   const nav = useNavigation<Nav>();
   const { colors } = useTheme();
-  const { t, lang } = useLanguage();
+  const { t, lang, isRTL } = useLanguage();
   const { profile, user, providerProfile, wantsProvider } = useAuth();
   const toast = useToast();
   const fav = useFavorites();
@@ -44,15 +45,20 @@ export function HomeScreen() {
   return (
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <View style={{ flex: 1 }}>
-            <Muted>{user ? t('home.hello') : t('home.welcome')}</Muted>
-            <Text numberOfLines={1} style={{ color: colors.text, fontSize: 22, fontWeight: '900' }}>{first || 'Maak'}</Text>
-          </View>
-          <BellButton />
-        </Row>
-
-        <TextField icon="search" value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} returnKeyType="search" onSubmitEditing={search} />
+        <LinearGradient colors={['#062A3D', '#0B4F5C', '#0D9488']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, boxShadow: '0 14px 34px rgba(13,148,136,0.28)' }}>
+          <Row style={{ justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 14, fontWeight: '600' }}>{user ? t('home.hello') : t('home.welcome')}</Text>
+              <Text numberOfLines={1} style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '900', letterSpacing: -0.4 }}>{first || 'Maak'}</Text>
+            </View>
+            <BellButton />
+          </Row>
+          <Pressable onPress={search} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.97)', borderRadius: 16, paddingHorizontal: 16, minHeight: 54 }}>
+            <Ionicons name="search" size={20} color="#475569" />
+            <TextInput value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} placeholderTextColor="#64748B" returnKeyType="search" onSubmitEditing={search}
+              style={[{ flex: 1, fontSize: 16, color: '#0B1220', paddingVertical: 12 }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]} textAlign={isRTL ? 'right' : 'left'} />
+          </Pressable>
+        </LinearGradient>
 
         {user && applicationOpen ? (
           <Pressable onPress={() => nav.navigate('ProviderApplication')}>
@@ -61,13 +67,13 @@ export function HomeScreen() {
         ) : null}
 
         <SectionTitle title={t('home.categories')} />
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', rowGap: 18 }}>
           {CATEGORIES.map(c => (
-            <Pressable key={c.value} style={{ width: '25%', alignItems: 'center', gap: 6 }} onPress={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab', params: { category: c.value } })}>
-              <View style={{ width: 54, height: 54, borderRadius: 18, backgroundColor: c.color + '1F', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={c.icon} size={25} color={c.color} />
+            <Pressable key={c.value} style={{ width: '25%', alignItems: 'center', gap: 8 }} onPress={() => nav.navigate('CustomerTabs', { screen: 'DiscoverTab', params: { category: c.value } })} accessibilityRole="button" accessibilityLabel={c.label[lang]}>
+              <View style={{ width: 62, height: 62, borderRadius: 20, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(15,23,42,0.07)' }}>
+                <Ionicons name={c.icon} size={28} color={c.color} />
               </View>
-              <Text numberOfLines={2} style={{ color: colors.text, fontSize: 11, fontWeight: '700', textAlign: 'center' }}>{c.label[lang]}</Text>
+              <Text numberOfLines={2} style={{ color: colors.text, fontSize: 13, fontWeight: '700', textAlign: 'center', lineHeight: 17 }}>{c.label[lang]}</Text>
             </Pressable>
           ))}
         </View>

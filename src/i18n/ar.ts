@@ -214,4 +214,19 @@ export const ar: Record<TKey, string> = {
   'delete.confirmLabel': 'اكتب بريدك ({email}) للتأكيد',
   'delete.confirm': 'حذف حسابي نهائيًا',
   'delete.done': 'تم حذف حسابك.',
+  // brand sign-in design
+  'auth.welcomeToMaak': 'مرحباً بك في معاك',
+  'brand.tagline': 'كل خدماتك في مكان واحد، لحياة أسهل',
+  'auth.loginCardText': 'تابع إلى حسابك للاستفادة من جميع الخدمات',
+  // standalone admin panel
+  'admin.badge': 'الإدارة',
+  'admin.panelTitle': 'لوحة الإدارة',
+  'admin.panelSubtitle': 'للمشرفين المصرّح لهم فقط',
+  'admin.loginText': 'سجّل الدخول بحساب المشرف',
+  'admin.notAdminTitle': 'غير مسموح بالدخول',
+  'admin.notAdmin': 'هذا الحساب ليس حساب مشرف.',
+  'admin.notAdminHelp': 'سجّل الخروج واستعمل حساب مشرف. الزبائن ومقدّمو الخدمات يسجّلون الدخول من تطبيق معاك.',
+  'admin.inAppTitle': 'حساب مشرف',
+  'admin.useAdminPanel': 'لا يمكن لحسابات المشرفين استعمال التطبيق.',
+  'admin.inAppHelp': 'يرجى تسجيل الخروج واستعمال لوحة الإدارة.',
 };

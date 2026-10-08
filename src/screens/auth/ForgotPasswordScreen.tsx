@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Banner, Button, Form, H1, Header, Muted, Page, Screen, TextField } from '../../components/ui';
+import { Banner, Button, TextField } from '../../components/ui';
+import { AuthShell, GlassCard } from '../../components/AuthShell';
 import { errorKey } from '../../lib/errors';
 import type { ScreenProps } from '../../navigation/types';
 
@@ -23,19 +24,14 @@ export function ForgotPasswordScreen({ navigation }: ScreenProps<'ForgotPassword
   };
 
   return (
-    <Screen>
-      <Header title={t('auth.forgot')} />
-      <Form>
-        <Page contentStyle={{ gap: 14 }}>
-          <H1>{t('auth.resetTitle')}</H1>
-          <Muted>{t('auth.resetText')}</Muted>
-          {error ? <Banner kind="error" text={error} /> : null}
-          {sent ? <Banner kind="success" text={t('auth.resetSent')} /> : null}
-          <TextField label={t('auth.email')} icon="mail-outline" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" onSubmitEditing={submit} />
-          <Button title={t('auth.sendResetLink')} onPress={submit} loading={busy} />
-          <Button title={t('auth.backToLogin')} variant="ghost" onPress={() => navigation.navigate('Login')} />
-        </Page>
-      </Form>
-    </Screen>
+    <AuthShell heading={t('auth.resetTitle')} subheading={t('auth.resetText')} onBack={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Login'))}>
+      <GlassCard>
+        {error ? <Banner kind="error" text={error} /> : null}
+        {sent ? <Banner kind="success" text={t('auth.resetSent')} /> : null}
+        <TextField label={t('auth.email')} icon="mail-outline" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" onSubmitEditing={submit} />
+        <Button gradient title={t('auth.sendResetLink')} icon="paper-plane-outline" onPress={submit} loading={busy} />
+        <Button title={t('auth.backToLogin')} variant="ghost" onPress={() => navigation.navigate('Login')} />
+      </GlassCard>
+    </AuthShell>
   );
 }

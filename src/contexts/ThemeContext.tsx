@@ -28,3 +28,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+/** Forces a palette for a subtree (e.g. the always-dark sign-in screens) without touching the user's theme choice. */
+export function ForceTheme({ colors, children }: { colors: ThemeColors; children: React.ReactNode }) {
+  const value = useMemo(() => ({ mode: 'dark' as ThemeMode, isDark: true, colors, setMode: () => {} }), [colors]);
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}

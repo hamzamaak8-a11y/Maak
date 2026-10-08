@@ -60,7 +60,7 @@ function Stat({ icon, label, value, color }: { icon: keyof typeof Ionicons.glyph
     <View style={{ flexBasis: '47%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, gap: 6 }}>
       <Ionicons name={icon} size={22} color={color} />
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900' }}>{value}</Text>
-      <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '600' }}>{label}</Text>
     </View>
   );
 }

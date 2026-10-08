@@ -231,6 +231,21 @@ export const en = {
   'delete.confirmLabel': 'Type your email ({email}) to confirm',
   'delete.confirm': 'Delete my account permanently',
   'delete.done': 'Your account has been deleted.',
+  // brand sign-in design
+  'auth.welcomeToMaak': 'Welcome to Maak',
+  'brand.tagline': 'All your services in one place, for an easier life',
+  'auth.loginCardText': 'Continue to your account to use all services',
+  // standalone admin panel
+  'admin.badge': 'Admin',
+  'admin.panelTitle': 'Administration panel',
+  'admin.panelSubtitle': 'Authorised administrators only',
+  'admin.loginText': 'Sign in with your administrator account',
+  'admin.notAdminTitle': 'Access denied',
+  'admin.notAdmin': 'This account is not an administrator.',
+  'admin.notAdminHelp': 'Sign out and use an administrator account. Customers and providers sign in to the Maak app instead.',
+  'admin.inAppTitle': 'Administrator account',
+  'admin.useAdminPanel': 'Administrator accounts cannot use the app.',
+  'admin.inAppHelp': 'Please sign out and use the administration panel.',
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

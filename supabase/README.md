@@ -56,6 +56,9 @@ Reference order, inferred from the file headers — review before use:
 * **Providers → Google** — enable and paste the OAuth *Client ID* and *Client secret*
   (Google Cloud Console → Credentials → OAuth client, authorised redirect URI = `https://<project-ref>.supabase.co/auth/v1/callback`).
 
+## Redirect URL for the admin panel
+The admin panel lives at its own private path (see `docs/ADMIN_PANEL.md`). Add `https://hamzamaak8-a11y.github.io/Maak/<MAAK_ADMIN_PATH>/**` to *Redirect URLs*.
+
 ## Creating the admin account
 
 Admins cannot sign up from the app, and **a plain `update public.profiles set role = 'admin'` is rejected on purpose**

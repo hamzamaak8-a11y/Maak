@@ -28,19 +28,26 @@ function chromePath() {
   return undefined;
 }
 
-console.log('Building web bundle with mock endpoints…');
-execFileSync('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', out], {
-  cwd: root, stdio: 'inherit',
-  env: { ...process.env, EXPO_NO_DOTENV: '1', EXPO_OFFLINE: '1', CI: '1', EXPO_NO_TELEMETRY: '1', EXPO_PUBLIC_SUPABASE_URL: 'https://sb.test', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test-key', EXPO_PUBLIC_API_URL: 'https://workers.test', EXPO_PUBLIC_WEB_URL: 'http://localhost:4173' },
-});
+const outAdmin = fs.mkdtempSync(path.join(os.tmpdir(), 'maak-e2e-admin-'));
+function build(dir, target) {
+  console.log(`Building the ${target} web bundle with mock endpoints…`);
+  execFileSync('npx', ['expo', 'export', '--clear', '--platform', 'web', '--output-dir', dir], {
+    cwd: root, stdio: 'ignore',
+    env: { ...process.env, EXPO_NO_DOTENV: '1', EXPO_OFFLINE: '1', CI: '1', EXPO_NO_TELEMETRY: '1', EXPO_PUBLIC_APP_TARGET: target, EXPO_PUBLIC_SUPABASE_URL: 'https://sb.test', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'test-key', EXPO_PUBLIC_API_URL: 'https://workers.test', EXPO_PUBLIC_WEB_URL: 'http://localhost:4173' },
+  });
+}
+build(out, 'app');
+build(outAdmin, 'admin');
 
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.png': 'image/png', '.ico': 'image/x-icon', '.ttf': 'font/ttf', '.json': 'application/json' };
-const server = http.createServer((req, res) => {
-  let f = path.join(out, decodeURIComponent(new URL(req.url, 'http://x').pathname));
-  if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(out, 'index.html');
+const serve = (dir, port) => http.createServer((req, res) => {
+  let f = path.join(dir, decodeURIComponent(new URL(req.url, 'http://x').pathname));
+  if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) f = path.join(dir, 'index.html');
   res.writeHead(200, { 'content-type': MIME[path.extname(f)] ?? 'application/octet-stream' });
   fs.createReadStream(f).pipe(res);
-}).listen(4173);
+}).listen(port);
+const server = serve(out, 4173);
+const adminServer = serve(outAdmin, 4174);
 
 const be = makeBackend();
 const browser = await chromium.launch({ executablePath: chromePath(), args: ['--no-sandbox'] });
@@ -70,6 +77,13 @@ async function login(page, email, password = 'password123') {
 }
 // Navigators keep earlier screens mounted (hidden), so always act on the VISIBLE match.
 const vis = (page, text, exact = false) => page.locator(`${exact ? `text="${text}"` : `text=${text}`} >> visible=true`).first();
+async function adminLogin(page, email, password = 'password123') {
+  await page.goto('http://localhost:4174/');
+  await must(page, 'Administration panel');
+  await page.getByPlaceholder('name@example.com').fill(email);
+  await page.locator('input[type=password]').fill(password);
+  await page.getByRole('button', { name: 'Sign in' }).last().click();
+}
 const open = async page => { await page.goto('http://localhost:4173/'); await must(page, 'Browse services'); };
 
 try {
@@ -160,10 +174,9 @@ try {
   ok('account deletion works and returns to the welcome screen');
   await page.context().close();
 
-  // admin: moderation queue + approvals
+  // admin portal (separate build / address): moderation queue
   page = await newPage();
-  await open(page);
-  await login(page, 'admin@t.co');
+  await adminLogin(page, 'admin@t.co');
   await must(page, 'Provider applications');
   await shot(page, 'admin-home');
   await vis(page, 'Reports', true).click();
@@ -172,8 +185,21 @@ try {
   await vis(page, 'Resolve', true).click();
   await page.getByRole('button', { name: 'Resolve' }).last().click();
   await must(page, 'No reports');
-  ok('admin sees and resolves reports');
-  await page.goBack().catch(() => {});
+  ok('admin portal: sign in, see and resolve reports');
+  await page.context().close();
+
+  // the admin portal refuses non-admins; the app refuses admins
+  page = await newPage();
+  await adminLogin(page, 'customer@t.co');
+  await must(page, 'This account is not an administrator.');
+  ok('admin portal rejects a non-admin account');
+  await page.context().close();
+  page = await newPage();
+  await open(page);
+  await login(page, 'admin@t.co');
+  await must(page, 'Administrator accounts cannot use the app.');
+  await shot(page, 'admin-blocked-in-app');
+  ok('the customer app refuses an administrator account');
   await page.context().close();
 
   // provider accepts
@@ -212,5 +238,5 @@ try {
 console.log(`\n${passed.length} checks passed`);
 if (be.state.log.some(l => l.includes('UNMOCKED'))) { console.log('Unmocked calls:', be.state.log.filter(l => l.includes('UNMOCKED')).join(' | ')); problems.push('unmocked call'); }
 if (problems.length) console.log('Problems:\n' + [...new Set(problems)].join('\n'));
-await browser.close(); server.close(); fs.rmSync(out, { recursive: true, force: true });
+await browser.close(); server.close(); adminServer.close(); fs.rmSync(out, { recursive: true, force: true }); fs.rmSync(outAdmin, { recursive: true, force: true });
 process.exit(problems.length ? 1 : 0);

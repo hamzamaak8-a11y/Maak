@@ -8,6 +8,9 @@ import { ThemeProvider } from './src/contexts/ThemeContext';
 import { ToastProvider } from './src/contexts/ToastContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { AppErrorBoundary } from './src/components/AppErrorBoundary';
+import { setupWebViewport } from './src/lib/webViewport';
+
+setupWebViewport();
 
 function Direction({ children }: { children: React.ReactNode }) {
   const { isRTL } = useLanguage();

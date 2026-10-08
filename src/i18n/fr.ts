@@ -214,4 +214,19 @@ export const fr: Record<TKey, string> = {
   'delete.confirmLabel': 'Saisissez votre e-mail ({email}) pour confirmer',
   'delete.confirm': 'Supprimer définitivement mon compte',
   'delete.done': 'Votre compte a été supprimé.',
+  // brand sign-in design
+  'auth.welcomeToMaak': 'Bienvenue sur Maak',
+  'brand.tagline': 'Tous vos services au même endroit, pour une vie plus simple',
+  'auth.loginCardText': 'Accédez à votre compte pour profiter de tous les services',
+  // standalone admin panel
+  'admin.badge': 'Admin',
+  'admin.panelTitle': 'Panneau d\'administration',
+  'admin.panelSubtitle': 'Réservé aux administrateurs autorisés',
+  'admin.loginText': 'Connectez-vous avec votre compte administrateur',
+  'admin.notAdminTitle': 'Accès refusé',
+  'admin.notAdmin': 'Ce compte n\'est pas administrateur.',
+  'admin.notAdminHelp': 'Déconnectez-vous et utilisez un compte administrateur. Les clients et prestataires se connectent à l\'application Maak.',
+  'admin.inAppTitle': 'Compte administrateur',
+  'admin.useAdminPanel': 'Les comptes administrateur ne peuvent pas utiliser l\'application.',
+  'admin.inAppHelp': 'Veuillez vous déconnecter et utiliser le panneau d\'administration.',
 };
