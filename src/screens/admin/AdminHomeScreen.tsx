@@ -33,7 +33,7 @@ export function AdminHomeScreen() {
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await reload(); setRefreshing(false); }} tintColor={colors.primary} />}>
         <LinearGradient colors={['#071A47', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 28, padding: wide ? 30 : 22, gap: 20, overflow: 'hidden', boxShadow: '0 18px 44px rgba(29,95,224,0.32)' }}>
-          <View style={{ position: 'absolute', top: -60, end: -40, width: 240, height: 240, borderRadius: 120, backgroundColor: 'rgba(255,138,31,0.30)' }} />
+          <LinearGradient colors={['#FFC933', '#FF7A1A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: -70, end: -50, width: 190, height: 190, borderRadius: 95, opacity: 0.95 }} />
           <View style={{ position: 'absolute', bottom: -90, start: '35%', width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(77,163,255,0.22)' }} />
           <Row style={{ justifyContent: 'space-between', alignItems: 'flex-start' }} gap={12}>
             <View style={{ flex: 1, gap: 4 }}>

@@ -73,7 +73,7 @@ export function ProviderCard({ provider, onPress, favorite, onToggleFavorite, st
             : <View style={{ backgroundColor: colors.primaryLight, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 99 }}><Text style={{ color: colors.primary, fontSize: 12, fontWeight: '800' }}>{t('provider.newBadge')}</Text></View>}
           <Ionicons name="location-outline" size={15} color={colors.textMuted} style={{ marginStart: 8 }} /><Text numberOfLines={1} style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '500', flexShrink: 1 }}>{provider.city}</Text>
         </Row>
-        {provider.price ? <Text style={{ color: colors.primary, fontSize: 15, fontWeight: '800' }}>{t('provider.from', { price: provider.price })}</Text> : null}
+        {provider.price ? <Text style={{ color: colors.accent, fontSize: 15, fontWeight: '800' }}>{t('provider.from', { price: provider.price })}</Text> : null}
       </View>
     </Card>
   );

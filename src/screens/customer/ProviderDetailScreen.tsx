@@ -133,7 +133,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
                   <Card key={sv.id} style={{ gap: 4, borderRadius: 18 }}>
                     <Row style={{ justifyContent: 'space-between' }}>
                       <Text style={{ color: colors.text, fontWeight: '800', fontSize: 15.5, flex: 1 }}>{sv.name}</Text>
-                      {sv.price != null ? <Text style={{ color: colors.primary, fontWeight: '800', fontSize: 15.5 }}>{formatMoney(sv.price, sv.currency, lang)}</Text> : null}
+                      {sv.price != null ? <Text style={{ color: colors.accent, fontWeight: '800', fontSize: 15.5 }}>{formatMoney(sv.price, sv.currency, lang)}</Text> : null}
                     </Row>
                     {sv.description ? <Muted>{sv.description}</Muted> : null}
                     {sv.duration_minutes ? <Muted>{t('services.minutes', { n: sv.duration_minutes })}</Muted> : null}

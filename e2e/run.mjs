@@ -98,6 +98,7 @@ try {
   let page = await newPage();
   await open(page);
   await must(page, 'Terms of use'); await must(page, 'Privacy policy');
+  await shot(page, 'welcome');
   ok('welcome screen shows legal links');
   await vis(page, 'Browse services').click();
   await must(page, 'Top rated');

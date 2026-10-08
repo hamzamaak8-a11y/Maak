@@ -49,7 +49,9 @@ export function HomeScreen() {
   return (
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}>
-        <LinearGradient colors={['#061A44', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, boxShadow: '0 14px 34px rgba(29,95,224,0.30)' }}>
+        <LinearGradient colors={['#061A44', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, overflow: 'hidden', boxShadow: '0 14px 34px rgba(29,95,224,0.30)' }}>
+          <LinearGradient pointerEvents="none" colors={['#FFC933', '#FF7A1A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: -46, end: -34, width: 128, height: 128, borderRadius: 64, opacity: 0.95 }} />
+          <View pointerEvents="none" style={{ position: 'absolute', bottom: -80, start: -40, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(0,198,255,0.32)' }} />
           <Row style={{ justifyContent: 'space-between' }}>
             <View style={{ flex: 1 }}>
               <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 14, fontWeight: '600' }}>{user ? t('home.hello') : t('home.welcome')}</Text>

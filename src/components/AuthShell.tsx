@@ -40,9 +40,9 @@ export function AuthShell({ heading, subheading, children, footer, onBack, badge
     <ForceTheme colors={authColors}>
       <View style={{ flex: 1, backgroundColor: authColors.background, overflow: 'hidden' }}>
         <LinearGradient colors={['#04122B', '#071B3C', '#050B1F']} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} />
-        <View pointerEvents="none" style={[styles.circle, { width: 340, height: 340, top: -150, end: -110, borderColor: 'rgba(45,212,191,0.38)', backgroundColor: 'rgba(20,184,166,0.05)' }]} />
-        <View pointerEvents="none" style={[styles.circle, { width: 300, height: 300, top: 90, start: -190, borderColor: 'rgba(59,130,246,0.40)', backgroundColor: 'rgba(37,99,235,0.07)' }]} />
-        <View pointerEvents="none" style={[styles.circle, { width: 260, height: 260, bottom: -120, end: -100, borderColor: 'rgba(45,212,191,0.22)', backgroundColor: 'rgba(14,165,233,0.04)' }]} />
+        <View pointerEvents="none" style={[styles.circle, { width: 340, height: 340, top: -150, end: -110, borderColor: 'rgba(255,154,60,0.45)', backgroundColor: 'rgba(255,138,31,0.22)' }]} />
+        <View pointerEvents="none" style={[styles.circle, { width: 300, height: 300, top: 90, start: -190, borderColor: 'rgba(77,163,255,0.45)', backgroundColor: 'rgba(29,95,224,0.12)' }]} />
+        <View pointerEvents="none" style={[styles.circle, { width: 260, height: 260, bottom: -120, end: -100, borderColor: 'rgba(0,198,255,0.30)', backgroundColor: 'rgba(0,198,255,0.06)' }]} />
         <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 36, gap: 22, width: '100%', maxWidth: 520, alignSelf: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44 }}>
