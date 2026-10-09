@@ -313,6 +313,7 @@ try {
   await vis(page, 'Delete my account permanently', true).click();
   await must(page, 'Browse services');
   if (be.state.deleted.length !== 1) throw new Error('account was not deleted');
+  if (!be.state.unlockedForDeletion) throw new Error('account deletion must first unlock the identity files so they can be erased too');
   ok('account deletion works and returns to the welcome screen');
   await page.context().close();
 

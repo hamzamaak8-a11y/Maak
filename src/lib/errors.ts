@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.serviceUnavailable' | 'err.serviceTooLong' | 'err.invalidAvailability' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.documentLocked' | 'err.documentFileLeft' | 'err.serviceUnavailable' | 'err.serviceTooLong' | 'err.invalidAvailability' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -44,6 +44,8 @@ export function errorKey(error: unknown): ErrorKey {
   if (/invalid_rating/i.test(m)) return 'err.invalidRating';
   if (/empty_message/i.test(m)) return 'err.emptyMessage';
   if (/message_too_long/i.test(m)) return 'err.messageTooLong';
+  if (/document_locked/i.test(m)) return 'err.documentLocked';
+  if (/document_file_left/i.test(m)) return 'err.documentFileLeft';
   if (/documents_required/i.test(m)) return 'err.documentsRequired';
   if (/invalid_target/i.test(m)) return 'err.invalidTarget';
   if (/email_exists/i.test(m)) return 'err.emailExists';

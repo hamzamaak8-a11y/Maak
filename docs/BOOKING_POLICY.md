@@ -13,7 +13,7 @@ and `supabase/ci/booking-money-rules-test.sql`).
 | cancelled, rejected | no | no |
 | any status, payment `paid` / `refunded` | locked | locked |
 
-The customer gets a notification whenever the price is set or changed. After the service starts the agreed price cannot be edited
+The customer gets one notification whenever the price **or the currency** is set or changed (fixed in `20261008190000`: a currency-only change used to be silent). After the service starts the agreed price cannot be edited
 from the app; the screen says so and points to the chat and to support.
 
 ## Payment (cash, recorded by an administrator)

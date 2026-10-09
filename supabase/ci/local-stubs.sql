@@ -9,7 +9,10 @@ create function auth.uid() returns uuid language sql stable as $$ select nullif(
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.role', true),''),'authenticated') $$;
 create function auth.jwt() returns jsonb language sql stable as $$ select jsonb_build_object('role', coalesce(nullif(current_setting('request.jwt.claim.role', true),''),'authenticated')) $$;
 create table storage.buckets(id text primary key, name text, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
-create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid, created_at timestamptz default now());
+create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text, owner uuid, owner_id text, created_at timestamptz default now(), updated_at_marker boolean default false);
+create function storage.foldername(name text) returns text[] language sql immutable as $$ select string_to_array(name, '/') $$;
+grant usage on schema storage to anon, authenticated, service_role;
+grant select, insert, update, delete on storage.objects to authenticated;
 alter table storage.objects enable row level security;
 create publication supabase_realtime;
 grant usage on schema public, auth to anon, authenticated, service_role;

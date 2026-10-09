@@ -406,6 +406,8 @@ export const en = {
   'booking.listPrice': "List price",
   'booking.duration': "Duration",
   'booking.servicesFailed': "Could not load the price list. You can still send a free request.",
+  'err.documentLocked': "This document was already reviewed and cannot be deleted. Upload a new one instead.",
+  'err.documentFileLeft': "The document was removed from your application, but its file could not be deleted yet. It will be retried automatically.",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

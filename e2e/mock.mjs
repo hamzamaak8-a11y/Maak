@@ -121,6 +121,7 @@ export function makeBackend() {
         case 'admin_send_announcement': return json(route, 0);
         case 'admin_list_reports': return json(route, state.reports.filter(r => r.status === body.p_status));
         case 'admin_resolve_report': { const r = state.reports.find(x => x.id === body.p_id); r.status = body.p_status; return json(route, null, 204); }
+        case 'begin_account_deletion': state.unlockedForDeletion = true; return json(route, null, 204);
         case 'delete_my_account': {
           if (!user) return json(route, { message: 'not_authenticated' }, 400);
           if (user.role === 'admin') return json(route, { message: 'admin_cannot_delete' }, 400);

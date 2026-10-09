@@ -11,6 +11,7 @@ insert into public.profiles(id,role,full_name,city,account_status) values
  on conflict (id) do update set role=excluded.role, full_name=excluded.full_name, city=excluded.city, account_status='active';
 insert into public.provider_profiles(id,profession,verification_status,service_category,bio,services) values ('00000000-0000-0000-0000-0000000000e1','Plumber','pending','x','bio',array['a']) on conflict (id) do nothing;
 insert into public.provider_documents(provider_id,document_type,status,storage_path) values ('00000000-0000-0000-0000-0000000000e1','national_id','pending','x/1'),('00000000-0000-0000-0000-0000000000e1','profile_photo','pending','x/2');
+insert into storage.objects(bucket_id,name,owner_id) values ('provider-documents','x/1','00000000-0000-0000-0000-0000000000e1'),('provider-documents','x/2','00000000-0000-0000-0000-0000000000e1');
 update public.provider_profiles set verification_status='approved' where id='00000000-0000-0000-0000-0000000000e1';
 select id as listing from public.providers where provider_profile_id='00000000-0000-0000-0000-0000000000e1' \gset
 insert into public.provider_availability(provider_id,day_of_week,start_time,end_time,is_available) select :listing, d, '08:00','20:00', true from generate_series(0,6) d;

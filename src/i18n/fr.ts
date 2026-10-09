@@ -389,4 +389,6 @@ export const fr: Record<TKey, string> = {
   'booking.listPrice': "Tarif affiché",
   'booking.duration': "Durée",
   'booking.servicesFailed': "Impossible de charger les tarifs. Vous pouvez quand même envoyer une demande libre.",
+  'err.documentLocked': "Ce document a déjà été examiné et ne peut pas être supprimé. Envoyez-en un nouveau.",
+  'err.documentFileLeft': "Le document a été retiré de votre demande, mais son fichier n'a pas pu être supprimé. Nouvelle tentative automatique.",
 };

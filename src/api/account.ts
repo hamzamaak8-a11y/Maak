@@ -13,6 +13,10 @@ export async function deleteMyAccount(userId: string): Promise<void> {
   const open = (await listMyBookings()).some(b => ['pending', 'accepted', 'in_progress'].includes(b.status));
   if (open) throw new Error('active_bookings');
 
+  // Approved / rejected identity files are locked while the account exists; this unlocks the caller's OWN files for 15 minutes so they can be erased.
+  // If the database does not know the function yet, the clean-up below still removes everything that is not locked.
+  await supabase.rpc('begin_account_deletion').then(() => undefined, () => undefined);
+
   for (const bucket of BUCKETS) {
     try {
       const { data } = await supabase.storage.from(bucket).list(userId, { limit: 1000 });

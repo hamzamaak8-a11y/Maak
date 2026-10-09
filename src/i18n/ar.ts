@@ -389,4 +389,6 @@ export const ar: Record<TKey, string> = {
   'booking.listPrice': "السعر في القائمة",
   'booking.duration': "المدة",
   'booking.servicesFailed': "تعذّر تحميل قائمة الأسعار. يمكنك مع ذلك إرسال طلب حر.",
+  'err.documentLocked': "تمت مراجعة هذه الوثيقة ولا يمكن حذفها. ارفع وثيقة جديدة بدلاً منها.",
+  'err.documentFileLeft': "أُزيلت الوثيقة من طلبك، لكن تعذّر حذف ملفها الآن. ستُعاد المحاولة تلقائياً.",
 };
