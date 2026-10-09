@@ -61,7 +61,7 @@ let n = 0;
 async function newPage(locale = 'en-US', size = { width: 420, height: 860 }) {
   const ctx = await browser.newContext({ viewport: size, locale });
   const page = await ctx.newPage();
-  page.on('console', m => { if (m.type() === 'error' && !/WebSocket|status of 400/.test(m.text())) problems.push('console.error: ' + m.text().slice(0, 300)); });
+  page.on('console', m => { if (m.type() === 'error' && !/WebSocket|status of 400|status of 503/.test(m.text())) problems.push('console.error: ' + m.text().slice(0, 300)); });
   page.on('pageerror', e => problems.push('PAGEERROR: ' + e.message.slice(0, 400)));
   await page.route('https://workers.test/**', be.handleWorker);
   await page.route('https://sb.test/**', be.handleSupabase);
@@ -176,6 +176,25 @@ try {
   if (msgEnabled) throw new Error('messaging must stay possible when booking is closed');
   await shot(page, 'provider-closed');
   await page.goBack().catch(() => {});
+  await page.context().close();
+  // a failed request is not "empty": reviews / work photos that could not be loaded say so and can be retried
+  be.state.failReviews = true; be.state.failPortfolio = true;
+  page = await newPage();
+  await open(page);
+  await vis(page, 'Browse services').click();
+  await must(page, 'Top rated');
+  await vis(page, 'Karim Benali').click();
+  await must(page, 'Book now');
+  await must(page, 'Could not load the reviews');
+  await must(page, 'Could not load the work photos');
+  if (await page.locator('text="No reviews yet." >> visible=true').count()) throw new Error('a failed reviews request must not read as "no reviews"');
+  await shot(page, 'provider-load-failed');
+  be.state.failReviews = false; be.state.failPortfolio = false;
+  while (await page.locator('text="Try again" >> visible=true').count()) { await page.locator('text="Try again" >> visible=true').first().click(); await page.waitForTimeout(400); }
+  await must(page, 'No reviews yet.');
+  await must(page, '1 / 4');
+  if (await page.locator('text=/Could not load/ >> visible=true').count()) throw new Error('error banners must disappear after a successful retry');
+  ok('reviews and work photos: a failed load shows a retry, and recovers');
   await page.context().close();
   // a listing the server did not confirm as verified never gets the badge
   page = await newPage();

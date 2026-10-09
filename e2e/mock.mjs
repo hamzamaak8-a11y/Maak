@@ -41,6 +41,7 @@ export function makeBackend() {
     const m = u.pathname.match(/^\/api\/providers\/(\d+)(\/portfolio)?$/);
     const svg = (a, b) => 'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><circle cx="560" cy="200" r="110" fill="rgba(255,255,255,.18)"/></svg>`).toString('base64');
     const photos = [['#0B2F7A', '#1D8FE0'], ['#9A3412', '#FF9A3C'], ['#0F766E', '#34D3A6'], ['#4C1D95', '#8B5CF6']].map(([a, b], i) => ({ id: 'ph' + i, path: 'p/' + i, url: svg(a, b), created_at: null }));
+    if (m && m[2] && state.failPortfolio) return json(route, { error: 'service_unavailable' }, 503);
     if (m) return json(route, m[2] ? photos : providers.find(p => p.id === Number(m[1])) ?? null, providers.find(p => p.id === Number(m[1])) || m[2] ? 200 : 404);
     return json(route, {}, 404);
   }
@@ -100,7 +101,7 @@ export function makeBackend() {
         case 'get_provider_dashboard_stats': return json(route, { total_completed_bookings: state.bookings.filter(b => b.status === 'completed').length, total_earnings: null, total_earnings_currency: null, average_rating: 4.5, total_reviews: 2, upcoming_bookings: state.bookings.filter(b => ['pending', 'accepted'].includes(b.status)).map(b => ({ ...b, customer_name: b.customer_name, service_date: b.service_date })), recent_activity: [] });
         case 'get_my_provider_listing_id': return json(route, 1);
         case 'get_provider_services': return json(route, []);
-        case 'get_provider_reviews': return json(route, { reviews: [], total_count: 0, average_rating: 0 });
+        case 'get_provider_reviews': if (state.failReviews) return json(route, { message: 'upstream down' }, 503); return json(route, { reviews: [], total_count: 0, average_rating: 0 });
         case 'get_admin_dashboard_stats': return json(route, { total_customers: 12, total_providers: 3, approved_providers: 2, total_bookings: state.bookings.length, bookings_by_status: {}, providers_by_status: { pending: 1 }, published_listings: 2 });
         case 'admin_approve_provider': state.pendingApp.verification_status = 'approved'; return json(route, null, 204);
         case 'admin_reject_provider': state.pendingApp.verification_status = 'rejected'; state.pendingApp.rejection_reason = body.reason; return json(route, null, 204);

@@ -60,3 +60,9 @@ Run it in the Supabase SQL editor after `20261008100000_admin_tools.sql`.
 - `available` = not paused by the provider AND at least one working-hours window. Providers with no hours show "Bookings not open yet" and a disabled Book button; messaging stays possible.
 - Starting prices show a currency: the provider's price-list currency when it is a single one, otherwise `EXPO_PUBLIC_DEFAULT_CURRENCY` (default `MAD`).
 - Check before running the migration: `select id, name, published_at, available, (select count(*) from provider_availability a where a.provider_id = p.id and a.is_available) as windows from providers p where listing_kind = 'real';`
+
+## Public API fields (Worker)
+
+`GET /api/providers` and `/api/providers/:id` read `public.providers` with an explicit column list and return an explicit allow-list
+(`PROVIDER_COLUMNS` / `toPublic` in `worker/src/supabase.ts`). The Worker uses the service-role key, so a column added to the table later is **not** public
+until someone adds it to that list on purpose. `worker/test/providers.test.mjs` fails if the query goes back to `select *` or if any other key appears.

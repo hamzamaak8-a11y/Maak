@@ -394,6 +394,9 @@ export const en = {
   'push.openSettings': "Open phone settings",
   'push.unavailable': "Push notifications need the installed Maak app on a real phone.",
   'push.failed': "Could not turn notifications on. Try again later.",
+  'provider.reviewsFailed': "Could not load the reviews. This does not mean there are none.",
+  'provider.portfolioFailed': "Could not load the work photos. More photos may exist.",
+  'provider.priceListFailed': "Could not load the price list.",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

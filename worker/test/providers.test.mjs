@@ -5,14 +5,17 @@ import worker from '../src/index.ts';
 const env = { SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'svc', MAAK_ALLOW_ORIGIN: '' };
 const P = (n) => `00000000-0000-0000-0000-00000000000${n}`;
 const listing = (id, n, extra = {}) => ({ id, name: 'P' + id, job: 'Job', city: 'C', distance: null, price: '120.00', rating: null, reviews: 0, image: null, available: null, services: ['x'], experience: null, intro: null, provider_profile_id: P(n), listing_kind: 'real', published_at: '2026-01-01', ...extra });
-const listings = [listing(1, 1), listing(2, 2), listing(3, 3), listing(4, 4), listing(5, 5, { available: false }), listing(6, 6)];
+// A column somebody adds to public.providers later must never become public by accident.
+const secret = (l) => ({ ...l, internal_notes: 'do not leak', contact_email: 'private@example.com', owner_phone: '+212600000000', nested: { token: 'x' } });
+const listings = [listing(1, 1), listing(2, 2), listing(3, 3), listing(4, 4), listing(5, 5, { available: false }), listing(6, 6)].map(secret);
 const status = { 1: 'approved', 2: 'pending', 3: 'approved', 4: 'approved', 5: 'approved', 6: 'rejected' };
 const account = { 1: 'active', 2: 'active', 3: 'suspended', 4: 'active', 5: 'active', 6: 'active' };
 const windows = [1, 3, 5, 6]; // listing ids that have working hours (4 has none)
 
 globalThis.caches = { default: { match: async () => undefined, put: async () => {} } };
+const urls = [];
 globalThis.fetch = async (input) => {
-  const url = String(input);
+  const url = String(input); urls.push(url);
   const ok = (b) => new Response(JSON.stringify(b), { status: 200, headers: { 'content-type': 'application/json' } });
   if (url.includes('/rest/v1/providers')) { const m = url.match(/[?&]id=eq\.(\d+)/); return ok(m ? listings.filter((l) => l.id === Number(m[1])) : listings); }
   if (url.includes('/rest/v1/provider_profiles')) return ok([1, 2, 3, 4, 5, 6].map((n) => ({ id: P(n), service_category: 'cat', verification_status: status[n] })));
@@ -40,4 +43,13 @@ assert.equal((await get('/api/providers/2')).status, 404);
 assert.equal((await get('/api/providers/3')).status, 404);
 assert.equal((await get('/api/providers/6')).status, 404);
 assert.equal((await get('/api/providers/1')).status, 200);
+// public API: explicit column list upstream, explicit allow-list in the response
+const PUBLIC_KEYS = ['available', 'category', 'city', 'currency', 'distance', 'experience', 'id', 'image', 'intro', 'job', 'listing_kind', 'name', 'price', 'provider_profile_id', 'published_at', 'rating', 'reviews', 'services', 'verified'];
+const providerQueries = urls.filter((u) => /\/rest\/v1\/providers\?/.test(u));
+assert.ok(providerQueries.length >= 2);
+for (const q of providerQueries) { assert.ok(/[?&]select=id,name,job,city/.test(q), 'providers must be read with an explicit column list'); assert.ok(!/select=\*/.test(q)); }
+for (const p of list) assert.deepEqual(Object.keys(p).sort(), PUBLIC_KEYS, 'unexpected key in the public listing');
+const one = await (await get('/api/providers/1')).json();
+assert.deepEqual(Object.keys(one).sort(), PUBLIC_KEYS);
+assert.ok(!JSON.stringify([list, one]).match(/internal_notes|private@example|owner_phone|do not leak|token/), 'private columns leaked');
 console.log('worker providers: approval, currency and availability rules passed');

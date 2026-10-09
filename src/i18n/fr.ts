@@ -377,4 +377,7 @@ export const fr: Record<TKey, string> = {
   'push.openSettings': "Ouvrir les réglages",
   'push.unavailable': "Les notifications nécessitent l'application Maak installée sur un vrai téléphone.",
   'push.failed': "Impossible d'activer les notifications. Réessayez plus tard.",
+  'provider.reviewsFailed': "Impossible de charger les avis. Cela ne signifie pas qu'il n'y en a pas.",
+  'provider.portfolioFailed': "Impossible de charger les photos des réalisations. D'autres photos peuvent exister.",
+  'provider.priceListFailed': "Impossible de charger les tarifs.",
 };

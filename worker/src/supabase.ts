@@ -14,6 +14,23 @@ function headers(env: Env): Record<string, string> {
 // Public marketplace visibility: only real, published, provider-linked listings.
 const PUBLISHED_FILTER = "listing_kind=eq.real&published_at=not.is.null&provider_profile_id=not.is.null";
 const PORTFOLIO_BUCKET = "provider-portfolio";
+
+/**
+ * The ONLY columns read from public.providers, and the ONLY fields returned to the public API. The Worker reads with the
+ * service-role key, so a column added to the table later (an internal note, a contact, ...) must never become public by accident:
+ * it has to be added here on purpose. Everything else the app shows (category, rating, verified, currency, availability) is computed below.
+ */
+const PROVIDER_COLUMNS = ["id", "name", "job", "city", "distance", "price", "rating", "reviews", "image", "available", "services", "experience", "intro", "provider_profile_id", "listing_kind", "published_at"] as const;
+
+function toPublic(row: Provider, extra: Pick<Provider, "category" | "rating" | "reviews" | "verified" | "currency" | "available">): Provider {
+  return {
+    id: row.id, name: row.name, job: row.job, city: row.city, distance: row.distance ?? null, price: row.price ?? null,
+    rating: extra.rating, reviews: extra.reviews, image: row.image ?? null, available: extra.available,
+    services: Array.isArray(row.services) ? row.services : [], experience: row.experience ?? null, intro: row.intro ?? null,
+    provider_profile_id: row.provider_profile_id ?? null, listing_kind: row.listing_kind ?? null, published_at: row.published_at ?? null,
+    category: extra.category, verified: extra.verified, currency: extra.currency,
+  };
+}
 const PORTFOLIO_URL_TTL_SECONDS = 3600;
 
 async function getJson<T>(env: Env, url: URL | string, what: string): Promise<T> {
@@ -110,25 +127,24 @@ async function enrich(env: Env, providers: Provider[]): Promise<Provider[]> {
       const id = provider.provider_profile_id as string;
       const stat = stats.get(id);
       const cur = currencies.get(id);
-      return {
-        ...provider,
+      return toPublic(provider, {
         category: categories.get(id) ?? null,
-        rating: stat && stat.count > 0 ? (stat.sum / stat.count).toFixed(1) : provider.rating,
-        reviews: stat && stat.count > 0 ? stat.count : provider.reviews,
+        rating: stat && stat.count > 0 ? (stat.sum / stat.count).toFixed(1) : provider.rating ?? null,
+        reviews: stat && stat.count > 0 ? stat.count : provider.reviews ?? 0,
         verified: true,
         currency: cur && cur.size === 1 ? [...cur][0] : null,
         available: provider.available !== false && withHours.has(provider.id),
-      };
+      });
     });
 }
 
 export async function listProviders(env: Env): Promise<Provider[]> {
-  const providers = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, "list");
+  const providers = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?select=" + PROVIDER_COLUMNS.join(",") + "&order=id.asc&" + PUBLISHED_FILTER, "list");
   return enrich(env, providers);
 }
 
 export async function findProvider(env: Env, id: number): Promise<Provider | null> {
-  const arr = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?id=eq." + id + "&" + PUBLISHED_FILTER, "get");
+  const arr = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?select=" + PROVIDER_COLUMNS.join(",") + "&id=eq." + id + "&" + PUBLISHED_FILTER, "get");
   if (arr.length === 0) return null;
   return (await enrich(env, [arr[0]]))[0] ?? null;
 }

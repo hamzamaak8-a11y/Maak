@@ -377,4 +377,7 @@ export const ar: Record<TKey, string> = {
   'push.openSettings': "فتح إعدادات الهاتف",
   'push.unavailable': "تتطلب الإشعارات تطبيق معاك المثبّت على هاتف حقيقي.",
   'push.failed': "تعذّر تفعيل الإشعارات. حاول لاحقًا.",
+  'provider.reviewsFailed': "تعذّر تحميل التقييمات. هذا لا يعني أنه لا توجد تقييمات.",
+  'provider.portfolioFailed': "تعذّر تحميل صور الأعمال. قد توجد صور أخرى.",
+  'provider.priceListFailed': "تعذّر تحميل قائمة الأسعار.",
 };

@@ -9,6 +9,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { fetchPortfolio, fetchProvider, fetchPublicServices, isBookable } from '../../api/providers';
 import { getProviderReviews } from '../../api/reviews';
+import { withRetry } from '../../lib/retry';
 import { openProviderConversation } from '../../api/chat';
 import { Avatar, Badge, Banner, Button, Card, EmptyState, ErrorState, H1, Header, Loading, Muted, Row, Screen, SectionTitle, Stars, useAsync, Chip } from '../../components/ui';
 import { CoverPhoto } from '../../components/ProviderVisual';
@@ -37,9 +38,9 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
 
   const provider = useAsync(() => fetchProvider(id), [id]);
   const p = provider.data;
-  const reviews = useAsync(() => (p?.provider_profile_id ? getProviderReviews(p.provider_profile_id, 5, 0) : Promise.resolve(null)), [p?.provider_profile_id]);
-  const catalog = useAsync(() => (p?.provider_profile_id ? fetchPublicServices(p.provider_profile_id).catch(() => []) : Promise.resolve([])), [p?.provider_profile_id]);
-  const portfolio = useAsync(() => (p ? fetchPortfolio(p.id) : Promise.resolve([])), [p?.id]);
+  const reviews = useAsync(() => (p?.provider_profile_id ? withRetry(() => getProviderReviews(p.provider_profile_id as string, 5, 0)) : Promise.resolve(null)), [p?.provider_profile_id]);
+  const catalog = useAsync(() => (p?.provider_profile_id ? withRetry(() => fetchPublicServices(p.provider_profile_id as string)) : Promise.resolve([])), [p?.provider_profile_id]);
+  const portfolio = useAsync(() => (p ? withRetry(() => fetchPortfolio(p.id)) : Promise.resolve([])), [p?.id]);
 
   const here = { name: 'ProviderDetail', params: { id } };
   const own = !!user && !!p && p.provider_profile_id === user.id;
@@ -127,6 +128,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
               </View>
             ) : null}
 
+            {catalog.error && !(catalog.data ?? []).length ? <LoadFailed text={t('provider.priceListFailed')} onRetry={catalog.reload} /> : null}
             {catalog.data && catalog.data.length ? (
               <View style={{ gap: 10 }}>
                 <SectionTitle title={t('provider.priceList')} />
@@ -140,6 +142,13 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
                     {sv.duration_minutes ? <Muted>{t('services.minutes', { n: sv.duration_minutes })}</Muted> : null}
                   </Card>
                 ))}
+              </View>
+            ) : null}
+
+            {portfolio.error && !(portfolio.data ?? []).length ? (
+              <View style={{ gap: 10 }}>
+                <SectionTitle title={t('provider.portfolio')} />
+                <LoadFailed text={t('provider.portfolioFailed')} onRetry={portfolio.reload} />
               </View>
             ) : null}
 
@@ -162,7 +171,7 @@ export function ProviderDetailScreen({ navigation, route }: ScreenProps<'Provide
 
             <View style={{ gap: 10 }}>
               <SectionTitle title={t('provider.reviews')} />
-              {reviews.loading && !reviews.data ? <Loading /> : !reviews.data || reviews.data.reviews.length === 0 ? <Muted>{t('provider.noReviews')}</Muted> : reviews.data.reviews.map(r => (
+              {reviews.loading && !reviews.data ? <Loading /> : reviews.error && !reviews.data ? <LoadFailed text={t('provider.reviewsFailed')} onRetry={reviews.reload} /> : !reviews.data || reviews.data.reviews.length === 0 ? <Muted>{t('provider.noReviews')}</Muted> : reviews.data.reviews.map(r => (
                 <Card key={r.id} style={{ gap: 6, borderRadius: 18 }}>
                   <Row style={{ justifyContent: 'space-between' }}><Stars value={r.rating} size={13} /><Row gap={10}><Muted>{formatDate(r.created_at, lang)}</Muted><Pressable accessibilityRole="button" accessibilityLabel={t('report.title')} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', margin: -14 }} onPress={() => { if (requireAuth(here)) setReport({ type: 'review', id: r.id }); }}><Ionicons name="flag-outline" size={16} color={colors.textMuted} /></Pressable></Row></Row>
                   {r.comment ? <Text style={{ color: colors.text, fontSize: 14.5, lineHeight: 22 }}>{r.comment}</Text> : null}
@@ -210,6 +219,17 @@ function Stat({ value, label, divider, icon, iconColor }: { value: string; label
     <View style={{ flex: 1, alignItems: 'center', paddingVertical: 14, paddingHorizontal: 4, gap: 2, borderStartWidth: divider ? 1 : 0, borderStartColor: colors.border }}>
       <Row gap={4}>{icon ? <Ionicons name={icon} size={17} color={iconColor} /> : null}<Text numberOfLines={1} style={{ color: colors.text, fontSize: 19, fontWeight: '800' }}>{value}</Text></Row>
       <Text numberOfLines={1} style={{ color: colors.textMuted, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+    </View>
+  );
+}
+
+/** Compact, in-place error with a retry; the rest of the page keeps working. */
+function LoadFailed({ text, onRetry }: { text: string; onRetry: () => void }) {
+  const { t } = useLanguage();
+  return (
+    <View style={{ gap: 8 }}>
+      <Banner kind="warning" text={text} />
+      <Button title={t('common.retry')} icon="refresh" variant="outline" size="sm" onPress={onRetry} />
     </View>
   );
 }
