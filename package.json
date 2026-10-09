@@ -48,7 +48,7 @@
     "eas:build:preview": "eas build --profile preview --platform all",
     "eas:build:production": "eas build --profile production --platform all",
     "test:e2e": "node e2e/run.mjs",
-    "test:unit": "node --experimental-strip-types tests/realtimeHub.test.mjs && node --experimental-strip-types tests/realtimeReal.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/admin.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/providers.test.mjs && node --experimental-strip-types tests/bookingRules.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/push.test.mjs && node --experimental-strip-types tests/retry.test.mjs"
+    "test:unit": "node --experimental-strip-types tests/realtimeHub.test.mjs && node --experimental-strip-types tests/realtimeReal.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/admin.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/providers.test.mjs && node --experimental-strip-types tests/bookingRules.test.mjs && node --experimental-strip-types --import ./worker/test/register.mjs worker/test/push.test.mjs && node --experimental-strip-types tests/retry.test.mjs && node --experimental-strip-types tests/pushPolicy.test.mjs"
   },
   "private": true
 }

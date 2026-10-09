@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
+import { createPush, type PushState } from './pushPolicy';
 import type { Lang } from '../types';
 
 /**
@@ -8,7 +10,7 @@ import type { Lang } from '../types';
  * switches it on in Settings, which is when the system permission dialog appears. The module is only loaded on devices.
  */
 export const PUSH_SUPPORTED = Platform.OS === 'android' || Platform.OS === 'ios';
-export type PushState = 'unsupported' | 'unavailable' | 'denied' | 'off' | 'on';
+export type { PushState };
 
 type NotificationsModule = typeof import('expo-notifications');
 const load = (): NotificationsModule => require('expo-notifications') as NotificationsModule;
@@ -20,72 +22,67 @@ const projectId = (): string | undefined => {
 };
 
 let handlerInstalled = false;
-function installHandler(N: NotificationsModule) {
-  if (handlerInstalled) return;
-  handlerInstalled = true;
-  N.setNotificationHandler({ handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }) });
-}
-
-async function ensureChannel(N: NotificationsModule) {
+async function prepare(N: NotificationsModule) {
+  if (!handlerInstalled) {
+    handlerInstalled = true;
+    N.setNotificationHandler({ handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: false, shouldSetBadge: false }) });
+  }
   if (Platform.OS === 'android') await N.setNotificationChannelAsync('default', { name: 'Maak', importance: N.AndroidImportance.MAX, vibrationPattern: [0, 200, 100, 200], lightColor: '#1D5FE0' });
 }
 
-async function currentToken(N: NotificationsModule): Promise<string | null> {
-  const id = projectId();
-  if (!id) return null;
-  return (await N.getExpoPushTokenAsync({ projectId: id })).data;
-}
+const policy = createPush({
+  storage: {
+    get: key => AsyncStorage.getItem(key),
+    set: (key, value) => AsyncStorage.setItem(key, value),
+    remove: key => AsyncStorage.removeItem(key),
+  },
+  os: {
+    available: () => PUSH_SUPPORTED && device().isDevice && !!projectId(),
+    permission: async () => { const p = await load().getPermissionsAsync(); return { status: p.status as 'granted' | 'denied' | 'undetermined', canAskAgain: p.canAskAgain !== false }; },
+    request: async () => { const N = load(); await prepare(N); const p = await N.requestPermissionsAsync(); return { status: p.status as 'granted' | 'denied' | 'undetermined', canAskAgain: p.canAskAgain !== false }; },
+    token: async () => {
+      const N = load();
+      if ((await N.getPermissionsAsync()).status !== 'granted') return null;
+      await prepare(N);
+      return (await N.getExpoPushTokenAsync({ projectId: projectId() as string })).data;
+    },
+  },
+  api: {
+    register: async (token, lang) => { const { error } = await supabase.rpc('register_push_token', { p_token: token, p_platform: Platform.OS, p_lang: lang }); if (error) throw error; },
+    unregister: async token => { const { error } = await supabase.rpc('unregister_push_token', { p_token: token }); if (error) throw error; },
+    revoke: async token => { const { error } = await supabase.rpc('revoke_push_token', { p_token: token }); if (error) throw error; },
+  },
+});
 
-async function registerToken(token: string, lang: Lang) {
-  const { error } = await supabase.rpc('register_push_token', { p_token: token, p_platform: Platform.OS, p_lang: lang });
-  if (error) throw error;
-}
-
-export async function pushState(): Promise<PushState> {
+/** What Settings shows for this account on this phone ("on" needs the system permission AND this account's own opt-in). */
+export async function pushState(uid: string): Promise<PushState> {
   if (!PUSH_SUPPORTED) return 'unsupported';
-  try {
-    if (!device().isDevice || !projectId()) return 'unavailable';
-    const N = load();
-    const p = await N.getPermissionsAsync();
-    if (p.status === 'granted') return 'on';
-    return p.canAskAgain === false ? 'denied' : 'off';
-  } catch { return 'unavailable'; }
+  try { return await policy.state(uid); } catch { return 'unavailable'; }
 }
-
-/** Asks for permission (system dialog), then registers this device. Returns the resulting state. */
-export async function enablePush(lang: Lang): Promise<PushState> {
+/** "Turn on": system permission dialog if needed, then registers this phone for this account. */
+export async function enablePush(uid: string, lang: Lang): Promise<PushState> {
   if (!PUSH_SUPPORTED) return 'unsupported';
-  const N = load();
-  if (!device().isDevice || !projectId()) return 'unavailable';
-  installHandler(N);
-  await ensureChannel(N);
-  let p = await N.getPermissionsAsync();
-  if (p.status !== 'granted') p = await N.requestPermissionsAsync();
-  if (p.status !== 'granted') return p.canAskAgain === false ? 'denied' : 'off';
-  const token = await currentToken(N);
-  if (!token) return 'unavailable';
-  await registerToken(token, lang);
-  return 'on';
+  return policy.enable(uid, lang);
 }
-
-/** After sign-in / language change: refresh the registration, but only when the user already allowed notifications. */
-export async function refreshPush(lang: Lang): Promise<void> {
-  if ((await pushState()) !== 'on') return;
-  const N = load();
-  installHandler(N);
-  await ensureChannel(N);
-  const token = await currentToken(N);
-  if (token) await registerToken(token, lang);
-}
-
-/** Before sign-out (and from Settings): this device stops receiving this account's notifications. */
-export async function disablePush(): Promise<void> {
+/** Keeps the registration fresh. Does nothing unless this account turned notifications on for this phone. */
+export async function refreshPush(uid: string, lang: Lang): Promise<void> {
   if (!PUSH_SUPPORTED) return;
-  try {
-    if (!device().isDevice || !projectId()) return;
-    const token = await currentToken(load());
-    if (token) await supabase.rpc('unregister_push_token', { p_token: token });
-  } catch { /* offline or not registered: nothing to undo */ }
+  await policy.refresh(uid, lang);
+}
+/** "Turn off": saved locally first, then the server forgets this phone (retried later if offline). */
+export async function disablePush(uid: string): Promise<{ revoked: boolean }> {
+  if (!PUSH_SUPPORTED) return { revoked: true };
+  return policy.disable(uid);
+}
+/** Called while signing out; bounded in time and never throws, so signing out cannot hang or fail. */
+export async function disablePushForSignOut(uid: string | undefined): Promise<void> {
+  if (!PUSH_SUPPORTED || !uid) return;
+  await policy.disableForSignOut(uid).catch(() => undefined);
+}
+/** Retries token revocations that could not be completed offline. */
+export async function flushPendingPush(): Promise<void> {
+  if (!PUSH_SUPPORTED) return;
+  await policy.flushPending().catch(() => undefined);
 }
 
 let lastOpened: string | null = null;

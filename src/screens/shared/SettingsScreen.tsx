@@ -18,13 +18,22 @@ export function SettingsScreen() {
   const toast = useToast();
   const [push, setPush] = useState<PushState>('unsupported');
   const [busy, setBusy] = useState(false);
-  const refreshPushState = useCallback(() => { pushState().then(setPush).catch(() => setPush('unavailable')); }, []);
+  const uid = user?.id;
+  const refreshPushState = useCallback(() => { if (uid) pushState(uid).then(setPush).catch(() => setPush('unavailable')); }, [uid]);
   useEffect(() => { refreshPushState(); }, [refreshPushState]);
   const turnOn = async () => {
     setBusy(true);
-    try { setPush(await enablePush(lang)); } catch { toast.show(t('push.failed'), 'error'); } finally { setBusy(false); }
+    try { if (uid) setPush(await enablePush(uid, lang)); } catch { toast.show(t('push.failed'), 'error'); } finally { setBusy(false); }
   };
-  const turnOff = async () => { setBusy(true); try { await disablePush(); toast.show(t('common.saved'), 'success'); } finally { setBusy(false); } };
+  const turnOff = async () => {
+    if (!uid) return;
+    setBusy(true);
+    try {
+      const { revoked } = await disablePush(uid);
+      setPush('off'); // the choice is saved on this phone first: it stays off even if the server could not be told yet
+      toast.show(revoked ? t('common.saved') : t('push.pendingRevoke'), revoked ? 'success' : 'info');
+    } finally { setBusy(false); }
+  };
   const modes: Array<{ key: ThemeMode; label: string }> = [{ key: 'system', label: t('settings.themeSystem') }, { key: 'light', label: t('settings.themeLight') }, { key: 'dark', label: t('settings.themeDark') }];
   return (
     <Screen>

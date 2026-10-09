@@ -397,6 +397,7 @@ export const en = {
   'provider.reviewsFailed': "Could not load the reviews. This does not mean there are none.",
   'provider.portfolioFailed': "Could not load the work photos. More photos may exist.",
   'provider.priceListFailed': "Could not load the price list.",
+  'push.pendingRevoke': "Notifications are off on this phone. The server could not be reached yet; it will be told as soon as you are back online.",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

@@ -29,6 +29,7 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261008120000_bookable_from_working_hours.sql` | A listing is bookable when it is published, not paused and has working hours (before, the app waited for `providers.available = true`, which nothing in the repo sets). No data is changed. Test: `supabase/ci/bookable-from-working-hours-test.sql` |
 | `migrations/20261008130000_booking_money_rules.sql` | Price / payment / refund rules enforced in SQL (`set_booking_price`, `mark_booking_paid`, `admin_refund_booking`) and `admin_cancel_booking` now frees the time slot and notifies both people. Test: `supabase/ci/booking-money-rules-test.sql` |
 | `migrations/20261008140000_push_notifications.sql` | `push_tokens` + register/unregister RPCs and a dormant trigger for push notifications (see `docs/PUSH_NOTIFICATIONS.md`). Test: `supabase/ci/push-notifications-test.sql` |
+| `migrations/20261008150000_push_token_revocation.sql` | `revoke_push_token(token)` so a phone can stop notifications after an offline sign-out, without a session (see `docs/PUSH_NOTIFICATIONS.md`) |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
 

@@ -380,4 +380,5 @@ export const fr: Record<TKey, string> = {
   'provider.reviewsFailed': "Impossible de charger les avis. Cela ne signifie pas qu'il n'y en a pas.",
   'provider.portfolioFailed': "Impossible de charger les photos des réalisations. D'autres photos peuvent exister.",
   'provider.priceListFailed': "Impossible de charger les tarifs.",
+  'push.pendingRevoke': "Les notifications sont désactivées sur ce téléphone. Le serveur n'a pas pu être joint ; il sera prévenu dès le retour de la connexion.",
 };

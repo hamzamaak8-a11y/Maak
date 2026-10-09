@@ -256,7 +256,7 @@ export function RootNavigator() {
     <NavigationContainer ref={navRef} theme={theme} direction={isRTL ? 'rtl' : 'ltr'} documentTitle={{ formatter: () => (IS_ADMIN_PORTAL ? 'Maak Admin' : 'Maak') }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {body}
-      {!IS_ADMIN_PORTAL && (role === 'customer' || role === 'provider') ? <PushManager /> : null}
+      {!IS_ADMIN_PORTAL ? <PushManager /> : null}
     </NavigationContainer>
   );
 }

@@ -47,6 +47,17 @@ select public.notify_user('00000000-0000-0000-0000-0000000000c1','booking_new','
 insert into res select 'trigger: user without device -> no dispatch', '1', (select count(*)::text from net.calls);
 create or replace function net.http_post(url text, body jsonb default '{}', params jsonb default '{}', headers jsonb default '{}', timeout_milliseconds integer default 5000) returns bigint language plpgsql as $$ begin raise exception 'network down'; end $$;
 insert into res select 'trigger: failing http never breaks the notification', 'ok', pg_temp.try($$select public.notify_user('00000000-0000-0000-0000-0000000000c2','booking_new','notifications.bookingNewTitle','notifications.bookingNewBody',null)$$);
+-- revoke without a session (offline sign-out): only makes the server stop sending to that exact token
+reset role;
+insert into public.push_tokens(user_id, token, platform) values ('00000000-0000-0000-0000-0000000000c2','ExponentPushToken[revokeme000001]','android'),('00000000-0000-0000-0000-0000000000c2','ExponentPushToken[keepme00000002]','android');
+set role anon;
+insert into res select 'revoke: anon cannot read tokens', 'permission denied for table push_tokens', pg_temp.try($$select * from public.push_tokens$$);
+insert into res select 'revoke: anon cannot register', 'permission denied for function register_push_token', pg_temp.try($$select public.register_push_token('ExponentPushToken[anonattempt001]','android','en')$$);
+insert into res select 'revoke: anon revokes by token', 'ok', pg_temp.try($$select public.revoke_push_token('ExponentPushToken[revokeme000001]')$$);
+insert into res select 'revoke: garbage is a silent no-op', 'ok', pg_temp.try($$select public.revoke_push_token('%')$$);
+insert into res select 'revoke: wildcard does not delete everything', 'ok', pg_temp.try($$select public.revoke_push_token('ExponentPushToken[%]')$$);
+reset role;
+insert into res select 'revoke: exactly the named token is gone', 'true,true', (select (not exists(select 1 from public.push_tokens where token='ExponentPushToken[revokeme000001]'))::text from (select 1) x)::text || ',' || (exists(select 1 from public.push_tokens where token='ExponentPushToken[keepme00000002]'))::text;
 \echo ===== mismatches (must be empty) =====
 select case_name, expect, got from res where expect <> got;
 select count(*) as total_checks, count(*) filter (where expect = got) as passed from res;

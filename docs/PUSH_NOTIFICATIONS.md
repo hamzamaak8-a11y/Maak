@@ -24,6 +24,24 @@ payments are yours to decide.
 5. **A new Android build** (EAS) is needed because a native module was added (`expo-notifications`). Not built by me.
 6. On the phone: Settings -> Notifications on this phone -> Turn on. The system permission dialog appears only then.
 
+## Consent and revocation (shared and offline phones)
+
+Rules in `src/lib/pushPolicy.ts`, tested in `tests/pushPolicy.test.mjs`:
+
+* **Two different permissions.** The phone's system permission is not consent. An account receives notifications on a phone only after *that account* pressed
+  "Turn on" on *that phone* (stored locally per account). A language change, an app restart or another account on the same phone never switches it on.
+* **"Turn off" is saved first** on the phone, then the server is told. If the server cannot be reached, the screen says so, the phone still never re-registers,
+  and the revocation is retried later.
+* **Signing out** is bounded to 3 seconds and never fails or hangs because of the network. The token is revoked through the session; if that fails (offline,
+  expired session) it is revoked **without a session** (`revoke_push_token`, migration `20261008150000`), immediately or at the next launch / return to the app.
+  The phone keeps the last token it registered locally, so it can revoke it without asking the OS or the network.
+* **Shared phone:** if account B registers the same phone after A signed out offline, A's queued revocation is dropped, so it cannot undo B's registration.
+* Security of `revoke_push_token`: it can only delete the row of the exact token given (a long random value known only to that phone); it cannot list, read or add tokens.
+
+Residual risk, stated plainly: while a phone is offline and signed out, Google may still hold notifications already sent for the old account and deliver them
+when the phone reconnects (FCM keeps them for a limited time). The server stops sending new ones as soon as the revocation reaches it. Eliminating even that needs
+data-only messages that the app filters itself, which is a larger change not made here.
+
 ## Behaviour
 * The user chooses: nothing is requested at start-up. Signing out removes this phone's token. A phone that signs in with another account moves to it.
 * Text is localised (Arabic, French, English) from the language stored with the token; announcements are sent as written.

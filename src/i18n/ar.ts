@@ -380,4 +380,5 @@ export const ar: Record<TKey, string> = {
   'provider.reviewsFailed': "تعذّر تحميل التقييمات. هذا لا يعني أنه لا توجد تقييمات.",
   'provider.portfolioFailed': "تعذّر تحميل صور الأعمال. قد توجد صور أخرى.",
   'provider.priceListFailed': "تعذّر تحميل قائمة الأسعار.",
+  'push.pendingRevoke': "الإشعارات متوقفة على هذا الهاتف. تعذّر الوصول إلى الخادم الآن، وسيُبلَّغ فور عودة الاتصال.",
 };
