@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.invalidAvailability' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.serviceUnavailable' | 'err.serviceTooLong' | 'err.invalidAvailability' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -31,6 +31,8 @@ export function errorKey(error: unknown): ErrorKey {
   if (/rate limit|too many|over_email_send_rate_limit|429/i.test(m)) return 'err.rateLimited';
   if (/not_authenticated|jwt|refresh token|session/i.test(m)) return 'err.notAuthenticated';
   if (/provider_not_bookable|provider_not_linked/i.test(m)) return 'err.notBookable';
+  if (/service_unavailable/i.test(m)) return 'err.serviceUnavailable';
+  if (/invalid_service_duration/i.test(m)) return 'err.serviceTooLong';
   if (/slot_unavailable|provider_unavailable/i.test(m)) return 'err.slotUnavailable';
   if (/invalid_service_date/i.test(m)) return 'err.invalidDate';
   if (/invalid_transition/i.test(m)) return 'err.invalidTransition';

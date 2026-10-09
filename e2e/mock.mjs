@@ -12,6 +12,7 @@ export function makeBackend() {
   const state = {
     token: new Map(),
     bookings: [],
+    priceList: [], // the provider's ACTIVE price list (public read)
     notifications: [],
     providerProfiles: { [uid.provider]: { id: uid.provider, verification_status: 'approved', profession: 'Plombier', service_category: 'سباكة', bio: 'x', experience_years: 5, services: ['تسريب الماء'], price_from: 150, service_radius_km: 20, profile_photo_public: false, rejection_reason: null, created_at: '2026-01-01', updated_at: '2026-01-01' } },
     docs: [],
@@ -84,10 +85,11 @@ export function makeBackend() {
         case 'get_my_notifications': return json(route, state.notifications.filter(n => n.user_id === user?.id));
         case 'list_my_conversations': return json(route, []);
         case 'get_provider_availability': return json(route, [0, 1, 2, 3, 4, 5, 6].map(d => ({ id: 'a' + d, provider_id: body.p_provider_id, day_of_week: d, start_time: '09:00:00', end_time: '12:00:00', is_available: true, created_at: now(), updated_at: now() })));
-        case 'check_availability': return json(route, !state.bookings.some(b => b.service_date === body.p_start_time && ['pending', 'accepted'].includes(b.status)));
+        case 'check_availability': { const s = Date.parse(body.p_start_time), e = Date.parse(body.p_end_time); return json(route, !state.bookings.some(b => ['pending', 'accepted'].includes(b.status) && s < Date.parse(b.service_date) + (b._minutes ?? 60) * 60_000 && Date.parse(b.service_date) < e)); }
         case 'create_booking': {
           if (!user) return json(route, { message: 'not_authenticated' }, 400);
           const b = { id: 'b' + (state.bookings.length + 1), customer_id: user.id, provider_id: uid.provider, provider_listing_id: body.p_provider_listing_id, service_category: body.p_service_category, service_description: body.p_service_description, service_date: body.p_service_date, location_text: body.p_location_text, customer_note: body.p_customer_note, provider_note: '', status: 'pending', rejection_reason: null, customer_name: user.name, created_at: now(), updated_at: now(), accepted_at: null, started_at: null, completed_at: null, cancelled_at: null, price: null, currency: 'USD', payment_status: 'unpaid', payment_method: null, paid_at: null };
+          if (body.p_service_id) { const sv = state.priceList.find(x => x.id === body.p_service_id); if (!sv) return json(route, { message: 'service_unavailable' }, 400); b.service_category = sv.name; b._minutes = sv.duration_minutes ?? 60; b.provider_service_id = sv.id; }
           state.bookings.push(b); state.notifications.push({ id: 'n' + state.notifications.length, user_id: uid.provider, type: 'booking_new', title: 'notifications.bookingNewTitle', body: 'notifications.bookingNewBody', is_read: false, created_at: now(), metadata: { booking_id: b.id } });
           return json(route, b);
         }
@@ -154,7 +156,7 @@ export function makeBackend() {
     if (path === '/rest/v1/bookings') { const sel = state.bookings.filter(b => !user || user.role === 'admin' || b.customer_id === user.id || b.provider_id === user.id); const id = (u.searchParams.get('id') || '').replace('eq.', ''); return rows(id ? sel.filter(b => b.id === id) : [...sel].reverse()); }
     if (path === '/rest/v1/reviews') return json(route, []);
     if (path === '/rest/v1/customer_favorites') { if (req.method() === 'POST') { state.favorites.push(body.provider_listing_id); return json(route, null, 201); } if (req.method() === 'DELETE') { state.favorites = []; return json(route, null, 204); } return json(route, state.favorites.map(i => ({ provider_listing_id: i }))); }
-    if (path === '/rest/v1/provider_services') return json(route, []);
+    if (path === '/rest/v1/provider_services') return json(route, state.priceList);
     if (path === '/rest/v1/admin_audit_log') return json(route, []);
     if (path.startsWith('/storage/')) return json(route, []);
     state.log.push('UNMOCKED ' + req.method() + ' ' + path);

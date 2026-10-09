@@ -382,4 +382,11 @@ export const ar: Record<TKey, string> = {
   'provider.priceListFailed': "تعذّر تحميل قائمة الأسعار.",
   'push.pendingRevoke': "الإشعارات متوقفة على هذا الهاتف. تعذّر الوصول إلى الخادم الآن، وسيُبلَّغ فور عودة الاتصال.",
   'err.invalidAvailability': "تحقق من ساعات العمل: يجب أن تكون النهاية بعد البداية.",
+  'err.serviceUnavailable': "لم تعد هذه الخدمة متاحة. اختر خدمة أخرى أو أرسل طلباً مختلفاً.",
+  'err.serviceTooLong': "مدة هذه الخدمة أطول من أن تُحجز عبر التطبيق. راسل مقدّم الخدمة.",
+  'booking.otherRequest': "طلب آخر",
+  'booking.otherRequestHint': "طلب حر: صفه في الحقل أدناه. يُحجز لمدة ساعة ويتفق معك مقدّم الخدمة على السعر.",
+  'booking.listPrice': "السعر في القائمة",
+  'booking.duration': "المدة",
+  'booking.servicesFailed': "تعذّر تحميل قائمة الأسعار. يمكنك مع ذلك إرسال طلب حر.",
 };

@@ -382,4 +382,11 @@ export const fr: Record<TKey, string> = {
   'provider.priceListFailed': "Impossible de charger les tarifs.",
   'push.pendingRevoke': "Les notifications sont désactivées sur ce téléphone. Le serveur n'a pas pu être joint ; il sera prévenu dès le retour de la connexion.",
   'err.invalidAvailability': "Vérifiez les horaires : la fin doit être après le début.",
+  'err.serviceUnavailable': "Ce service n'est plus proposé. Choisissez-en un autre ou envoyez une autre demande.",
+  'err.serviceTooLong': "Ce service est trop long pour une réservation en ligne. Écrivez au prestataire.",
+  'booking.otherRequest': "Autre demande",
+  'booking.otherRequestHint': "Demande libre : décrivez-la ci-dessous. Elle est réservée pour une heure et le prestataire convient du prix avec vous.",
+  'booking.listPrice': "Tarif affiché",
+  'booking.duration': "Durée",
+  'booking.servicesFailed': "Impossible de charger les tarifs. Vous pouvez quand même envoyer une demande libre.",
 };

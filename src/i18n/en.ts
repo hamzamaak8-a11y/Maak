@@ -399,6 +399,13 @@ export const en = {
   'provider.priceListFailed': "Could not load the price list.",
   'push.pendingRevoke': "Notifications are off on this phone. The server could not be reached yet; it will be told as soon as you are back online.",
   'err.invalidAvailability': "Check the working hours: the end must be after the start.",
+  'err.serviceUnavailable': "This service is no longer offered. Pick another one or send a different request.",
+  'err.serviceTooLong': "This service is too long to book online. Message the provider instead.",
+  'booking.otherRequest': "Something else",
+  'booking.otherRequestHint': "A free request: describe it below. It is booked for one hour and the provider agrees the price with you.",
+  'booking.listPrice': "List price",
+  'booking.duration': "Duration",
+  'booking.servicesFailed': "Could not load the price list. You can still send a free request.",
 } as const satisfies Record<string, string>;
 
 export type TKey = keyof typeof en;

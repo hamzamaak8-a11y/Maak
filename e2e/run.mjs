@@ -396,6 +396,72 @@ try {
   ok('the customer app refuses an administrator account');
   await page.context().close();
 
+  // price list: services show with price and duration; a 2-hour service reserves 2 hours; free requests still work
+  {
+    be.state.priceList = [
+      { id: 's1', name: 'Deep clean', description: null, price: 300, currency: 'MAD', duration_minutes: 120 },
+      { id: 's2', name: 'Quick fix', description: null, price: 80, currency: 'MAD', duration_minutes: null },
+    ];
+    const before = [...be.state.bookings];
+    page = await newPage();
+    await open(page);
+    await login(page, 'customer@t.co');
+    await must(page, 'Top rated');
+    await vis(page, 'Karim Benali').click();
+    await must(page, 'Book now');
+    await vis(page, 'Book now').click();
+    await must(page, 'Book a service');
+    await must(page, 'Deep clean'); await must(page, 'Quick fix'); await must(page, 'Something else');
+    await must(page, '120 min');
+    await vis(page, 'Deep clean', true).click();
+    await vis(page, 'Next', true).click();
+    await page.getByText(/^[A-Z][a-z]{2,3}\.?,? \d+ [A-Za-z]{3,5}\.?$/).nth(2).click();
+    await page.waitForSelector('text=09:00', { timeout: 15000 });
+    if (await page.locator('text="11:00" >> visible=true').count()) throw new Error('a 2-hour service must not be offered at 11:00 when the working hours end at 12:00');
+    await vis(page, '10:00', true).click();
+    await vis(page, 'Next', true).click();
+    await page.getByPlaceholder('Neighbourhood, street, city').fill('12 rue des Fleurs, Casablanca');
+    await vis(page, 'Next', true).click();
+    await must(page, 'List price');
+    await vis(page, 'Send request', true).click();
+    await must(page, 'Request sent');
+    const made = be.state.bookings.at(-1);
+    if (made.provider_service_id !== 's1' || made._minutes !== 120) throw new Error('the booking must be tied to the chosen service and its duration');
+    await page.context().close();
+    // the same day again with a 1-hour service: 09:00 is free, 10:00 and 11:00 are inside the 2-hour booking
+    page = await newPage();
+    await open(page);
+    await login(page, 'customer@t.co');
+    await must(page, 'Top rated');
+    await vis(page, 'Karim Benali').click();
+    await must(page, 'Book now');
+    await vis(page, 'Book now').click();
+    await must(page, 'Quick fix');
+    await vis(page, 'Quick fix', true).click();
+    await vis(page, 'Next', true).click();
+    await page.getByText(/^[A-Z][a-z]{2,3}\.?,? \d+ [A-Za-z]{3,5}\.?$/).nth(2).click();
+    await page.waitForSelector('text=09:00', { timeout: 15000 });
+    await page.waitForTimeout(400);
+    const taken = async t => page.locator(`[aria-disabled="true"]:has-text("${t}")`).count();
+    if (await taken('09:00')) throw new Error('09:00 is before the 2-hour booking and must stay free');
+    if (!(await taken('10:00')) || !(await taken('11:00'))) throw new Error('10:00 and 11:00 are inside the 2-hour booking and must be taken');
+    await page.context().close();
+    // a free request is still possible when a price list exists
+    page = await newPage();
+    await open(page);
+    await login(page, 'customer@t.co');
+    await must(page, 'Top rated');
+    await vis(page, 'Karim Benali').click();
+    await must(page, 'Book now');
+    await vis(page, 'Book now').click();
+    await must(page, 'Something else');
+    await vis(page, 'Something else', true).click();
+    await must(page, 'A free request');
+    ok('price list: durations, overlap and free requests');
+    await page.context().close();
+    be.state.bookings = before; be.state.priceList = [];
+  }
+
   // working hours: a failed save never leaves the switch showing something that was not saved
   page = await newPage();
   await open(page);
