@@ -526,6 +526,21 @@ try {
   await vis(page, 'تصفّح الخدمات').click();
   await must(page, 'الأعلى تقييمًا');
   ok('Arabic (RTL) renders');
+  await page.context().close();
+
+  // language menu: hidden behind one flag, real flag images, switches direction
+  page = await newPage('ar-MA');
+  await page.goto('http://localhost:4173/');
+  await must(page, 'تصفّح الخدمات');
+  const langBtn = page.locator('[aria-label^="اللغة"]:visible').first();
+  if (!(await langBtn.count())) throw new Error('language button with a flag is missing on the welcome screen');
+  if ((await page.getByRole('menuitem').count()) !== 0) throw new Error('language list must stay hidden until the flag is pressed');
+  await langBtn.click();
+  if ((await page.getByRole('menuitem').count()) !== 3) throw new Error('language menu should list three languages');
+  await shot(page, 'language-menu');
+  await page.getByRole('menuitem', { name: 'English' }).click();
+  await page.waitForFunction(() => document.documentElement.dir === 'ltr');
+  ok('language menu: flags hidden until pressed, switching flips direction');
 } catch (e) {
   console.error('\nFAILED:', e.message);
   if (process.env.E2E_DEBUG) console.error(be.state.log.slice(-12).join('\n'));
