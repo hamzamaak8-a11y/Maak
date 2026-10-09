@@ -28,6 +28,8 @@ export function ProviderAvailabilityScreen() {
     return { listingId, rows: await getProviderAvailability(listingId) };
   }, []);
   const [days, setDays] = useState<Record<number, Day>>({});
+  // What the server holds for each day. A failed save puts the day back to this, so the switch never shows a state that was not saved.
+  const [saved, setSaved] = useState<Record<number, Day>>({});
   const [busyDay, setBusyDay] = useState<number | null>(null);
 
   useEffect(() => {
@@ -38,14 +40,21 @@ export function ProviderAvailabilityScreen() {
       next[d] = { enabled: !!row, start: row?.start_time.slice(0, 5) ?? '09:00', end: row?.end_time.slice(0, 5) ?? '17:00' };
     }
     setDays(next);
+    setSaved(next);
   }, [data]);
 
   const save = async (d: number) => {
     const v = days[d];
     if (v.enabled && (!TIME.test(v.start) || !TIME.test(v.end) || v.start >= v.end)) { toast.show(t('availability.invalid'), 'error'); return; }
     setBusyDay(d);
-    try { await saveAvailability({ listingId: data!.listingId!, day: d, start: v.start, end: v.end, enabled: v.enabled }); toast.show(t('common.saved'), 'success'); }
-    catch (e) { toast.show(t(errorKey(e)), 'error'); } finally { setBusyDay(null); }
+    try {
+      await saveAvailability({ listingId: data!.listingId!, day: d, start: v.start, end: v.end, enabled: v.enabled });
+      setSaved(prev => ({ ...prev, [d]: v }));
+      toast.show(t('common.saved'), 'success');
+    } catch (e) {
+      setDays(prev => ({ ...prev, [d]: saved[d] ?? prev[d] })); // not saved: show what the server really has
+      toast.show(t(errorKey(e)), 'error');
+    } finally { setBusyDay(null); }
   };
 
   return (

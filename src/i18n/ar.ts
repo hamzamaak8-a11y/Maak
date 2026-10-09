@@ -381,4 +381,5 @@ export const ar: Record<TKey, string> = {
   'provider.portfolioFailed': "تعذّر تحميل صور الأعمال. قد توجد صور أخرى.",
   'provider.priceListFailed': "تعذّر تحميل قائمة الأسعار.",
   'push.pendingRevoke': "الإشعارات متوقفة على هذا الهاتف. تعذّر الوصول إلى الخادم الآن، وسيُبلَّغ فور عودة الاتصال.",
+  'err.invalidAvailability': "تحقق من ساعات العمل: يجب أن تكون النهاية بعد البداية.",
 };

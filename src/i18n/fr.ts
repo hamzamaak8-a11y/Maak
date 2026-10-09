@@ -381,4 +381,5 @@ export const fr: Record<TKey, string> = {
   'provider.portfolioFailed': "Impossible de charger les photos des réalisations. D'autres photos peuvent exister.",
   'provider.priceListFailed': "Impossible de charger les tarifs.",
   'push.pendingRevoke': "Les notifications sont désactivées sur ce téléphone. Le serveur n'a pas pu être joint ; il sera prévenu dès le retour de la connexion.",
+  'err.invalidAvailability': "Vérifiez les horaires : la fin doit être après le début.",
 };

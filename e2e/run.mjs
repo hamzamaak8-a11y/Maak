@@ -396,6 +396,30 @@ try {
   ok('the customer app refuses an administrator account');
   await page.context().close();
 
+  // working hours: a failed save never leaves the switch showing something that was not saved
+  page = await newPage();
+  await open(page);
+  await login(page, 'provider@t.co');
+  await must(page, 'Completed jobs');
+  await vis(page, 'Working hours', true).click();
+  await must(page, 'Saturday');
+  const switches = page.locator('[role="switch"]:visible');
+  if ((await switches.count()) !== 7) throw new Error('one switch per day expected');
+  await switches.nth(0).click();                       // Saturday: close
+  await page.locator('text="Save" >> visible=true').nth(0).click();
+  await must(page, 'Saved');
+  be.state.failAvailabilityDay = 0;                     // Sunday: the server refuses
+  await switches.nth(1).click();
+  if (await switches.nth(1).isChecked()) throw new Error('the switch should follow the tap before saving');
+  await page.locator('text="Save" >> visible=true').nth(1).click();
+  await must(page, 'Something went wrong');
+  await page.waitForTimeout(300);
+  if (!(await switches.nth(1).isChecked())) throw new Error('a refused save must put the switch back to what the server has');
+  if (await switches.nth(0).isChecked()) throw new Error('the saved day must stay closed');
+  be.state.failAvailabilityDay = undefined;
+  ok('working hours: saved days stay saved, a refused save reverts the switch');
+  await page.context().close();
+
   // provider accepts
   page = await newPage();
   await open(page);

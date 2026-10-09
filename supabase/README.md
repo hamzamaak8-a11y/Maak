@@ -30,6 +30,7 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261008130000_booking_money_rules.sql` | Price / payment / refund rules enforced in SQL (`set_booking_price`, `mark_booking_paid`, `admin_refund_booking`) and `admin_cancel_booking` now frees the time slot and notifies both people. Test: `supabase/ci/booking-money-rules-test.sql` |
 | `migrations/20261008140000_push_notifications.sql` | `push_tokens` + register/unregister RPCs and a dormant trigger for push notifications (see `docs/PUSH_NOTIFICATIONS.md`). Test: `supabase/ci/push-notifications-test.sql` |
 | `migrations/20261008150000_push_token_revocation.sql` | `revoke_push_token(token)` so a phone can stop notifications after an offline sign-out, without a session (see `docs/PUSH_NOTIFICATIONS.md`) |
+| `migrations/20261008160000_closed_day_marker.sql` | Closing a working-hours day that had no row failed on `provider_availability_time_order`; the time order now only applies to rows that offer hours. Test: `supabase/ci/provider-availability-days-test.sql` |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
 

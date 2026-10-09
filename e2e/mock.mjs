@@ -99,6 +99,7 @@ export function makeBackend() {
         }
         case 'set_booking_price': { const b = state.bookings.find(x => x.id === body.p_booking_id); b.price = body.p_price; b.currency = body.p_currency; return json(route, b); }
         case 'get_provider_dashboard_stats': return json(route, { total_completed_bookings: state.bookings.filter(b => b.status === 'completed').length, total_earnings: null, total_earnings_currency: null, average_rating: 4.5, total_reviews: 2, upcoming_bookings: state.bookings.filter(b => ['pending', 'accepted'].includes(b.status)).map(b => ({ ...b, customer_name: b.customer_name, service_date: b.service_date })), recent_activity: [] });
+        case 'set_provider_availability': { if (state.failAvailabilityDay === body.p_day_of_week) return json(route, { message: 'new row for relation "provider_availability" violates check constraint "provider_availability_time_order"' }, 400); return json(route, { id: 'av' + body.p_day_of_week, provider_id: body.p_provider_id, day_of_week: body.p_day_of_week, start_time: body.p_start_time ?? '00:00:00', end_time: body.p_end_time ?? '00:00:00', is_available: body.p_is_available, created_at: now(), updated_at: now() }); }
         case 'get_my_provider_listing_id': return json(route, 1);
         case 'get_provider_services': return json(route, []);
         case 'get_provider_reviews': if (state.failReviews) return json(route, { message: 'upstream down' }, 503); return json(route, { reviews: [], total_count: 0, average_rating: 0 });
