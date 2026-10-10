@@ -11,6 +11,8 @@ Google Cloud, Supabase, Cloudflare). Nothing here publishes or pays for anything
 * In-app account deletion: *Profile → Security → Delete my account* (needs migration `20261007140000`).
 * Report mechanism for users, reviews and messages + admin moderation queue (needs migration `20261007140100`).
 
+> Admins use the separate panel (`docs/ADMIN_PANEL.md`), never the mobile app.
+
 ## 1. Database (Supabase SQL editor, in this order)
 Already applied: `…120000_customer_favorites`, `…120100_public_provider_services`, `…130000_bootstrap_official_admin`.
 To apply now: `20261007140000_delete_my_account.sql`, then `20261007140100_content_reports.sql`.

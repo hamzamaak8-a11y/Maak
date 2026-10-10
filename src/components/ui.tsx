@@ -4,10 +4,12 @@ import {
   TextInputProps, View, ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PAGE_MAX_WIDTH } from '../config/env';
 import { errorKey } from '../lib/errors';
 import type { TKey } from '../i18n/en';
 
@@ -59,11 +61,12 @@ export function ChevronIcon({ size = 18, color }: { size?: number; color?: strin
 
 export function Header({ title, onBack, right, noBack }: { title: string; onBack?: () => void; right?: React.ReactNode; noBack?: boolean }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const nav = useNavigation();
   return (
     <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
       {noBack ? <View style={styles.headerSide} /> : (
-        <Pressable accessibilityRole="button" onPress={onBack ?? (() => (nav.canGoBack() ? nav.goBack() : undefined))} style={styles.headerSide} hitSlop={8}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('common.back')} onPress={onBack ?? (() => (nav.canGoBack() ? nav.goBack() : undefined))} style={styles.headerSide} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <BackIcon />
         </Pressable>
       )}
@@ -76,7 +79,7 @@ export function Header({ title, onBack, right, noBack }: { title: string; onBack
 export function Page({ children, refreshControl, contentStyle }: { children: React.ReactNode; refreshControl?: React.ReactElement<any>; contentStyle?: StyleProp<ViewStyle> }) {
   return (
     <ScrollView refreshControl={refreshControl} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-      contentContainerStyle={[{ padding: 16, paddingBottom: 40, gap: 16, width: '100%', maxWidth: 720, alignSelf: 'center' }, contentStyle]}>
+      contentContainerStyle={[{ padding: 18, paddingBottom: 48, gap: 18, width: '100%', maxWidth: PAGE_MAX_WIDTH, alignSelf: 'center' }, contentStyle]}>
       {children}
     </ScrollView>
   );
@@ -87,8 +90,8 @@ export function Form({ children }: { children: React.ReactNode }) {
 }
 
 export function Card({ children, onPress, style, padded = true }: { children: React.ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle>; padded?: boolean }) {
-  const { colors } = useTheme();
-  const base = [styles.card, { backgroundColor: colors.surface, borderColor: colors.border, padding: padded ? 16 : 0 }, style];
+  const { colors, isDark } = useTheme();
+  const base = [styles.card, { backgroundColor: colors.surface, borderColor: colors.border, padding: padded ? 18 : 0, boxShadow: isDark ? '0 1px 2px rgba(0,0,0,.4)' : '0 1px 2px rgba(15,23,42,.05), 0 6px 18px rgba(15,23,42,.07)' }, style];
   if (!onPress) return <View style={base}>{children}</View>;
   return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [...base, pressed && { opacity: 0.92 }]}>{children}</Pressable>;
 }
@@ -114,22 +117,22 @@ export function Divider() {
 
 export function Muted({ children, style, numberOfLines }: { children: React.ReactNode; style?: StyleProp<any>; numberOfLines?: number }) {
   const { colors } = useTheme();
-  return <Text numberOfLines={numberOfLines} style={[{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }, style]}>{children}</Text>;
+  return <Text numberOfLines={numberOfLines} style={[{ color: colors.textSecondary, fontSize: 14, lineHeight: 21 }, style]}>{children}</Text>;
 }
 
 export function H1({ children, style }: { children: React.ReactNode; style?: StyleProp<any> }) {
   const { colors } = useTheme();
-  return <Text style={[{ color: colors.text, fontSize: 24, fontWeight: '800', lineHeight: 32 }, style]}>{children}</Text>;
+  return <Text style={[{ color: colors.text, fontSize: 27, fontWeight: '800', lineHeight: 35, letterSpacing: -0.3 }, style]}>{children}</Text>;
 }
 
 export function Body({ children, style, numberOfLines }: { children: React.ReactNode; style?: StyleProp<any>; numberOfLines?: number }) {
   const { colors } = useTheme();
-  return <Text numberOfLines={numberOfLines} style={[{ color: colors.text, fontSize: 15, lineHeight: 22 }, style]}>{children}</Text>;
+  return <Text numberOfLines={numberOfLines} style={[{ color: colors.text, fontSize: 16, lineHeight: 24 }, style]}>{children}</Text>;
 }
 
 export function Label({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '700', marginBottom: 6 }}>{children}</Text>;
+  return <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '700', marginBottom: 7 }}>{children}</Text>;
 }
 
 /* ---------------------------------------------------------------- controls */
@@ -137,9 +140,11 @@ export function Label({ children }: { children: React.ReactNode }) {
 type ButtonProps = {
   title: string; onPress: () => void; variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   loading?: boolean; disabled?: boolean; icon?: IconName; size?: 'sm' | 'md'; style?: StyleProp<ViewStyle>;
+  /** Bright teal gradient with a soft glow (primary call-to-action on the sign-in screens). */
+  gradient?: boolean;
 };
 
-export function Button({ title, onPress, variant = 'primary', loading, disabled, icon, size = 'md', style }: ButtonProps) {
+export function Button({ title, onPress, variant = 'primary', loading, disabled, icon, size = 'md', style, gradient }: ButtonProps) {
   const { colors } = useTheme();
   const map = {
     primary: { bg: colors.primary, fg: colors.onPrimary, border: colors.primary },
@@ -149,15 +154,27 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
     danger: { bg: colors.error, fg: '#FFFFFF', border: colors.error },
   }[variant];
   const off = disabled || loading;
+  const inner = loading ? <ActivityIndicator color={map.fg} size="small" /> : (
+    <>
+      {icon ? <Ionicons name={icon} size={size === 'sm' ? 16 : 20} color={map.fg} /> : null}
+      <Text style={{ color: map.fg, fontWeight: '800', fontSize: size === 'sm' ? 14 : 17 }}>{title}</Text>
+    </>
+  );
+  if (gradient && variant === 'primary') {
+    return (
+      <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={off} onPress={onPress}
+        style={({ pressed }) => [{ borderRadius: 16, opacity: off ? 0.55 : pressed ? 0.9 : 1, boxShadow: '0 10px 26px rgba(45,212,191,0.32)' }, style]}>
+        <LinearGradient colors={['#2DC8FF', '#1D6FF2']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 56, paddingHorizontal: 22, borderRadius: 16 }}>
+          {inner}
+        </LinearGradient>
+      </Pressable>
+    );
+  }
   return (
     <Pressable accessibilityRole="button" disabled={off} onPress={onPress}
-      style={({ pressed }) => [styles.button, { backgroundColor: map.bg, borderColor: map.border, paddingVertical: size === 'sm' ? 8 : 13, paddingHorizontal: size === 'sm' ? 14 : 20, opacity: off ? 0.5 : pressed ? 0.88 : 1 }, style]}>
-      {loading ? <ActivityIndicator color={map.fg} size="small" /> : (
-        <>
-          {icon ? <Ionicons name={icon} size={size === 'sm' ? 15 : 18} color={map.fg} /> : null}
-          <Text style={{ color: map.fg, fontWeight: '700', fontSize: size === 'sm' ? 13 : 15 }}>{title}</Text>
-        </>
-      )}
+      style={({ pressed }) => [styles.button, { backgroundColor: map.bg, borderColor: map.border, minHeight: size === 'sm' ? 40 : 52, paddingVertical: size === 'sm' ? 8 : 13, paddingHorizontal: size === 'sm' ? 16 : 22, opacity: off ? 0.5 : pressed ? 0.88 : 1 }, style]}>
+      {inner}
     </Pressable>
   );
 }
@@ -177,7 +194,7 @@ type FieldProps = TextInputProps & { label?: string; error?: string | null; icon
 
 export function TextField({ label, error, icon, secure, multiline, style, ...rest }: FieldProps) {
   const { colors } = useTheme();
-  const { isRTL } = useLanguage();
+  const { t, isRTL } = useLanguage();
   const [hidden, setHidden] = useState(!!secure);
   return (
     <View style={style}>
@@ -189,16 +206,17 @@ export function TextField({ label, error, icon, secure, multiline, style, ...res
           secureTextEntry={hidden}
           multiline={multiline}
           textAlign={isRTL ? 'right' : 'left'}
+          accessibilityLabel={rest.accessibilityLabel ?? label ?? rest.placeholder}
           {...rest}
-          style={[styles.input, { color: colors.text, minHeight: multiline ? 92 : 46, textAlignVertical: multiline ? 'top' : 'center' }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]}
+          style={[styles.input, { color: colors.text, minHeight: multiline ? 104 : 52, textAlignVertical: multiline ? 'top' : 'center' }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]}
         />
         {secure ? (
-          <Pressable onPress={() => setHidden(h => !h)} hitSlop={8}>
+          <Pressable accessibilityRole="button" accessibilityLabel={hidden ? t('auth.showPassword') : t('auth.hidePassword')} onPress={() => setHidden(h => !h)} style={{ width: 44, height: 44, marginVertical: -8, marginEnd: -10, alignItems: 'center', justifyContent: 'center' }}>
             <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={18} color={colors.textMuted} />
           </Pressable>
         ) : null}
       </View>
-      {error ? <Text style={{ color: colors.error, fontSize: 12, marginTop: 4 }}>{error}</Text> : null}
+      {error ? <Text style={{ color: colors.error, fontSize: 13, marginTop: 5 }}>{error}</Text> : null}
     </View>
   );
 }
@@ -209,7 +227,7 @@ export function Chip({ label, selected, onPress, icon }: { label: string; select
     <Pressable onPress={onPress} disabled={!onPress}
       style={[styles.chip, { backgroundColor: selected ? colors.primary : colors.surface, borderColor: selected ? colors.primary : colors.border }]}>
       {icon ? <Ionicons name={icon} size={14} color={selected ? colors.onPrimary : colors.textSecondary} /> : null}
-      <Text style={{ color: selected ? colors.onPrimary : colors.text, fontSize: 13, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: selected ? colors.onPrimary : colors.text, fontSize: 14, fontWeight: '700' }}>{label}</Text>
     </Pressable>
   );
 }
@@ -263,7 +281,7 @@ export function Badge({ text, tone = 'neutral' }: { text: string; tone?: 'neutra
     neutral: [colors.surfaceAlt, colors.textSecondary], success: [colors.successLight, colors.success], warning: [colors.warningLight, colors.warning],
     error: [colors.errorLight, colors.error], info: [colors.infoLight, colors.info], primary: [colors.primaryLight, colors.primary],
   }[tone];
-  return <View style={[styles.badge, { backgroundColor: map[0] }]}><Text style={{ color: map[1], fontSize: 11, fontWeight: '700' }}>{text}</Text></View>;
+  return <View style={[styles.badge, { backgroundColor: map[0] }]}><Text style={{ color: map[1], fontSize: 12, fontWeight: '800' }}>{text}</Text></View>;
 }
 
 const STATUS_TONE: Record<string, 'success' | 'warning' | 'error' | 'info' | 'neutral' | 'primary'> = {
@@ -316,8 +334,8 @@ export function InfoRow({ icon, label, value }: { icon: IconName; label: string;
     <Row gap={10} style={{ alignItems: 'flex-start' }}>
       <Ionicons name={icon} size={18} color={colors.textMuted} style={{ marginTop: 2 }} />
       <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: '700' }}>{label}</Text>
-        <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>{value}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: '700' }}>{label}</Text>
+        <Text style={{ color: colors.text, fontSize: 15, lineHeight: 22 }}>{value}</Text>
       </View>
     </Row>
   );
@@ -327,6 +345,7 @@ export function InfoRow({ icon, label, value }: { icon: IconName; label: string;
 
 export function Sheet({ visible, onClose, title, children }: { visible: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay }}>
@@ -334,7 +353,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
         <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
           <Row style={{ justifyContent: 'space-between', marginBottom: 12 }}>
             <Text style={{ color: colors.text, fontSize: 17, fontWeight: '800', flex: 1 }}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={8}><Ionicons name="close" size={24} color={colors.textSecondary} /></Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('common.close')} onPress={onClose} style={{ width: 44, height: 44, margin: -10, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="close" size={24} color={colors.textSecondary} /></Pressable>
           </Row>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ gap: 14, paddingBottom: 12, maxWidth: 560, width: '100%', alignSelf: 'center' }}>{children}</ScrollView>
         </View>
@@ -360,20 +379,20 @@ export function ReasonSheet({ visible, title, placeholder, confirmLabel, require
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 54 },
-  headerSide: { width: 44, height: 40, justifyContent: 'center' },
-  headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', textAlign: 'center' },
-  card: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
-  sectionTitle: { fontSize: 17, fontWeight: '800' },
-  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, borderWidth: 1.5 },
-  iconBtn: { width: 42, height: 42, borderRadius: 21, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, minHeight: 58 },
+  headerSide: { width: 44, height: 44, justifyContent: 'center' },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  card: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
+  sectionTitle: { fontSize: 19, fontWeight: '800', letterSpacing: -0.2 },
+  button: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, borderWidth: 1.5 },
+  iconBtn: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   badgeDot: { position: 'absolute', top: -3, end: -3, minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '800' },
-  field: { flexDirection: 'row', gap: 10, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12 },
-  input: { flex: 1, fontSize: 15, paddingVertical: 10 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: 1 },
+  field: { flexDirection: 'row', gap: 10, borderWidth: 1.2, borderRadius: 14, paddingHorizontal: 14 },
+  input: { flex: 1, fontSize: 16, paddingVertical: 12 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 100, borderWidth: 1.2 },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   emptyIcon: { width: 68, height: 68, borderRadius: 34, alignItems: 'center', justifyContent: 'center' },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 100 },
+  badge: { alignSelf: 'flex-start', paddingHorizontal: 11, paddingVertical: 4, borderRadius: 100 },
   sheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '88%' },
 });

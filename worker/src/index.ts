@@ -1,5 +1,7 @@
 import type { Env } from "./types";
 import { findProvider, getProviderPortfolio, listProviders } from "./supabase";
+import { sendPush } from "./push";
+import { HttpError, createUser, createUsersBulk, recoveryLink, requireAdmin } from "./admin";
 
 const PROVIDER_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
 const PORTFOLIO_CACHE_CONTROL = "public, max-age=60, s-maxage=300";
@@ -15,7 +17,7 @@ function allowedOrigin(env: Env, requestOrigin: string | null): string | null {
 function cors(env: Env, requestOrigin: string | null): Record<string, string> {
   const allowed = allowedOrigin(env, requestOrigin);
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
@@ -74,7 +76,7 @@ export default {
     }
 
     if (url.pathname === "/health" && req.method === "GET") {
-      return json(env, requestOrigin, 200, { ok: true });
+      return json(env, requestOrigin, 200, { ok: true, features: ["providers", "admin"] }, { "Cache-Control": "no-store" });
     }
 
     const parts = url.pathname.split("/").filter(Boolean);
@@ -147,6 +149,42 @@ export default {
       } catch (error) {
         safeError("get provider", error);
         return json(env, requestOrigin, 503, { error: "service_unavailable" });
+      }
+    }
+
+    // ---- push notifications (called by the database trigger; protected by a shared secret) ----
+    if (parts.length === 2 && parts[0] === "push" && parts[1] === "notify" && req.method === "POST") {
+      try {
+        const payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+        return json(env, requestOrigin, 200, await sendPush(env, req, payload), { "Cache-Control": "no-store" });
+      } catch (error) {
+        if (error instanceof HttpError) return json(env, requestOrigin, error.status, { error: error.message }, { "Cache-Control": "no-store" });
+        safeError("push notify", error);
+        return json(env, requestOrigin, 502, { error: "push_failed" }, { "Cache-Control": "no-store" });
+      }
+    }
+
+    // ---- admin-only endpoints (service-role operations) ----
+    if (parts[0] === "admin" && req.method === "POST") {
+      try {
+        const admin = await requireAdmin(env, req);
+        const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
+        if (parts.length === 2 && parts[1] === "users") {
+          const result = await createUser(env, admin.id, body as never);
+          return json(env, requestOrigin, result.ok ? 200 : 400, result, { "Cache-Control": "no-store" });
+        }
+        if (parts.length === 3 && parts[1] === "users" && parts[2] === "bulk") {
+          const results = await createUsersBulk(env, admin.id, body.users as never);
+          return json(env, requestOrigin, 200, { results }, { "Cache-Control": "no-store" });
+        }
+        if (parts.length === 4 && parts[1] === "users" && parts[3] === "recovery") {
+          const redirect = typeof body.redirectTo === "string" && allowedOrigin(env, new URL(body.redirectTo).origin) ? body.redirectTo : undefined;
+          return json(env, requestOrigin, 200, await recoveryLink(env, admin.id, parts[2], redirect), { "Cache-Control": "no-store" });
+        }
+      } catch (error) {
+        if (error instanceof HttpError) return json(env, requestOrigin, error.status, { error: error.message }, { "Cache-Control": "no-store" });
+        safeError("admin endpoint", error);
+        return json(env, requestOrigin, 500, { error: "server_error" }, { "Cache-Control": "no-store" });
       }
     }
 

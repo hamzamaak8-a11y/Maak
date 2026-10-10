@@ -24,8 +24,24 @@ Apply only the migrations that are new for the app rebuild:
 | `migrations/20261007150000_demote_demo_admin.sql` | One-time, audited demotion of `maak.admin.demo@gmail.com` to `customer` (refuses unless the official admin is an active admin) |
 | `migrations/20261007140000_delete_my_account.sql` | `delete_my_account()` RPC behind *Profile → Security → Delete my account* |
 | `migrations/20261007140100_content_reports.sql` | `content_reports` table + `submit_report`, `admin_list_reports`, `admin_resolve_report` RPCs (user / review / message reports) |
+| `migrations/20261008100000_admin_tools.sql` | Admin panel back-end: `admin_list_users`, `admin_user_overview`, `admin_overview_stats`, `admin_send_announcement`, `admin_delete_user` (all re-check that the caller is an active admin) |
+| `migrations/20261008110000_provider_approval_requires_documents.sql` | A provider can only be approved with a national ID and a profile photo on file: enforced in `admin_approve_provider` and by a trigger, so no code path (Worker, CSV) can bypass it. Test: `supabase/ci/provider-approval-documents-test.sql` |
+| `migrations/20261008120000_bookable_from_working_hours.sql` | A listing is bookable when it is published, not paused and has working hours (before, the app waited for `providers.available = true`, which nothing in the repo sets). No data is changed. Test: `supabase/ci/bookable-from-working-hours-test.sql` |
+| `migrations/20261008130000_booking_money_rules.sql` | Price / payment / refund rules enforced in SQL (`set_booking_price`, `mark_booking_paid`, `admin_refund_booking`) and `admin_cancel_booking` now frees the time slot and notifies both people. Test: `supabase/ci/booking-money-rules-test.sql` |
+| `migrations/20261008140000_push_notifications.sql` | `push_tokens` + register/unregister RPCs and a dormant trigger for push notifications (see `docs/PUSH_NOTIFICATIONS.md`). Test: `supabase/ci/push-notifications-test.sql` |
+| `migrations/20261008150000_push_token_revocation.sql` | `revoke_push_token(token)` so a phone can stop notifications after an offline sign-out, without a session (see `docs/PUSH_NOTIFICATIONS.md`) |
+| `migrations/20261008160000_closed_day_marker.sql` | Closing a working-hours day that had no row failed on `provider_availability_time_order`; the time order now only applies to rows that offer hours. Test: `supabase/ci/provider-availability-days-test.sql` |
+| `migrations/20261008170000_booking_service_duration.sql` | `create_booking` refuses a paused listing, reserves the chosen service's duration, validates an active price-list service (`p_service_id`, optional) and stores service, duration and list price on the booking. Test: `supabase/ci/booking-service-duration-test.sql` |
+| `migrations/20261008180000_document_files_locked.sql` | Approved / rejected identity files can no longer be deleted or overwritten by their owner (Storage policies replaced; account deletion unlocks via `begin_account_deletion()`), and approval needs the files to exist in Storage. Test: `supabase/ci/document-files-test.sql` |
+| `migrations/20261008190000_price_change_notification.sql` | `set_booking_price` also notifies the customer when only the currency changes. Test: `supabase/ci/price-change-notification-test.sql` |
+| `migrations/20261008200000_provider_conversation_lock.sql` | Starting the same direct chat twice at once yields ONE conversation (advisory lock per customer/provider pair). Test: `supabase/ci/direct-chat-concurrency-test.sh` |
 
 Run them in the Supabase SQL editor (or `supabase db push` once the migration ledger of the project is reconciled).
+
+## Testing the SQL locally
+
+`bash supabase/ci/replay.sh maak_replay` rebuilds the whole schema from this repository on a throw-away Postgres (set `PSQL="psql -h <host> -U <user>"`),
+then run any `supabase/ci/*-test.sql` file against it. They end with a rollback, so they can be repeated.
 
 ## Fresh project (staging / new environment)
 
@@ -55,6 +71,9 @@ Reference order, inferred from the file headers — review before use:
 * **Providers → Email** — keep *Confirm email* on. (The app handles both modes.)
 * **Providers → Google** — enable and paste the OAuth *Client ID* and *Client secret*
   (Google Cloud Console → Credentials → OAuth client, authorised redirect URI = `https://<project-ref>.supabase.co/auth/v1/callback`).
+
+## Redirect URL for the admin panel
+The admin panel lives at its own private path (see `docs/ADMIN_PANEL.md`). Add `https://hamzamaak8-a11y.github.io/Maak/<MAAK_ADMIN_PATH>/**` to *Redirect URLs*.
 
 ## Creating the admin account
 

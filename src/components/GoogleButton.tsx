@@ -22,9 +22,9 @@ export function GoogleButton({ intent }: { intent: Intent }) {
   };
   return (
     <Pressable onPress={press} disabled={busy} accessibilityRole="button"
-      style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center', paddingVertical: 13, borderRadius: 12, borderWidth: 1.5, borderColor: colors.border, backgroundColor: colors.surface, opacity: busy ? 0.6 : 1 }}>
-      {busy ? <ActivityIndicator color={colors.primary} size="small" /> : <Ionicons name="logo-google" size={18} color="#DB4437" />}
-      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 15 }}>{t('auth.google')}</Text>
+      style={{ flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center', minHeight: 54, paddingVertical: 12, borderRadius: 16, borderWidth: 1.2, borderColor: colors.border, backgroundColor: colors.surfaceAlt, opacity: busy ? 0.6 : 1 }}>
+      {busy ? <ActivityIndicator color={colors.primary} size="small" /> : <Ionicons name="logo-google" size={18} color="#EA4335" />}
+      <Text style={{ color: colors.text, fontWeight: '700', fontSize: 16 }}>{t('auth.google')}</Text>
     </Pressable>
   );
 }

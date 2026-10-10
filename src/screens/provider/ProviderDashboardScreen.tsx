@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { RefreshControl, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +33,13 @@ export function ProviderDashboardScreen() {
         </Row>
         {loading && !s ? <Loading /> : error && !s ? <ErrorState error={error} onRetry={reload} /> : s ? (
           <>
+            <SectionTitle title={t('dashboard.quick')} />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              <Quick icon="add-circle" color={colors.primary} label={t('dashboard.addService')} onPress={() => nav.navigate('ProviderTabs', { screen: 'ProServicesTab' })} />
+              <Quick icon="images" color={colors.accent} label={t('dashboard.addPhotos')} onPress={() => nav.navigate('ProviderPortfolio')} />
+              <Quick icon="time" color={colors.success} label={t('dashboard.availability')} onPress={() => nav.navigate('ProviderAvailability')} />
+              <Quick icon="eye" color={colors.info} label={t('dashboard.viewPage')} onPress={() => { if (data?.listingId != null) nav.navigate('ProviderDetail', { id: data.listingId }); }} />
+            </View>
             {data?.listingId == null ? <Banner kind="warning" text={t('dashboard.noListing')} /> : null}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
               <Stat icon="checkmark-done" label={t('dashboard.completed')} value={String(s.total_completed_bookings)} color={colors.success} />
@@ -54,13 +61,23 @@ export function ProviderDashboardScreen() {
   );
 }
 
+function Quick({ icon, label, color, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; color: string; onPress: () => void }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ flexBasis: '47%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.border, padding: 16, gap: 10, opacity: pressed ? 0.9 : 1, boxShadow: '0 6px 18px rgba(15,23,42,0.07)' })}>
+      <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center' }}><Ionicons name={icon} size={24} color={color} /></View>
+      <Text style={{ color: colors.text, fontSize: 15, fontWeight: '800' }}>{label}</Text>
+    </Pressable>
+  );
+}
+
 function Stat({ icon, label, value, color }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; color: string }) {
   const { colors } = useTheme();
   return (
     <View style={{ flexBasis: '47%', flexGrow: 1, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, gap: 6 }}>
       <Ionicons name={icon} size={22} color={color} />
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: '900' }}>{value}</Text>
-      <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: '600' }}>{label}</Text>
     </View>
   );
 }

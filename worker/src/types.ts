@@ -17,6 +17,10 @@ export type Provider = {
   published_at: string | null;
   /** provider_profiles.service_category — used by the app for exact category filtering. */
   category: string | null;
+  /** true only for approved providers with an active account (others are never returned). */
+  verified: boolean;
+  /** ISO currency of the provider's active price list; null when unknown or mixed. */
+  currency: string | null;
 };
 
 export type ProviderPortfolioImage = {
@@ -32,4 +36,6 @@ export interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   MAAK_ALLOW_ORIGIN: string;
+  /** Optional. Shared secret of the database webhook that triggers push notifications; without it /push/notify is disabled. */
+  PUSH_WEBHOOK_SECRET?: string;
 }

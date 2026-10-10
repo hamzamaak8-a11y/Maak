@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Banner, Button, Form, H1, Header, Muted, Page, Screen, TextField } from '../../components/ui';
+import { Banner, Button, TextField } from '../../components/ui';
+import { AuthShell, GlassCard } from '../../components/AuthShell';
 import { errorKey } from '../../lib/errors';
 
 export function ResetPasswordScreen() {
@@ -23,18 +24,13 @@ export function ResetPasswordScreen() {
   };
 
   return (
-    <Screen>
-      <Header title={t('auth.newPassword')} noBack />
-      <Form>
-        <Page contentStyle={{ gap: 14 }}>
-          <H1>{t('auth.newPassword')}</H1>
-          <Muted>{t('auth.newPasswordText')}</Muted>
-          {error ? <Banner kind="error" text={error} /> : null}
-          <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" />
-          <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" onSubmitEditing={submit} />
-          <Button title={t('common.save')} onPress={submit} loading={busy} />
-        </Page>
-      </Form>
-    </Screen>
+    <AuthShell heading={t('auth.newPassword')} subheading={t('auth.newPasswordText')}>
+      <GlassCard>
+        {error ? <Banner kind="error" text={error} /> : null}
+        <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" />
+        <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" onSubmitEditing={submit} />
+        <Button gradient title={t('common.save')} onPress={submit} loading={busy} />
+      </GlassCard>
+    </AuthShell>
   );
 }

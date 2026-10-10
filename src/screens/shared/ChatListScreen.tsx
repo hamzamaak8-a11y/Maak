@@ -40,11 +40,11 @@ export function ChatListScreen() {
               <View style={{ flex: 1, gap: 2 }}>
                 <Row style={{ justifyContent: 'space-between' }}>
                   <Text numberOfLines={1} style={{ color: colors.text, fontWeight: '800', fontSize: 15, flex: 1 }}>{item.other_user_name ?? t('chat.user')}</Text>
-                  {item.last_message_at ? <Text style={{ color: colors.textMuted, fontSize: 11 }}>{sameDay(item.last_message_at) ? formatTime(item.last_message_at, lang) : formatDate(item.last_message_at, lang)}</Text> : null}
+                  {item.last_message_at ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>{sameDay(item.last_message_at) ? formatTime(item.last_message_at, lang) : formatDate(item.last_message_at, lang)}</Text> : null}
                 </Row>
-                <Text numberOfLines={1} style={{ color: item.unread_count ? colors.text : colors.textSecondary, fontSize: 13, fontWeight: item.unread_count ? '700' : '400' }}>{item.last_message ?? t('chat.noMessages')}</Text>
+                <Text numberOfLines={1} style={{ color: item.unread_count ? colors.text : colors.textSecondary, fontSize: 14, fontWeight: item.unread_count ? '700' : '400' }}>{item.last_message ?? t('chat.noMessages')}</Text>
               </View>
-              {item.unread_count > 0 ? <View style={{ minWidth: 22, height: 22, borderRadius: 11, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}><Text style={{ color: colors.onPrimary, fontSize: 11, fontWeight: '800' }}>{item.unread_count}</Text></View> : null}
+              {item.unread_count > 0 ? <View style={{ minWidth: 22, height: 22, borderRadius: 11, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 }}><Text style={{ color: colors.onPrimary, fontSize: 12, fontWeight: '800' }}>{item.unread_count}</Text></View> : null}
             </Pressable>
           )}
         />

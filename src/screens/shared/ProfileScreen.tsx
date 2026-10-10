@@ -6,7 +6,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Avatar, Button, Card, ChevronIcon, Header, Muted, Page, Row, Screen, StatusBadge } from '../../components/ui';
-import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import type { Nav } from '../../navigation/types';
 
 type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; right?: React.ReactNode };
@@ -32,8 +31,7 @@ export function ProfileScreen() {
               <Button title={t('welcome.signupProvider')} variant="ghost" onPress={() => nav.navigate('Signup', { intent: 'provider' })} />
             </View>
           </Card>
-          <Card style={{ gap: 10 }}><Text style={{ color: colors.text, fontWeight: '800' }}>{t('settings.language')}</Text><LanguageSwitcher /></Card>
-          <MenuCard items={[{ icon: 'help-circle-outline', label: t('help.title'), onPress: () => nav.navigate('Help') }]} />
+          <MenuCard items={[{ icon: 'settings-outline', label: t('settings.title'), onPress: () => nav.navigate('Settings') }, { icon: 'help-circle-outline', label: t('help.title'), onPress: () => nav.navigate('Help') }]} />
         </Page>
       </Screen>
     );

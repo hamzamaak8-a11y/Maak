@@ -12,10 +12,13 @@ export function makeBackend() {
   const state = {
     token: new Map(),
     bookings: [],
+    priceList: [], // the provider's ACTIVE price list (public read)
     notifications: [],
     providerProfiles: { [uid.provider]: { id: uid.provider, verification_status: 'approved', profession: 'Plombier', service_category: 'سباكة', bio: 'x', experience_years: 5, services: ['تسريب الماء'], price_from: 150, service_radius_km: 20, profile_photo_public: false, rejection_reason: null, created_at: '2026-01-01', updated_at: '2026-01-01' } },
     docs: [],
     pendingApp: { id: uid.applicant, profession: 'Electricien', service_category: 'كهرباء', bio: 'Expert', experience_years: 3, verification_status: 'pending', rejection_reason: null, created_at: '2026-09-01', updated_at: '2026-09-02' },
+    // 95 historical bookings, visible to admins only (pagination / filters / money rules)
+    history: Array.from({ length: 95 }, (_, i) => { const n = i + 1; const status = ['completed', 'pending', 'cancelled', 'accepted', 'completed', 'rejected'][i % 6]; const paid = status === 'completed' ? (n % 5 === 0 ? 'paid' : 'pending') : status === 'cancelled' ? 'pending' : 'unpaid'; return { id: 'h' + n, customer_id: uid.customer, provider_id: uid.provider, service_category: n % 2 ? 'Plomberie' : 'Électricité', service_date: '2026-09-01T10:00:00Z', location_text: 'Rue ' + n, status, rejection_reason: null, created_at: new Date(Date.UTC(2026, 8, 30, 12, 0, 0) - n * 3600_000).toISOString(), customer_name: 'Client ' + n, price: status === 'completed' || status === 'cancelled' ? 100 : null, currency: 'MAD', payment_status: paid, payment_method: null, paid_at: null }; }),
     favorites: [],
     reports: [],
     deleted: [],
@@ -23,8 +26,10 @@ export function makeBackend() {
     log: [],
   };
   const providers = [
-    { id: 1, name: 'Karim Benali', job: 'Plombier', city: 'Casablanca', price: '150', rating: '4.8', reviews: 12, image: null, available: true, services: ['تسريب الماء', 'تركيب صنابير'], experience: '10 سنوات', intro: 'Plombier professionnel.', provider_profile_id: uid.provider, category: 'سباكة' },
-    { id: 2, name: 'Fatima Zahra', job: 'Agent de nettoyage', city: 'Rabat', price: null, rating: null, reviews: 0, image: null, available: true, services: ['تنظيف منزل'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000009', category: 'تنظيف' },
+    { id: 1, name: 'Karim Benali', job: 'Plombier', city: 'Casablanca', price: '150', rating: '4.8', reviews: 12, image: null, available: true, services: ['تسريب الماء', 'تركيب صنابير'], experience: '10 سنوات', intro: 'Plombier professionnel.', provider_profile_id: uid.provider, verified: true, currency: 'MAD', category: 'سباكة' },
+    { id: 2, name: 'Fatima Zahra', job: 'Agent de nettoyage', city: 'Rabat', price: null, rating: null, reviews: 0, image: null, available: true, services: ['تنظيف منزل'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000009', verified: true, currency: null, category: 'تنظيف' },
+    { id: 3, name: 'Mustapha Alami', job: 'Electricien', city: 'Ouazzane', price: '120.00', rating: null, reviews: 0, image: null, available: false, services: ['إصلاح'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000010', verified: true, currency: null, category: 'كهرباء' },
+    { id: 4, name: 'Unverified Uri', job: 'Peintre', city: 'Fès', price: null, rating: null, reviews: 0, image: null, available: false, services: ['دهان'], experience: null, intro: null, provider_profile_id: 'f0000000-0000-0000-0000-000000000011', verified: false, currency: null, category: 'دهان وديكور' },
   ];
   const profileFor = u => ({ id: u.id, role: u.role, full_name: u.name, phone: '+212600000000', city: 'Casablanca', avatar_url: null, account_status: 'active', created_at: '2026-01-01', updated_at: '2026-01-01' });
   const userByToken = req => { const t = (req.headers()['authorization'] || '').replace('Bearer ', ''); return state.token.get(t) ? users[state.token.get(t)] : null; };
@@ -35,7 +40,10 @@ export function makeBackend() {
     const u = new URL(route.request().url());
     if (u.pathname === '/api/providers') return json(route, providers);
     const m = u.pathname.match(/^\/api\/providers\/(\d+)(\/portfolio)?$/);
-    if (m) return json(route, m[2] ? [] : providers.find(p => p.id === Number(m[1])) ?? null, providers.find(p => p.id === Number(m[1])) || m[2] ? 200 : 404);
+    const svg = (a, b) => 'data:image/svg+xml;base64,' + Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="800" height="600" fill="url(#g)"/><circle cx="560" cy="200" r="110" fill="rgba(255,255,255,.18)"/></svg>`).toString('base64');
+    const photos = [['#0B2F7A', '#1D8FE0'], ['#9A3412', '#FF9A3C'], ['#0F766E', '#34D3A6'], ['#4C1D95', '#8B5CF6']].map(([a, b], i) => ({ id: 'ph' + i, path: 'p/' + i, url: svg(a, b), created_at: null }));
+    if (m && m[2] && state.failPortfolio) return json(route, { error: 'service_unavailable' }, 503);
+    if (m) return json(route, m[2] ? photos : providers.find(p => p.id === Number(m[1])) ?? null, providers.find(p => p.id === Number(m[1])) || m[2] ? 200 : 404);
     return json(route, {}, 404);
   }
 
@@ -77,10 +85,11 @@ export function makeBackend() {
         case 'get_my_notifications': return json(route, state.notifications.filter(n => n.user_id === user?.id));
         case 'list_my_conversations': return json(route, []);
         case 'get_provider_availability': return json(route, [0, 1, 2, 3, 4, 5, 6].map(d => ({ id: 'a' + d, provider_id: body.p_provider_id, day_of_week: d, start_time: '09:00:00', end_time: '12:00:00', is_available: true, created_at: now(), updated_at: now() })));
-        case 'check_availability': return json(route, !state.bookings.some(b => b.service_date === body.p_start_time && ['pending', 'accepted'].includes(b.status)));
+        case 'check_availability': { const s = Date.parse(body.p_start_time), e = Date.parse(body.p_end_time); return json(route, !state.bookings.some(b => ['pending', 'accepted'].includes(b.status) && s < Date.parse(b.service_date) + (b._minutes ?? 60) * 60_000 && Date.parse(b.service_date) < e)); }
         case 'create_booking': {
           if (!user) return json(route, { message: 'not_authenticated' }, 400);
           const b = { id: 'b' + (state.bookings.length + 1), customer_id: user.id, provider_id: uid.provider, provider_listing_id: body.p_provider_listing_id, service_category: body.p_service_category, service_description: body.p_service_description, service_date: body.p_service_date, location_text: body.p_location_text, customer_note: body.p_customer_note, provider_note: '', status: 'pending', rejection_reason: null, customer_name: user.name, created_at: now(), updated_at: now(), accepted_at: null, started_at: null, completed_at: null, cancelled_at: null, price: null, currency: 'USD', payment_status: 'unpaid', payment_method: null, paid_at: null };
+          if (body.p_service_id) { const sv = state.priceList.find(x => x.id === body.p_service_id); if (!sv) return json(route, { message: 'service_unavailable' }, 400); b.service_category = sv.name; b._minutes = sv.duration_minutes ?? 60; b.provider_service_id = sv.id; }
           state.bookings.push(b); state.notifications.push({ id: 'n' + state.notifications.length, user_id: uid.provider, type: 'booking_new', title: 'notifications.bookingNewTitle', body: 'notifications.bookingNewBody', is_read: false, created_at: now(), metadata: { booking_id: b.id } });
           return json(route, b);
         }
@@ -92,9 +101,10 @@ export function makeBackend() {
         }
         case 'set_booking_price': { const b = state.bookings.find(x => x.id === body.p_booking_id); b.price = body.p_price; b.currency = body.p_currency; return json(route, b); }
         case 'get_provider_dashboard_stats': return json(route, { total_completed_bookings: state.bookings.filter(b => b.status === 'completed').length, total_earnings: null, total_earnings_currency: null, average_rating: 4.5, total_reviews: 2, upcoming_bookings: state.bookings.filter(b => ['pending', 'accepted'].includes(b.status)).map(b => ({ ...b, customer_name: b.customer_name, service_date: b.service_date })), recent_activity: [] });
+        case 'set_provider_availability': { if (state.failAvailabilityDay === body.p_day_of_week) return json(route, { message: 'new row for relation "provider_availability" violates check constraint "provider_availability_time_order"' }, 400); return json(route, { id: 'av' + body.p_day_of_week, provider_id: body.p_provider_id, day_of_week: body.p_day_of_week, start_time: body.p_start_time ?? '00:00:00', end_time: body.p_end_time ?? '00:00:00', is_available: body.p_is_available, created_at: now(), updated_at: now() }); }
         case 'get_my_provider_listing_id': return json(route, 1);
         case 'get_provider_services': return json(route, []);
-        case 'get_provider_reviews': return json(route, { reviews: [], total_count: 0, average_rating: 0 });
+        case 'get_provider_reviews': if (state.failReviews) return json(route, { message: 'upstream down' }, 503); return json(route, { reviews: [], total_count: 0, average_rating: 0 });
         case 'get_admin_dashboard_stats': return json(route, { total_customers: 12, total_providers: 3, approved_providers: 2, total_bookings: state.bookings.length, bookings_by_status: {}, providers_by_status: { pending: 1 }, published_listings: 2 });
         case 'admin_approve_provider': state.pendingApp.verification_status = 'approved'; return json(route, null, 204);
         case 'admin_reject_provider': state.pendingApp.verification_status = 'rejected'; state.pendingApp.rejection_reason = body.reason; return json(route, null, 204);
@@ -104,8 +114,14 @@ export function makeBackend() {
           const r = { id: 'r' + (state.reports.length + 1), target_type: body.p_target_type, target_id: body.p_target_id, reason: body.p_reason, details: body.p_details, status: 'open', resolution_note: null, created_at: now(), reporter_id: user.id, reporter_name: user.name, reported_user_id: uid.provider, reported_name: 'Karim Benali', reported_account_status: 'active', content: null };
           state.reports.push(r); return json(route, r.id);
         }
+        case 'admin_overview_stats': return json(route, { customers: 12, providers: 3, approved_providers: 2, pending_applications: 1, open_reports: state.reports.filter(r => r.status === 'open').length, suspended_accounts: 0, total_bookings: state.bookings.length, open_bookings: 1, bookings_7d: 2, bookings_30d: 3, completed_30d: 1, new_users_7d: 4, new_users_30d: 9, unpaid_completed: 0, paid_30d: {}, reviews: 2, daily: [{ day: '2026-10-01', bookings: 1, users: 2 }, { day: '2026-10-02', bookings: 2, users: 1 }] });
+        case 'admin_list_users': return json(route, []);
+        case 'mark_booking_paid': { const b = state.history.find(x => x.id === body.p_booking_id); if (!b) return json(route, { message: 'booking_not_found' }, 400); if (b.payment_status === 'paid') return json(route, { message: 'already_paid' }, 400); if (b.payment_status === 'refunded') return json(route, { message: 'payment_locked' }, 400); if (b.status !== 'completed' || b.price == null) return json(route, { message: 'booking_not_payable' }, 400); b.payment_status = 'paid'; b.payment_method = body.p_payment_method; return json(route, b); }
+        case 'admin_refund_booking': { const b = state.history.find(x => x.id === body.p_booking_id); if (!b || b.payment_status !== 'paid') return json(route, { message: 'booking_not_refundable' }, 400); b.payment_status = 'refunded'; return json(route, b); }
+        case 'admin_send_announcement': return json(route, 0);
         case 'admin_list_reports': return json(route, state.reports.filter(r => r.status === body.p_status));
         case 'admin_resolve_report': { const r = state.reports.find(x => x.id === body.p_id); r.status = body.p_status; return json(route, null, 204); }
+        case 'begin_account_deletion': state.unlockedForDeletion = true; return json(route, null, 204);
         case 'delete_my_account': {
           if (!user) return json(route, { message: 'not_authenticated' }, 400);
           if (user.role === 'admin') return json(route, { message: 'admin_cannot_delete' }, 400);
@@ -128,10 +144,20 @@ export function makeBackend() {
       return rows(state.providerProfiles[id] ? [state.providerProfiles[id]] : []);
     }
     if (path === '/rest/v1/provider_documents') return json(route, req.method() === 'GET' ? state.docs : []);
+    if (path === '/rest/v1/bookings' && user?.role === 'admin' && req.method() === 'GET' && (req.headers()['prefer'] || '').includes('count=exact')) {
+      const p = u.searchParams; let list = [...state.history];
+      const st = p.get('status'); if (st?.startsWith('eq.')) list = list.filter(b => b.status === st.slice(3)); if (st?.startsWith('in.(')) { const set = st.slice(4, -1).split(','); list = list.filter(b => set.includes(b.status)); }
+      if (p.get('price') === 'not.is.null') list = list.filter(b => b.price != null);
+      const ps = p.get('payment_status'); if (ps?.startsWith('in.(')) { const set = ps.slice(4, -1).split(','); list = list.filter(b => set.includes(b.payment_status)); }
+      const or = p.get('or'); if (or) { const term = (or.match(/ilike\.%(.*?)%/) || [])[1]?.toLowerCase(); if (term) list = list.filter(b => [b.customer_name, b.service_category, b.location_text].some(v => (v || '').toLowerCase().includes(term))); }
+      list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+      const offset = Number(p.get('offset') || 0), limit = Number(p.get('limit') || 1000); const page = list.slice(offset, offset + limit);
+      return route.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'access-control-expose-headers': 'content-range', 'content-range': `${page.length ? offset : '*'}-${page.length ? offset + page.length - 1 : '*'}/${list.length}`.replace('*-*', '*'), 'content-type': 'application/json' }, body: JSON.stringify(page) });
+    }
     if (path === '/rest/v1/bookings') { const sel = state.bookings.filter(b => !user || user.role === 'admin' || b.customer_id === user.id || b.provider_id === user.id); const id = (u.searchParams.get('id') || '').replace('eq.', ''); return rows(id ? sel.filter(b => b.id === id) : [...sel].reverse()); }
     if (path === '/rest/v1/reviews') return json(route, []);
     if (path === '/rest/v1/customer_favorites') { if (req.method() === 'POST') { state.favorites.push(body.provider_listing_id); return json(route, null, 201); } if (req.method() === 'DELETE') { state.favorites = []; return json(route, null, 204); } return json(route, state.favorites.map(i => ({ provider_listing_id: i }))); }
-    if (path === '/rest/v1/provider_services') return json(route, []);
+    if (path === '/rest/v1/provider_services') return json(route, state.priceList);
     if (path === '/rest/v1/admin_audit_log') return json(route, []);
     if (path.startsWith('/storage/')) return json(route, []);
     state.log.push('UNMOCKED ' + req.method() + ' ' + path);

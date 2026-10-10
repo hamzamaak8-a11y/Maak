@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase';
 import type { Availability, ProviderDashboardStats, ProviderDocument, ProviderProfile, ProviderService } from '../types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PickedFile, uploadToBucket, validateFile } from '../lib/upload';
+import { deleteDocumentWith } from '../lib/documentDelete';
 
 const PROFILE_COLUMNS = 'id,profession,service_category,bio,experience_years,services,price_from,service_radius_km,profile_photo_public,verification_status,rejection_reason,created_at,updated_at';
 const DOC_COLUMNS = 'id,provider_id,document_type,storage_path,status,created_at';
@@ -67,11 +69,33 @@ export async function uploadDocument(userId: string, type: DocType, file: Picked
   return data as ProviderDocument;
 }
 
+const ORPHANS_KEY = 'maak.docs.orphans';
+
+/** Files whose row is already gone but that could not be removed yet (offline, storage error); retried on the next visit. */
+async function readOrphans(): Promise<string[]> {
+  try { const v = JSON.parse((await AsyncStorage.getItem(ORPHANS_KEY)) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []; } catch { return []; }
+}
+export async function retryOrphanDocumentFiles(): Promise<void> {
+  const list = await readOrphans();
+  if (!list.length) return;
+  const left: string[] = [];
+  for (const path of list) {
+    const { error } = await supabase.storage.from('provider-documents').remove([path]);
+    if (error) left.push(path);
+  }
+  await (left.length ? AsyncStorage.setItem(ORPHANS_KEY, JSON.stringify(left)) : AsyncStorage.removeItem(ORPHANS_KEY)).catch(() => undefined);
+}
+
+/** Only a pending document can be deleted (approved and rejected ones are evidence; the database enforces the same). */
 export async function deleteDocument(doc: ProviderDocument): Promise<void> {
-  const { error: storageError } = await supabase.storage.from('provider-documents').remove([doc.storage_path]);
-  if (storageError) throw storageError;
-  const { error } = await supabase.from('provider_documents').delete().eq('id', doc.id).eq('provider_id', doc.provider_id);
-  if (error) throw error;
+  await deleteDocumentWith({
+    deleteRow: async d => {
+      const { data, error } = await supabase.from('provider_documents').delete().eq('id', d.id).eq('provider_id', d.provider_id).eq('status', 'pending').select('id');
+      return { deleted: data?.length ?? 0, error };
+    },
+    removeFile: async path => ({ error: (await supabase.storage.from('provider-documents').remove([path])).error }),
+    rememberOrphan: async path => { const l = await readOrphans(); if (!l.includes(path)) await AsyncStorage.setItem(ORPHANS_KEY, JSON.stringify([...l, path])).catch(() => undefined); },
+  }, doc);
 }
 
 /* ------------------------------- marketplace profile ------------------------------- */

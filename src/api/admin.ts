@@ -80,24 +80,43 @@ export async function listUsers(): Promise<{ rows: AdminUser[]; total: number }>
   return { rows: (data ?? []) as AdminUser[], total: count ?? 0 };
 }
 
-export async function listAdminBookings(): Promise<AdminBooking[]> {
-  const { data, error } = await supabase
+export type BookingFilter = 'all' | 'open' | 'completed' | 'unpaid' | 'closed';
+const BOOKINGS_PAGE = 40;
+
+/** One page of bookings (newest first) with an exact total, an optional status filter and a text search. */
+export async function listAdminBookings(opts: { filter?: BookingFilter; search?: string; offset?: number } = {}): Promise<{ rows: AdminBooking[]; total: number }> {
+  const offset = Math.max(0, opts.offset ?? 0);
+  let q = supabase
     .from('bookings')
-    .select('id,customer_id,provider_id,service_category,service_date,location_text,status,rejection_reason,created_at,customer_name,price,currency,payment_status,payment_method,paid_at')
-    .order('created_at', { ascending: false })
-    .limit(PAGE);
+    .select('id,customer_id,provider_id,service_category,service_date,location_text,status,rejection_reason,created_at,customer_name,price,currency,payment_status,payment_method,paid_at', { count: 'exact' })
+    .order('created_at', { ascending: false });
+  switch (opts.filter) {
+    case 'open': q = q.in('status', ['pending', 'accepted', 'in_progress']); break;
+    case 'completed': q = q.eq('status', 'completed'); break;
+    case 'unpaid': q = q.eq('status', 'completed').not('price', 'is', null).in('payment_status', ['unpaid', 'pending']); break;
+    case 'closed': q = q.in('status', ['cancelled', 'rejected']); break;
+    default: break;
+  }
+  const term = (opts.search ?? '').replace(/[,%()\\*]/g, ' ').trim();
+  if (term) q = q.or(`customer_name.ilike.%${term}%,service_category.ilike.%${term}%,location_text.ilike.%${term}%`);
+  const { data, error, count } = await q.range(offset, offset + BOOKINGS_PAGE - 1);
   if (error) throw error;
   const rows = (data ?? []) as Array<Omit<AdminBooking, 'provider_name'>>;
-  if (!rows.length) return [];
+  if (!rows.length) return { rows: [], total: count ?? 0 };
   const ids = Array.from(new Set(rows.flatMap(r => [r.customer_id, r.provider_id])));
   const { data: profs, error: pErr } = await supabase.from('profiles').select('id,full_name').in('id', ids);
   if (pErr) throw pErr;
   const names = new Map((profs ?? []).map(p => [p.id as string, (p.full_name as string | null) ?? null]));
-  return rows.map(r => ({ ...r, customer_name: r.customer_name || names.get(r.customer_id) || null, provider_name: names.get(r.provider_id) ?? null }));
+  return { rows: rows.map(r => ({ ...r, customer_name: r.customer_name || names.get(r.customer_id) || null, provider_name: names.get(r.provider_id) ?? null })), total: count ?? rows.length };
 }
 
 export async function adminCancelBooking(id: string, reason: string): Promise<void> {
   const { error } = await supabase.rpc('admin_cancel_booking', { target: id, reason: reason.trim() || null });
+  if (error) throw error;
+}
+
+export async function adminRefundBooking(id: string, reason: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_refund_booking', { p_booking_id: id, p_reason: reason.trim() });
   if (error) throw error;
 }
 
@@ -124,4 +143,55 @@ export async function listAudit(): Promise<AuditEntry[]> {
   const { data, error } = await supabase.from('admin_audit_log').select('id,admin_id,action,target_type,target_id,metadata,created_at').order('created_at', { ascending: false }).limit(40);
   if (error) throw error;
   return (data ?? []) as AuditEntry[];
+}
+
+/* ------------------------------ admin tools (migration 20261008100000) ------------------------------ */
+
+export type DirectoryUser = {
+  id: string; email: string | null; full_name: string | null; phone: string | null; city: string | null; role: 'customer' | 'provider' | 'admin';
+  account_status: AccountStatus; created_at: string; last_sign_in_at: string | null; provider_status: VerificationStatus | null; total_count: number;
+};
+
+export async function directoryUsers(opts: { search?: string; role?: string; status?: string; limit?: number; offset?: number }): Promise<DirectoryUser[]> {
+  const { data, error } = await supabase.rpc('admin_list_users', {
+    p_search: opts.search?.trim() || null, p_role: opts.role || null, p_status: opts.status || null, p_limit: opts.limit ?? 50, p_offset: opts.offset ?? 0,
+  });
+  if (error) throw error;
+  return ((data ?? []) as DirectoryUser[]).map(u => ({ ...u, total_count: Number(u.total_count) }));
+}
+
+export type UserOverview = {
+  id: string; email: string | null; full_name: string | null; phone: string | null; city: string | null; role: 'customer' | 'provider' | 'admin';
+  account_status: AccountStatus; created_at: string; last_sign_in_at: string | null; email_confirmed: boolean;
+  provider_status: VerificationStatus | null; profession: string | null; service_category: string | null; rejection_reason: string | null; listing_published: boolean;
+  bookings_as_customer: number; bookings_as_provider: number; open_bookings: number; reviews_written: number; reviews_received: number; reports_against: number; open_reports_against: number;
+};
+
+export async function userOverview(id: string): Promise<UserOverview> {
+  const { data, error } = await supabase.rpc('admin_user_overview', { p_user: id });
+  if (error) throw error;
+  return data as UserOverview;
+}
+
+export type OverviewStats = {
+  customers: number; providers: number; approved_providers: number; pending_applications: number; open_reports: number; suspended_accounts: number;
+  total_bookings: number; open_bookings: number; bookings_7d: number; bookings_30d: number; completed_30d: number; new_users_7d: number; new_users_30d: number;
+  unpaid_completed: number; paid_30d: Record<string, number>; reviews: number; daily: Array<{ day: string; bookings: number; users: number }>;
+};
+
+export async function overviewStats(): Promise<OverviewStats> {
+  const { data, error } = await supabase.rpc('admin_overview_stats');
+  if (error) throw error;
+  return data as OverviewStats;
+}
+
+export async function sendAnnouncement(audience: 'all' | 'customers' | 'providers', title: string, body: string): Promise<number> {
+  const { data, error } = await supabase.rpc('admin_send_announcement', { p_audience: audience, p_title: title, p_body: body });
+  if (error) throw error;
+  return Number(data ?? 0);
+}
+
+export async function deleteUserAccount(id: string): Promise<void> {
+  const { error } = await supabase.rpc('admin_delete_user', { p_target: id });
+  if (error) throw error;
 }

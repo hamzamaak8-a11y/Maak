@@ -23,6 +23,8 @@ function normalize(raw: Record<string, unknown>): Provider {
     intro: raw.intro == null ? null : String(raw.intro),
     provider_profile_id: typeof raw.provider_profile_id === 'string' ? raw.provider_profile_id : null,
     category: typeof raw.category === 'string' ? raw.category : null,
+    verified: raw.verified === true,
+    currency: typeof raw.currency === 'string' && /^[A-Z]{3}$/.test(raw.currency) ? raw.currency : null,
   };
 }
 
@@ -66,17 +68,14 @@ export async function fetchProvider(id: number): Promise<Provider | null> {
   return body ? normalize(body as Record<string, unknown>) : null;
 }
 
+/** Work photos of a provider. Rejects when the server cannot be reached, so the screen can tell "no photos" from "could not load". */
 export async function fetchPortfolio(listingId: number): Promise<PortfolioImage[]> {
-  try {
-    const body = await getJson(`/api/providers/${listingId}/portfolio`);
-    return Array.isArray(body)
-      ? (body as Array<{ id?: string; path?: string; url?: string; created_at?: string | null }>)
-          .filter(i => i.url)
-          .map(i => ({ id: String(i.id ?? i.path), path: String(i.path ?? ''), url: String(i.url), created_at: i.created_at ?? null }))
-      : [];
-  } catch {
-    return [];
-  }
+  const body = await getJson(`/api/providers/${listingId}/portfolio`);
+  return Array.isArray(body)
+    ? (body as Array<{ id?: string; path?: string; url?: string; created_at?: string | null }>)
+        .filter(i => i.url)
+        .map(i => ({ id: String(i.id ?? i.path), path: String(i.path ?? ''), url: String(i.url), created_at: i.created_at ?? null }))
+    : [];
 }
 
 export function isBookable(p: Provider | null | undefined): p is Provider {

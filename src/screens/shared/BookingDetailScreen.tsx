@@ -8,8 +8,10 @@ import { acceptBooking, cancelBooking, completeBooking, getBooking, rejectBookin
 import { fetchProviders } from '../../api/providers';
 import { listMyReviews, submitReview } from '../../api/reviews';
 import { openBookingConversation } from '../../api/chat';
-import { Badge, Banner, Button, Card, EmptyState, ErrorState, Header, InfoRow, Loading, Page, ReasonSheet, Row, Screen, Sheet, StarInput, StatusBadge, TextField, useAsync } from '../../components/ui';
+import { Badge, Banner, Button, Card, EmptyState, ErrorState, Header, InfoRow, Loading, Muted, Page, ReasonSheet, Row, Screen, Sheet, StarInput, StatusBadge, TextField, useAsync } from '../../components/ui';
 import { formatDateTime, formatMoney } from '../../lib/format';
+import { canProviderSetPrice, isPriceLocked } from '../../lib/bookingRules';
+import { SUPPORT_EMAIL } from '../../config/env';
 import { errorKey } from '../../lib/errors';
 import type { Booking } from '../../types';
 import type { ScreenProps } from '../../navigation/types';
@@ -87,7 +89,10 @@ export function BookingDetailScreen({ navigation, route }: ScreenProps<'BookingD
             <StatusBadge status={b.payment_status} />
           </Row>
           {b.price != null && b.payment_status !== 'paid' ? <Banner kind="info" text={t('booking.payDirect')} /> : null}
+          {isProvider && isPriceLocked(b) ? <Muted>{t('booking.priceLocked')}</Muted> : null}
         </Card>
+
+        {['accepted', 'in_progress'].includes(b.status) ? <Banner kind="info" text={t('booking.needChange', { email: SUPPORT_EMAIL })} /> : null}
 
         <View style={{ gap: 10 }}>
           <Button title={t('booking.message')} icon="chatbubble-ellipses-outline" variant="outline" loading={busy} onPress={openChat} />
@@ -104,7 +109,7 @@ export function BookingDetailScreen({ navigation, route }: ScreenProps<'BookingD
           ) : null}
           {isProvider && b.status === 'accepted' ? <Button title={t('provider.start')} icon="play" loading={busy} onPress={() => run(() => startBooking(b.id), t('booking.started'))} /> : null}
           {isProvider && b.status === 'in_progress' ? <Button title={t('provider.complete')} icon="checkmark-done" loading={busy} onPress={() => run(() => completeBooking(b.id), t('booking.completed'))} /> : null}
-          {isProvider && ['pending', 'accepted', 'in_progress', 'completed'].includes(b.status) ? <Button title={b.price == null ? t('provider.setPrice') : t('provider.changePrice')} variant="secondary" icon="cash-outline" onPress={() => { setPrice(b.price == null ? '' : String(b.price)); setCurrency(b.currency || 'MAD'); setSheet('price'); }} /> : null}
+          {isProvider && canProviderSetPrice(b) ? <Button title={b.price == null ? t('provider.setPrice') : t('provider.changePrice')} variant="secondary" icon="cash-outline" onPress={() => { setPrice(b.price == null ? '' : String(b.price)); setCurrency(b.currency || 'MAD'); setSheet('price'); }} /> : null}
         </View>
       </Page>
 

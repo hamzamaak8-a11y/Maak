@@ -14,6 +14,23 @@ function headers(env: Env): Record<string, string> {
 // Public marketplace visibility: only real, published, provider-linked listings.
 const PUBLISHED_FILTER = "listing_kind=eq.real&published_at=not.is.null&provider_profile_id=not.is.null";
 const PORTFOLIO_BUCKET = "provider-portfolio";
+
+/**
+ * The ONLY columns read from public.providers, and the ONLY fields returned to the public API. The Worker reads with the
+ * service-role key, so a column added to the table later (an internal note, a contact, ...) must never become public by accident:
+ * it has to be added here on purpose. Everything else the app shows (category, rating, verified, currency, availability) is computed below.
+ */
+const PROVIDER_COLUMNS = ["id", "name", "job", "city", "distance", "price", "rating", "reviews", "image", "available", "services", "experience", "intro", "provider_profile_id", "listing_kind", "published_at"] as const;
+
+function toPublic(row: Provider, extra: Pick<Provider, "category" | "rating" | "reviews" | "verified" | "currency" | "available">): Provider {
+  return {
+    id: row.id, name: row.name, job: row.job, city: row.city, distance: row.distance ?? null, price: row.price ?? null,
+    rating: extra.rating, reviews: extra.reviews, image: row.image ?? null, available: extra.available,
+    services: Array.isArray(row.services) ? row.services : [], experience: row.experience ?? null, intro: row.intro ?? null,
+    provider_profile_id: row.provider_profile_id ?? null, listing_kind: row.listing_kind ?? null, published_at: row.published_at ?? null,
+    category: extra.category, verified: extra.verified, currency: extra.currency,
+  };
+}
 const PORTFOLIO_URL_TTL_SECONDS = 3600;
 
 async function getJson<T>(env: Env, url: URL | string, what: string): Promise<T> {
@@ -28,59 +45,108 @@ function chunk<T>(items: T[], size: number): T[][] {
   return out;
 }
 
-/** Adds the provider's category and the live rating/review count computed from visible reviews. */
+/** Optional lookups must never take the whole listing down: a failure just means "unknown". */
+async function getJsonOrEmpty<T>(env: Env, url: string, what: string): Promise<T[]> {
+  try { return await getJson<T[]>(env, url, what); } catch (error) { console.error(`[maak-worker] ${what} unavailable`, error); return []; }
+}
+
+/**
+ * Re-checks, with the same rule as the public RLS policy, that every listing belongs to an APPROVED provider with an ACTIVE
+ * account (the Worker reads with the service-role key, which bypasses RLS, so `published_at` alone is not trusted), then adds:
+ *  - category, and the live rating / review count computed from visible reviews;
+ *  - `verified` (only ever true for approved providers - unapproved ones are not returned at all);
+ *  - `currency` of the provider's active price list (null when unknown or mixed);
+ *  - `available`: the provider has not paused the listing AND has at least one working-hours window.
+ */
 async function enrich(env: Env, providers: Provider[]): Promise<Provider[]> {
   const ids = Array.from(new Set(providers.map((p) => p.provider_profile_id).filter((id): id is string => !!id)));
-  if (ids.length === 0) return providers.map((p) => ({ ...p, category: null }));
+  if (ids.length === 0) return [];
 
   const categories = new Map<string, string | null>();
+  const approved = new Set<string>();
   const stats = new Map<string, { sum: number; count: number }>();
+  const currencies = new Map<string, Set<string>>();
+  const withHours = new Set<number>();
 
   await Promise.all(
     chunk(ids, 50).map(async (group) => {
       const list = `(${group.join(",")})`;
-      const profiles = await getJson<Array<{ id: string; service_category: string | null }>>(
-        env,
-        `${env.SUPABASE_URL}/rest/v1/provider_profiles?select=id,service_category&id=in.${list}`,
-        "category lookup",
-      );
-      for (const row of profiles) categories.set(row.id, row.service_category);
-
-      const reviews = await getJson<Array<{ provider_id: string; rating: number }>>(
-        env,
-        `${env.SUPABASE_URL}/rest/v1/reviews?select=provider_id,rating&is_hidden=eq.false&provider_id=in.${list}&limit=5000`,
-        "rating lookup",
-      );
+      const [profiles, accounts, reviews, services] = await Promise.all([
+        getJson<Array<{ id: string; service_category: string | null; verification_status: string | null }>>(
+          env,
+          `${env.SUPABASE_URL}/rest/v1/provider_profiles?select=id,service_category,verification_status&id=in.${list}`,
+          "category lookup",
+        ),
+        getJson<Array<{ id: string; account_status: string | null }>>(env, `${env.SUPABASE_URL}/rest/v1/profiles?select=id,account_status&id=in.${list}`, "account lookup"),
+        getJson<Array<{ provider_id: string; rating: number }>>(
+          env,
+          `${env.SUPABASE_URL}/rest/v1/reviews?select=provider_id,rating&is_hidden=eq.false&provider_id=in.${list}&limit=5000`,
+          "rating lookup",
+        ),
+        getJsonOrEmpty<{ provider_id: string; currency: string | null }>(
+          env,
+          `${env.SUPABASE_URL}/rest/v1/provider_services?select=provider_id,currency&is_active=eq.true&provider_id=in.${list}&limit=5000`,
+          "currency lookup",
+        ),
+      ]);
+      const active = new Set(accounts.filter((a) => a.account_status === "active").map((a) => a.id));
+      for (const row of profiles) {
+        categories.set(row.id, row.service_category);
+        if (row.verification_status === "approved" && active.has(row.id)) approved.add(row.id);
+      }
       for (const row of reviews) {
         const current = stats.get(row.provider_id) ?? { sum: 0, count: 0 };
         current.sum += Number(row.rating);
         current.count += 1;
         stats.set(row.provider_id, current);
       }
+      for (const row of services) {
+        if (!row.currency) continue;
+        const set = currencies.get(row.provider_id) ?? new Set<string>();
+        set.add(row.currency);
+        currencies.set(row.provider_id, set);
+      }
     }),
   );
 
-  return providers.map((provider) => {
-    const id = provider.provider_profile_id;
-    const stat = id ? stats.get(id) : undefined;
-    return {
-      ...provider,
-      category: id ? categories.get(id) ?? null : null,
-      rating: stat && stat.count > 0 ? (stat.sum / stat.count).toFixed(1) : provider.rating,
-      reviews: stat && stat.count > 0 ? stat.count : provider.reviews,
-    };
-  });
+  const listingIds = providers.filter((p) => p.provider_profile_id && approved.has(p.provider_profile_id)).map((p) => p.id);
+  await Promise.all(
+    chunk(listingIds, 50).map(async (group) => {
+      const rows = await getJsonOrEmpty<{ provider_id: number }>(
+        env,
+        `${env.SUPABASE_URL}/rest/v1/provider_availability?select=provider_id&is_available=eq.true&provider_id=in.(${group.join(",")})&limit=5000`,
+        "availability lookup",
+      );
+      for (const row of rows) withHours.add(Number(row.provider_id));
+    }),
+  );
+
+  return providers
+    .filter((provider) => !!provider.provider_profile_id && approved.has(provider.provider_profile_id))
+    .map((provider) => {
+      const id = provider.provider_profile_id as string;
+      const stat = stats.get(id);
+      const cur = currencies.get(id);
+      return toPublic(provider, {
+        category: categories.get(id) ?? null,
+        rating: stat && stat.count > 0 ? (stat.sum / stat.count).toFixed(1) : provider.rating ?? null,
+        reviews: stat && stat.count > 0 ? stat.count : provider.reviews ?? 0,
+        verified: true,
+        currency: cur && cur.size === 1 ? [...cur][0] : null,
+        available: provider.available !== false && withHours.has(provider.id),
+      });
+    });
 }
 
 export async function listProviders(env: Env): Promise<Provider[]> {
-  const providers = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?order=id.asc&" + PUBLISHED_FILTER, "list");
+  const providers = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?select=" + PROVIDER_COLUMNS.join(",") + "&order=id.asc&" + PUBLISHED_FILTER, "list");
   return enrich(env, providers);
 }
 
 export async function findProvider(env: Env, id: number): Promise<Provider | null> {
-  const arr = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?id=eq." + id + "&" + PUBLISHED_FILTER, "get");
+  const arr = await getJson<Provider[]>(env, env.SUPABASE_URL + "/rest/v1/providers?select=" + PROVIDER_COLUMNS.join(",") + "&id=eq." + id + "&" + PUBLISHED_FILTER, "get");
   if (arr.length === 0) return null;
-  return (await enrich(env, [arr[0]]))[0];
+  return (await enrich(env, [arr[0]]))[0] ?? null;
 }
 
 async function signPortfolioObject(env: Env, path: string): Promise<string> {

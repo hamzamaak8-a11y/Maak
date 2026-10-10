@@ -28,7 +28,8 @@ export function NotificationsScreen({ navigation }: ScreenProps<'Notifications'>
     return subscribeToNotifications(user.id, n => setData(prev => [n, ...(prev ?? [])]));
   }, [user, setData]);
 
-  const text = useCallback((raw: string) => { const out = t(raw as TKey); return out === raw && raw.includes('.') ? '' : out; }, [t]);
+  // Server notifications carry translation keys ("notifications.bookingNewTitle"); admin announcements carry free text, which may contain dots.
+  const text = useCallback((raw: string) => (/^[a-z]+\.[A-Za-z]+$/.test(raw) ? (t(raw as TKey) === raw ? '' : t(raw as TKey)) : raw), [t]);
 
   const open = async (n: AppNotification) => {
     if (!n.is_read) { setData(prev => (prev ?? []).map(x => (x.id === n.id ? { ...x, is_read: true } : x))); markNotificationRead(n.id).catch(() => {}); }
@@ -59,8 +60,8 @@ export function NotificationsScreen({ navigation }: ScreenProps<'Notifications'>
               <Ionicons name={ICONS[item.type] ?? 'notifications'} size={24} color={colors.primary} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>{text(item.title) || t('notifications.generic')}</Text>
-                {text(item.body) ? <Text style={{ color: colors.textSecondary, fontSize: 13, lineHeight: 19 }}>{text(item.body)}</Text> : null}
-                <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }}>{formatDateTime(item.created_at, lang)}</Text>
+                {text(item.body) ? <Text style={{ color: colors.textSecondary, fontSize: 14, lineHeight: 19 }}>{text(item.body)}</Text> : null}
+                <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{formatDateTime(item.created_at, lang)}</Text>
               </View>
             </Pressable>
           )}

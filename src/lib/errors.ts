@@ -6,7 +6,7 @@ export type ErrorKey =
   | 'err.invalidTransition' | 'err.reasonRequired' | 'err.invalidPrice' | 'err.invalidCurrency'
   | 'err.alreadyReviewed' | 'err.bookingNotCompleted' | 'err.invalidRating' | 'err.emptyMessage'
   | 'err.messageTooLong' | 'err.fileTooBig' | 'err.fileType' | 'err.documentsRequired'
-  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
+  | 'err.activeBookings' | 'err.adminCannotDelete' | 'err.invalidReport' | 'err.invalidTarget' | 'err.emailExists' | 'err.invalidEmail' | 'err.invalidProvider' | 'err.batchTooLarge' | 'err.serverError' | 'err.backendOutdated' | 'err.documentLocked' | 'err.documentFileLeft' | 'err.serviceUnavailable' | 'err.serviceTooLong' | 'err.invalidAvailability' | 'err.priceLocked' | 'err.notPayable' | 'err.alreadyPaid' | 'err.paymentLocked' | 'err.notRefundable' | 'err.suspended' | 'err.config' | 'err.oauthCancelled' | 'err.sessionExpired';
 
 function rawMessage(error: unknown): string {
   if (!error) return '';
@@ -31,6 +31,8 @@ export function errorKey(error: unknown): ErrorKey {
   if (/rate limit|too many|over_email_send_rate_limit|429/i.test(m)) return 'err.rateLimited';
   if (/not_authenticated|jwt|refresh token|session/i.test(m)) return 'err.notAuthenticated';
   if (/provider_not_bookable|provider_not_linked/i.test(m)) return 'err.notBookable';
+  if (/service_unavailable/i.test(m)) return 'err.serviceUnavailable';
+  if (/invalid_service_duration/i.test(m)) return 'err.serviceTooLong';
   if (/slot_unavailable|provider_unavailable/i.test(m)) return 'err.slotUnavailable';
   if (/invalid_service_date/i.test(m)) return 'err.invalidDate';
   if (/invalid_transition/i.test(m)) return 'err.invalidTransition';
@@ -42,10 +44,25 @@ export function errorKey(error: unknown): ErrorKey {
   if (/invalid_rating/i.test(m)) return 'err.invalidRating';
   if (/empty_message/i.test(m)) return 'err.emptyMessage';
   if (/message_too_long/i.test(m)) return 'err.messageTooLong';
+  if (/document_locked/i.test(m)) return 'err.documentLocked';
+  if (/document_file_left/i.test(m)) return 'err.documentFileLeft';
   if (/documents_required/i.test(m)) return 'err.documentsRequired';
+  if (/invalid_target/i.test(m)) return 'err.invalidTarget';
+  if (/email_exists/i.test(m)) return 'err.emailExists';
+  if (/invalid_email/i.test(m)) return 'err.invalidEmail';
+  if (/invalid_provider|invalid_name|invalid_role/i.test(m)) return 'err.invalidProvider';
+  if (/batch_too_large|empty_batch/i.test(m)) return 'err.batchTooLarge';
+  if (/server_error|create_failed|invite_failed|profile_|link_failed/i.test(m)) return 'err.serverError';
   if (/active_bookings/i.test(m)) return 'err.activeBookings';
   if (/admin_cannot_delete/i.test(m)) return 'err.adminCannotDelete';
   if (/invalid_report/i.test(m)) return 'err.invalidReport';
+  if (/PGRST202|PGRST205|could not find the function|schema cache/i.test(m)) return 'err.backendOutdated';
+  if (/invalid_availability/i.test(m)) return 'err.invalidAvailability';
+  if (/price_locked/i.test(m)) return 'err.priceLocked';
+  if (/booking_not_payable/i.test(m)) return 'err.notPayable';
+  if (/already_paid/i.test(m)) return 'err.alreadyPaid';
+  if (/payment_locked/i.test(m)) return 'err.paymentLocked';
+  if (/booking_not_refundable/i.test(m)) return 'err.notRefundable';
   if (/not_found|booking_not_found|review_not_found/i.test(m)) return 'err.notFound';
   if (/forbidden|permission denied|row-level security/i.test(m)) return 'err.forbidden';
   return 'err.generic';

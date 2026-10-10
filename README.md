@@ -21,8 +21,9 @@ One Expo / React Native codebase ships **iOS, Android and Web**. Languages: ال
 * **Guests** can browse everything. Any action that needs an account sends them to *Sign in* and then continues where they were.
 * **Providers** sign up like everyone else, complete a 3-step application (about you → your work → documents) and wait
   for approval. Their documents are private; only admins can open them.
-* **Admins** cannot sign up from the app. The admin account is created in the database (see `supabase/README.md`) and
-  signs in from the normal *Sign in* screen with its own private e-mail and password.
+* **Admins** have their **own panel at a private address**, built separately (`EXPO_PUBLIC_APP_TARGET=admin`). The customer/provider
+  app contains no way in for administrators (an admin account that signs in there is turned away), and the panel turns away
+  non-admins. The admin account is created in the database (see `supabase/README.md`). Deployment: `docs/ADMIN_PANEL.md`.
 * **Payments** are intentionally not handled in the app yet: the provider sets the price after accepting and is paid
   directly. **Subscriptions / memberships** are intentionally left out for now (the database tables are untouched so they
   can be added later).

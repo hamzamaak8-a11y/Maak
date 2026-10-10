@@ -52,16 +52,17 @@ export function ProviderServicesScreen({ embedded }: { embedded?: boolean }) {
       <Header title={t('services.title')} noBack={embedded} right={<IconButton icon="add" onPress={() => open()} label={t('common.add')} />} />
       {loading && !data ? <Loading /> : error && !data ? <ErrorState error={error} onRetry={reload} /> : (
         <Page>
+          <Button title={t('services.add')} icon="add-circle" gradient onPress={() => open()} />
           <Banner kind="info" text={t('services.hint')} />
           {(data ?? []).length === 0 ? <EmptyState icon="construct-outline" title={t('services.empty')} text={t('services.emptyText')} action={<Button title={t('services.add')} onPress={() => open()} />} /> : (data ?? []).map(s => (
-            <Card key={s.id} onPress={() => open(s)} style={{ gap: 6 }}>
+            <Card key={s.id} onPress={() => open(s)} style={{ gap: 8, borderRadius: 20 }}>
               <Row style={{ justifyContent: 'space-between' }}>
                 <Text style={{ color: colors.text, fontWeight: '800', fontSize: 16, flex: 1 }}>{s.name}</Text>
                 <Badge text={s.is_active ? t('services.active') : t('services.inactive')} tone={s.is_active ? 'success' : 'neutral'} />
               </Row>
               {s.description ? <Muted numberOfLines={2}>{s.description}</Muted> : null}
               <Row gap={14}>
-                {s.price != null ? <Text style={{ color: colors.primary, fontWeight: '800' }}>{formatMoney(s.price, s.currency, lang)}</Text> : null}
+                {s.price != null ? <View style={{ backgroundColor: colors.primaryLight, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99 }}><Text style={{ color: colors.primary, fontWeight: '800', fontSize: 14 }}>{formatMoney(s.price, s.currency, lang)}</Text></View> : null}
                 {s.duration_minutes ? <Muted>{t('services.minutes', { n: s.duration_minutes })}</Muted> : null}
               </Row>
             </Card>

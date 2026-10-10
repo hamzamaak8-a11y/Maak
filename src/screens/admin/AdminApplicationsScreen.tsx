@@ -4,13 +4,16 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useToast } from '../../contexts/ToastContext';
 import { AdminApplication, AdminDocument, approveProvider, listApplicationDocuments, listApplications, rejectProvider, signedDocumentUrl } from '../../api/admin';
-import { Button, Card, EmptyState, ErrorState, Header, InfoRow, Loading, Muted, ReasonSheet, Row, Screen, StatusBadge, Tabs, useAsync, Page } from '../../components/ui';
+import { Banner, Button, Card, EmptyState, ErrorState, Header, InfoRow, Loading, Muted, ReasonSheet, Row, Screen, StatusBadge, Tabs, useAsync, Page } from '../../components/ui';
 import { categoryLabel } from '../../constants/categories';
 import { formatDate } from '../../lib/format';
 import { errorKey } from '../../lib/errors';
 import type { VerificationStatus } from '../../types';
 
-type Filter = Extract<VerificationStatus, 'pending' | 'approved' | 'rejected' | 'suspended'>;
+type Filter = Extract<VerificationStatus, 'pending' | 'draft' | 'approved' | 'rejected' | 'suspended'>;
+
+/** Same rule the database enforces: a national ID and a profile photo that were not rejected. */
+const hasRequiredDocs = (list: AdminDocument[] | undefined) => !!list && ['national_id', 'profile_photo'].every(type => list.some(d => d.document_type === type && d.status !== 'rejected'));
 
 export function AdminApplicationsScreen() {
   const { colors } = useTheme();
@@ -22,6 +25,13 @@ export function AdminApplicationsScreen() {
   const [rejecting, setRejecting] = useState<AdminApplication | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const { data, setData, loading, error, reload } = useAsync(() => listApplications(filter), [filter]);
+
+  React.useEffect(() => {
+    for (const a of data ?? []) {
+      if (a.verification_status !== 'pending' || docs[a.id]) continue;
+      listApplicationDocuments(a.id).then(d => setDocs(prev => ({ ...prev, [a.id]: d }))).catch(() => {});
+    }
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = async (a: AdminApplication) => {
     if (openId === a.id) { setOpenId(null); return; }
@@ -53,7 +63,7 @@ export function AdminApplicationsScreen() {
     <Screen>
       <Header title={t('admin.applications')} />
       <View style={{ paddingVertical: 12 }}>
-        <Tabs items={(['pending', 'approved', 'rejected', 'suspended'] as Filter[]).map(k => ({ key: k, label: t(`status.${k}` as never) }))} value={filter} onChange={setFilter} />
+        <Tabs items={(['pending', 'draft', 'approved', 'rejected', 'suspended'] as Filter[]).map(k => ({ key: k, label: t(`status.${k}` as never) }))} value={filter} onChange={setFilter} />
       </View>
       {loading && !data ? <Loading /> : error && !data ? <ErrorState error={error} onRetry={reload} /> : (
         <Page>
@@ -84,9 +94,10 @@ export function AdminApplicationsScreen() {
                   {docs[a.id] && docs[a.id].length === 0 ? <Muted>{t('admin.noDocuments')}</Muted> : null}
                 </View>
               ) : null}
+              {a.verification_status === 'pending' && docs[a.id] && !hasRequiredDocs(docs[a.id]) ? <Banner kind="warning" text={t('admin.docsMissing')} /> : null}
               {a.verification_status === 'pending' ? (
                 <Row gap={10}>
-                  <Button title={t('admin.approve')} icon="checkmark" loading={busy === a.id} onPress={() => approve(a)} style={{ flex: 1 }} />
+                  <Button title={t('admin.approve')} icon="checkmark" loading={busy === a.id} disabled={!hasRequiredDocs(docs[a.id])} onPress={() => approve(a)} style={{ flex: 1 }} />
                   <Button title={t('admin.reject')} variant="danger" onPress={() => setRejecting(a)} style={{ flex: 1 }} />
                 </Row>
               ) : null}

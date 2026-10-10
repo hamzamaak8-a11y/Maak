@@ -33,8 +33,8 @@ export function SecurityScreen() {
         <Page contentStyle={{ gap: 14 }}>
           <Muted>{t('security.text', { email: user?.email ?? '' })}</Muted>
           {error ? <Banner kind="error" text={error} /> : null}
-          <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" />
-          <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" />
+          <TextField label={t('auth.newPassword')} icon="lock-closed-outline" secure value={password} onChangeText={setPassword} autoCapitalize="none" autoComplete="new-password" />
+          <TextField label={t('auth.confirmPassword')} icon="lock-closed-outline" secure value={confirm} onChangeText={setConfirm} autoCapitalize="none" autoComplete="new-password" />
           <Button title={t('security.update')} onPress={save} loading={busy} />
           <Button title={t('delete.entry')} variant="ghost" icon="trash-outline" onPress={() => nav.navigate('DeleteAccount')} />
         </Page>

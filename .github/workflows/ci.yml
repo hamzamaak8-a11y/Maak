@@ -32,11 +32,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - name: Export web build
+      - name: Export web build (app)
         run: npx expo export --platform web
         env:
           CI: "1"
           EXPO_NO_TELEMETRY: "1"
+      - name: Export web build (administration panel)
+        run: npx expo export --clear --platform web --output-dir dist-admin
+        env:
+          CI: "1"
+          EXPO_NO_TELEMETRY: "1"
+          EXPO_PUBLIC_APP_TARGET: admin
 
   worker:
     name: Worker typecheck

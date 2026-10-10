@@ -31,9 +31,26 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx expo export --platform web
+      - name: Build the app
+        run: npx expo export --platform web
       - name: SPA fallback
         run: cp dist/index.html dist/404.html
+      # The administration panel is a SEPARATE build (EXPO_PUBLIC_APP_TARGET=admin) served from its own private path.
+      # Set the repository variable MAAK_ADMIN_PATH to a long, unguessable value (letters, digits, - or _),
+      # e.g. ops-7f3a9c2e41. Without it, no admin panel is published.
+      - name: Build the administration panel (private path)
+        if: ${{ vars.MAAK_ADMIN_PATH != '' }}
+        env:
+          ADMIN_PATH: ${{ vars.MAAK_ADMIN_PATH }}
+          APP_BASE: ${{ env.EXPO_BASE_URL }}
+          EXPO_PUBLIC_APP_TARGET: admin
+        run: |
+          if ! [[ "$ADMIN_PATH" =~ ^[A-Za-z0-9_-]{8,64}$ ]]; then echo "MAAK_ADMIN_PATH must be 8-64 characters: letters, digits, - or _" >&2; exit 1; fi
+          export EXPO_BASE_URL="${APP_BASE}/${ADMIN_PATH}"
+          npx expo export --clear --platform web --output-dir dist-admin
+          mkdir -p "dist/${ADMIN_PATH}"
+          cp -R dist-admin/. "dist/${ADMIN_PATH}/"
+          rm -rf dist-admin
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist

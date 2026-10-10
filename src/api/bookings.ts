@@ -8,6 +8,10 @@ export type CreateBookingInput = {
   serviceDate: string;
   locationText: string;
   customerNote?: string;
+  /** A service of the provider's price list (must be active). Without it the request is free: one hour, named by the customer. */
+  serviceId?: string | null;
+  /** Minutes the chosen service lasts (default 60); the same value the database reserves. */
+  durationMinutes?: number;
 };
 
 export async function checkAvailability(listingId: number, startIso: string, endIso: string): Promise<boolean> {
@@ -25,7 +29,8 @@ export async function getProviderAvailability(listingId: number): Promise<Availa
 export async function createBooking(input: CreateBookingInput): Promise<Booking> {
   const when = new Date(input.serviceDate).getTime();
   if (!Number.isFinite(when) || when <= Date.now()) throw new Error('invalid_service_date');
-  const end = new Date(when + 3_600_000).toISOString();
+  const minutes = input.durationMinutes && input.durationMinutes > 0 ? input.durationMinutes : 60;
+  const end = new Date(when + minutes * 60_000).toISOString();
   if (!(await checkAvailability(input.providerListingId, new Date(when).toISOString(), end))) throw new Error('slot_unavailable');
   const { data, error } = await supabase.rpc('create_booking', {
     p_provider_listing_id: input.providerListingId,
@@ -34,6 +39,8 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
     p_service_date: input.serviceDate,
     p_location_text: input.locationText,
     p_customer_note: input.customerNote ?? '',
+    // only sent for a price-list service, so free requests also work against a database that has not received the newest migration yet
+    ...(input.serviceId ? { p_service_id: input.serviceId } : {}),
   });
   if (error) throw error;
   return data as Booking;
