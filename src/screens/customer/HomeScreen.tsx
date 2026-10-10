@@ -1,8 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { Image, Platform, Pressable, RefreshControl, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -52,22 +51,24 @@ export function HomeScreen() {
   return (
     <Screen>
       <Page refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}>
-        <LinearGradient colors={['#061A44', '#0B2F7A', '#1D5FE0']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, gap: 16, overflow: 'hidden', boxShadow: '0 14px 34px rgba(29,95,224,0.30)' }}>
-          <LinearGradient pointerEvents="none" colors={['#FFC933', '#FF7A1A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', top: -46, end: -34, width: 128, height: 128, borderRadius: 64, opacity: 0.95 }} />
-          <View pointerEvents="none" style={{ position: 'absolute', bottom: -80, start: -40, width: 170, height: 170, borderRadius: 85, backgroundColor: 'rgba(0,198,255,0.32)' }} />
+        <View style={{ gap: 18 }}>
           <Row style={{ justifyContent: 'space-between' }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.78)', fontSize: 14, fontWeight: '600' }}>{user ? t('home.hello') : t('home.welcome')}</Text>
-              <Text numberOfLines={1} style={{ color: '#FFFFFF', fontSize: 26, fontWeight: '900', letterSpacing: -0.4 }}>{first || 'Maak'}</Text>
-            </View>
+            <Row gap={8}>
+              <Image source={require('../../../assets/logo-mark.png')} accessibilityIgnoresInvertColors style={{ width: 34, height: 34 }} resizeMode="contain" />
+              <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.3 }}>Maak</Text>
+            </Row>
             <BellButton />
           </Row>
-          <Pressable onPress={search} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,0.97)', borderRadius: 16, paddingHorizontal: 16, minHeight: 54 }}>
-            <Ionicons name="search" size={20} color="#475569" />
-            <TextInput accessibilityLabel={t('home.searchPlaceholder')} value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} placeholderTextColor="#64748B" returnKeyType="search" onSubmitEditing={search}
-              style={[{ flex: 1, fontSize: 16, color: '#0B1220', paddingVertical: 12 }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]} textAlign={isRTL ? 'right' : 'left'} />
+          <View style={{ gap: 2 }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '600' }}>{user ? t('home.hello') : t('home.welcome')}</Text>
+            {first ? <Text numberOfLines={1} style={{ color: colors.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 }}>{first}</Text> : null}
+          </View>
+          <Pressable onPress={search} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, minHeight: 54 }}>
+            <Ionicons name="search" size={20} color={colors.textMuted} />
+            <TextInput accessibilityLabel={t('home.searchPlaceholder')} value={query} onChangeText={setQuery} placeholder={t('home.searchPlaceholder')} placeholderTextColor={colors.textMuted} returnKeyType="search" onSubmitEditing={search}
+              style={[{ flex: 1, fontSize: 16, color: colors.text, paddingVertical: 12 }, Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null]} textAlign={isRTL ? 'right' : 'left'} />
           </Pressable>
-        </LinearGradient>
+        </View>
 
         {user && applicationOpen ? (
           <Pressable onPress={() => nav.navigate('ProviderApplication')}>
